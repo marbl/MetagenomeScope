@@ -256,9 +256,8 @@ class Component(Subgraph):
                 # the fact that we see (-t, -s) in inval_edgetups disqualify us
                 # from saving these edges, in this particular case. (See node
                 # 249210759 in the chr15_full.gv test graph for an example.)
-                fwd_edgetup = (s, t)
                 rev_edgetup = name_utils.negate_edge_tuple(s, t)
-                if fwd_edgetup == rev_edgetup or rev_edgetup not in inval_edgetups:
+                if rev_edgetup == (s, t) or rev_edgetup not in inval_edgetups:
                     inval_edgetups.add((s, t))
                     # Since exactly one of the nodes of this edge will not be
                     # shown, see if we can find its reverse-complementary node
