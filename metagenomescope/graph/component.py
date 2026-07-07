@@ -251,16 +251,19 @@ class Component(Subgraph):
                 # -2 --> -1, since it becomes (1, 2) vs. (-2, -1).
                 s = self.nodeid2obj[e.new_src_id].basename
                 t = self.nodeid2obj[e.new_tgt_id].basename
-                if name_utils.negate_edge_tuple(s, t) not in inval_edgetups:
+                # If this is a palindromic loop edge from s -> -s or -s -> s,
+                # then (s, t) and (-t, -s) will be the same. So don't let
+                # the fact that we see (-t, -s) in inval_edgetups disqualify us
+                # from saving these edges, in this particular case. (See node
+                # 249210759 in the chr15_full.gv test graph for an example.)
+                fwd_edgetup = (s, t)
+                rev_edgetup = name_utils.negate_edge_tuple(s, t)
+                if fwd_edgetup == rev_edgetup or rev_edgetup not in inval_edgetups:
                     inval_edgetups.add((s, t))
                     # Since exactly one of the nodes of this edge will not be
                     # shown, see if we can find its reverse-complementary node
                     # in the shown nodes. Note that this reverse-complementary
                     # node might be split, which is fine.
-                    #
-                    # +-------+            +--------+
-                    # |       |            |        |
-                    # +-(-s)  +->(t)   (s)-+  (-t)<-+
                     if inval_type == config.INVAL_SRC:
                         rname = name_utils.negate(s)
                         rsplit = config.SPLIT_LEFT
