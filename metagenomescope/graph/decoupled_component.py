@@ -58,7 +58,7 @@ class DecoupledComponent(Subgraph):
             count_positive_names=cc.count_positive_names,
         )
 
-    def get_inval_edge_dot(self):
+    def inval_edges_to_dot(self):
         out_dot = ""
         for e, inval_type, rn_id in self.inval_edge_info:
             if e.is_fake:
@@ -76,3 +76,20 @@ class DecoupledComponent(Subgraph):
                     e.new_src_id, rn_id, ports=("e", "e")
                 )
         return out_dot
+
+    def inval_edges_to_cyjs(self, scope_settings, edgeid2ctrlpts=None):
+        eles = []
+        for e, inval_type, rn_id in self.inval_edge_info:
+            j = e.to_cyjs(scope_settings)
+            if inval_type == config.INVAL_SRC:
+                j["data"]["source"] = rn_id
+            else:
+                j["data"]["target"] = rn_id
+            if edgeid2ctrlpts is not None and e.unique_id in edgeid2ctrlpts:
+                straight, cpd, cpw = edgeid2ctrlpts[e.unique_id]
+                if not straight:
+                    j["classes"] += " withctrlpts"
+                    j["data"]["cpd"] = cpd
+                    j["data"]["cpw"] = cpw
+            eles.append(j)
+        return eles

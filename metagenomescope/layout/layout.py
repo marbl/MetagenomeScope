@@ -213,7 +213,7 @@ class Layout(object):
             # should be drawn. Thus, we don't need to worry about being at the
             # top level of the region or whatever.
             if self.has_invals:
-                dot += self.region.get_inval_edge_dot()
+                dot += self.region.inval_edges_to_dot()
         dot += "}"
         return dot
 
@@ -345,6 +345,8 @@ class Layout(object):
         if not skipped:
             # Actually do layout
             self.dot = self._to_dot()
+            with open("lay.gv", "w") as f:
+                f.write(self.dot)
             cg = pygraphviz.AGraph(self.dot)
             # -q turns off warnings about nodes being too small for labels
             cg.layout(prog=self.prog, args="-q")
