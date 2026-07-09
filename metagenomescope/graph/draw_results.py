@@ -1,6 +1,7 @@
 import math
 from collections import defaultdict
 from .. import ui_utils
+from ..layout import layout_utils
 from ..errors import WeirdError
 from . import graph_utils
 
@@ -332,12 +333,9 @@ class DrawResults(object):
 
             for e in r.edges:
                 j = e.to_cyjs(self.scope_settings)
-                if e.unique_id in edgeid2ctrlpts:
-                    straight, cpd, cpw = edgeid2ctrlpts[e.unique_id]
-                    if not straight:
-                        j["classes"] += " withctrlpts"
-                        j["data"]["cpd"] = cpd
-                        j["data"]["cpw"] = cpw
+                layout_utils.try_add_control_points_to_cyjs(
+                    j, e, edgeid2ctrlpts
+                )
                 eles.append(j)
 
             if hasattr(r, "inval_edge_info"):

@@ -85,11 +85,6 @@ class DecoupledComponent(Subgraph):
                 j["data"]["source"] = rn_id
             else:
                 j["data"]["target"] = rn_id
-            if edgeid2ctrlpts is not None and e.unique_id in edgeid2ctrlpts:
-                straight, cpd, cpw = edgeid2ctrlpts[e.unique_id]
-                if not straight:
-                    j["classes"] += " withctrlpts"
-                    j["data"]["cpd"] = cpd
-                    j["data"]["cpw"] = cpw
+            layout_utils.try_add_control_points_to_cyjs(j, e, edgeid2ctrlpts)
             eles.append(j)
         return eles
