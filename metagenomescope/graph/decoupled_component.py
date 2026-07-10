@@ -69,11 +69,19 @@ class DecoupledComponent(Subgraph):
                 raise WeirdError(f"Fake edge {e} is invalidated?")
             if inval_type == config.INVAL_SRC:
                 out_dot += layout_utils.get_edge_dot(
-                    rn_id, e.new_tgt_id, is_inval=True, ports=("w", "w")
+                    rn_id,
+                    e.new_tgt_id,
+                    e.unique_id,
+                    is_inval=True,
+                    ports=("w", "w"),
                 )
             else:
                 out_dot += layout_utils.get_edge_dot(
-                    e.new_src_id, rn_id, is_inval=True, ports=("e", "e")
+                    e.new_src_id,
+                    rn_id,
+                    e.unique_id,
+                    is_inval=True,
+                    ports=("e", "e"),
                 )
         return out_dot
 

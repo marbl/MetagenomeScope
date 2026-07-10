@@ -267,7 +267,7 @@ class Layout(object):
         # Extract (relative) edge control points
         for edge in self.region.edges:
             if edge.unique_id not in self.edgeid2rel:
-                layout_utils.save_and_rm_edge(
+                layout_utils.save_control_points(
                     cg,
                     self.edgeid2rel,
                     edge.unique_id,
@@ -370,7 +370,7 @@ class Layout(object):
                     )
 
                 for edge in self.region.edges:
-                    layout_utils.save_and_rm_edge(
+                    layout_utils.save_control_points(
                         cg,
                         self.edgeid2rel,
                         edge.unique_id,
@@ -383,7 +383,7 @@ class Layout(object):
                         src, tgt = layout_utils.get_inval_edge_stids(
                             edge, inval_type, rn_id
                         )
-                        layout_utils.save_and_rm_edge(
+                        layout_utils.save_control_points(
                             cg, self.edgeid2rel, edge.unique_id, src, tgt
                         )
 

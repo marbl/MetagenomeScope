@@ -46,17 +46,41 @@ def get_gv_header(prog, name="g", use_ports=False, params={}):
     return gv_input
 
 
-def save_and_rm_edge(cg, edgeid2rel, edge_id, src_id, tgt_id):
-    pgv_edge = cg.get_edge(src_id, tgt_id)
-    edgeid2rel[edge_id] = get_control_points(pgv_edge)
-    # If this is a parallel edge, then get_edge() should give us an arbitrary
-    # one of these edges. We will call cg.remove_edge() to ensure that the next
-    # time -- if any -- that we call cg.get_edge() with these node IDs, we get
-    # a different edge position.
-    #
-    # THAT BEING SAID if these are parallel edges proobs they don't need to be
-    # laid out with fancy control pt stuff...
-    cg.remove_edge(pgv_edge)
+def _extract_control_points(pos):
+    """Converts a string of Graphviz control points to a list.
+
+    Parameters
+    ----------
+    pos: str
+        Will look something like
+        "e,160,36.35 160,88.41 160,76.758 160,61.047 160,47.519".
+
+    Returns
+    -------
+    list of float
+
+    Raises
+    ------
+    ValueError
+        If the number of coordinates is not divisible by 2.
+
+    Notes
+    -----
+    This removes "startp" and/or "endp" data, if present.
+    See https://www.graphviz.org/docs/attr-types/splineType/.
+    """
+    # Remove startp data
+    if pos.startswith("s,"):
+        pos = pos[pos.index(" ") + 1 :]
+    # remove endp data
+    if pos.startswith("e,"):
+        pos = pos[pos.index(" ") + 1 :]
+
+    points_str = pos.replace(",", " ")
+    coords = [float(c) for c in points_str.split()]
+    if len(coords) % 2 != 0:
+        raise ValueError(f'Odd number of GV edge control points: "{pos}"')
+    return coords
 
 
 def get_control_points(pgv_edge):
@@ -93,41 +117,18 @@ def get_control_points(pgv_edge):
     return []
 
 
-def _extract_control_points(pos):
-    """Converts a string of Graphviz control points to a list.
-
-    Parameters
-    ----------
-    pos: str
-        Will look something like
-        "e,160,36.35 160,88.41 160,76.758 160,61.047 160,47.519".
-
-    Returns
-    -------
-    list of float
-
-    Raises
-    ------
-    ValueError
-        If the number of coordinates is not divisible by 2.
-
-    Notes
-    -----
-    This removes "startp" and/or "endp" data, if present.
-    See https://www.graphviz.org/docs/attr-types/splineType/.
-    """
-    # Remove startp data
-    if pos.startswith("s,"):
-        pos = pos[pos.index(" ") + 1 :]
-    # remove endp data
-    if pos.startswith("e,"):
-        pos = pos[pos.index(" ") + 1 :]
-
-    points_str = pos.replace(",", " ")
-    coords = [float(c) for c in points_str.split()]
-    if len(coords) % 2 != 0:
-        raise ValueError(f'Odd number of GV edge control points: "{pos}"')
-    return coords
+def save_control_points(cg, edgeid2rel, edge_id, src_id, tgt_id):
+    # This assumes that the pygraphviz graph we laid out has keys corresponding
+    # to edges' unique IDs. This should always be the case, because of
+    # get_edge_dot().
+    #
+    # to make a long story short linking these edge layouts with their exact
+    # unique ID is super useful because "parallel edges" (btwn the same source
+    # and target nodes) are not always interchangeable! for example,
+    # invalidated edges get drawn in a funky way where we really want to use
+    # that exact control point layout in the viz.
+    pgv_edge = cg.get_edge(src_id, tgt_id, key=edge_id)
+    edgeid2rel[edge_id] = get_control_points(pgv_edge)
 
 
 def shift_control_points(coords, left, bottom):
@@ -556,25 +557,26 @@ def _add_attrs(curr_attrs, new_attrs):
 def get_edge_dot(
     srcid,
     tgtid,
+    unique_id,
     is_fake=False,
     is_back=False,
     is_inval=False,
     ports=None,
     indent=layout_config.INDENT,
 ):
-    attrs = ""
+    # Associate each edge with its unique ID, so that we can unambiguously
+    # parse control points from the layout later on.
+    attrs = f"key={unique_id}"
     if is_back:
         attrs = _add_attrs(attrs, layout_config.BACKEDGE_STYLE)
     if is_fake:
         attrs = _add_attrs(attrs, layout_config.FAKEEDGE_STYLE)
     if is_inval:
         attrs = _add_attrs(attrs, layout_config.INVALEDGE_STYLE)
-    if len(attrs) > 0:
-        attrs = f" [{attrs}]"
     if ports is not None:
         srcid = f"{srcid}:{ports[0]}"
         tgtid = f"{tgtid}:{ports[1]}"
-    return f"{indent}{srcid} -> {tgtid}{attrs};\n"
+    return f"{indent}{srcid} -> {tgtid} [{attrs}];\n"
 
 
 def get_pattern_cluster_dot(pattern, indent=layout_config.INDENT):
