@@ -99,12 +99,19 @@ GLOBALNODE_STYLE += ',style=filled,fillcolor="#888888"'
 ########
 # Edge style
 ########
+# Note that some of the cosmetic stuff here (e.g. setting fake edges to be
+# dashed) shouldn't really impact anything, even the actual position of nodes
+# and stuff in the layout. The main purpose is to make the DOT layouts produced
+# by Graphviz (which are useful for debugging) clearer.
 
 # Style applied to every edge in the graph.
 GLOBALEDGE_STYLE = ""
 
 # fake edges
 FAKEEDGE_STYLE = 'style="dashed"'
+
+# invalidated edges
+INVALEDGE_STYLE = 'style="bold"'
 
 # back edges (from an end node to a start node of a single pattern)
 # this prevents these edges from impacting node ranking, which makes

@@ -547,21 +547,28 @@ def is_back_edge(edge, pattern):
     )
 
 
+def _add_attrs(curr_attrs, new_attrs):
+    if len(curr_attrs) > 0:
+        return f"{curr_attrs},{new_attrs}"
+    return new_attrs
+
+
 def get_edge_dot(
     srcid,
     tgtid,
     is_fake=False,
     is_back=False,
+    is_inval=False,
     ports=None,
     indent=layout_config.INDENT,
 ):
     attrs = ""
     if is_back:
-        attrs = layout_config.BACKEDGE_STYLE
+        attrs = _add_attrs(attrs, layout_config.BACKEDGE_STYLE)
     if is_fake:
-        if len(attrs) > 0:
-            attrs += ","
-        attrs += layout_config.FAKEEDGE_STYLE
+        attrs = _add_attrs(attrs, layout_config.FAKEEDGE_STYLE)
+    if is_inval:
+        attrs = _add_attrs(attrs, layout_config.INVALEDGE_STYLE)
     if len(attrs) > 0:
         attrs = f" [{attrs}]"
     if ports is not None:
