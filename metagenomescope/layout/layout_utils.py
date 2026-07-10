@@ -83,8 +83,8 @@ def _extract_control_points(pos):
     return coords
 
 
-def get_control_points(pgv_edge):
-    """Extracts control points from a PyGraphviz edge after layout.
+def _get_control_points(pgv_edge):
+    """Tries to get control points from a PyGraphviz edge after layout.
 
     Parameters
     ----------
@@ -128,11 +128,11 @@ def save_control_points(cg, edgeid2rel, edge_id, src_id, tgt_id):
     # invalidated edges get drawn in a funky way where we really want to use
     # that exact control point layout in the viz.
     pgv_edge = cg.get_edge(src_id, tgt_id, key=edge_id)
-    edgeid2rel[edge_id] = get_control_points(pgv_edge)
+    edgeid2rel[edge_id] = _get_control_points(pgv_edge)
 
 
-def shift_control_points(coords, left, bottom):
-    r"""Given a list of coordinates (e.g. the output of get_control_points()),
+def _shift_control_points(coords, left, bottom):
+    r"""Given a list of coordinates (e.g. the output of _get_control_points()),
     increases each x coordinate in the list by "left" and increases each y
     coordinate in the list by "bottom".
 
@@ -320,13 +320,13 @@ def dot_to_cyjs_control_points(
     if src_pos == tgt_pos:
         return FLAT
 
-    # See get_control_points() check - if Graphviz didn't want to draw an edge
+    # See _get_control_points() check - if Graphviz didn't want to draw an edge
     # for some reason, then just fall back to a straight line
     if len(coords) == 0:
         return FLAT
 
     if left is not None and bottom is not None:
-        coords = shift_control_points(coords, left, bottom)
+        coords = _shift_control_points(coords, left, bottom)
     for i in range(len(coords)):
         if i % 2 == 1:
             coords[i] = (flipheight - coords[i]) + dy

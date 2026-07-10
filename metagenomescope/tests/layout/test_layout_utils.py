@@ -35,7 +35,7 @@ def test_get_control_points():
     assert sorted(src2e.keys()) == ["-456", "123"]
 
     # skip first points beginning with "e," or "s,"
-    assert lu.get_control_points(src2e["123"]) == [
+    assert lu._get_control_points(src2e["123"]) == [
         24.466,
         88.091,
         23.763,
@@ -57,7 +57,7 @@ def test_get_control_points():
         23.235,
         47.667,
     ]
-    assert lu.get_control_points(src2e["-456"]) == [
+    assert lu._get_control_points(src2e["-456"]) == [
         160,
         88.41,
         160,
@@ -81,7 +81,7 @@ def test_get_control_points_lost_edge(caplog):
     I wanted to also test what happens if "pos" is not in .attr entirely
     (since using "" as the default seems to me like a strange decision, and
     the type of decision that PyGraphviz might walk back in the future).
-    The current code in get_control_points() allows for this case!
+    The current code in _get_control_points() allows for this case!
 
     However, it is really hard to *test* this. This is because
     PyGraphviz.ItemAttribute.__delitem__ ensures that ""s are the defaults.
@@ -98,7 +98,7 @@ def test_get_control_points_lost_edge(caplog):
     # pygraphviz uses "" as a default for these attributes --
     # https://github.com/pygraphviz/pygraphviz/blob/db16436152047ac03f9a2cc213741021d3b4fd75/pygraphviz/agraph.py#L1970-L1980
     cg.edges()[0].attr["pos"] = ""
-    assert lu.get_control_points(cg.edges()[0]) == []
+    assert lu._get_control_points(cg.edges()[0]) == []
     assert "no coords from Graphviz!" in caplog.text
 
 
@@ -135,23 +135,23 @@ def test_extract_control_points_startp_endp():
 
 
 def test_shift_control_points_good():
-    shifted = lu.shift_control_points([1, 2, 3, 4, 5, 6, 7, 8], 100, 1)
+    shifted = lu._shift_control_points([1, 2, 3, 4, 5, 6, 7, 8], 100, 1)
     assert shifted == [101, 3, 103, 5, 105, 7, 107, 9]
 
     whatever = [-1, -2, -2, -3, -9, 10, 100, 1000, 6, 0]
-    assert lu.shift_control_points(whatever, 0, 0) == whatever
+    assert lu._shift_control_points(whatever, 0, 0) == whatever
 
-    assert lu.shift_control_points([10, 10], 5.3, -2) == [15.3, 8]
+    assert lu._shift_control_points([10, 10], 5.3, -2) == [15.3, 8]
 
 
 def test_shift_control_points_odd():
     # If there are an odd number of coordinates, something is very wrong, so
     # an error should be raised.
     with pytest.raises(ValueError):
-        lu.shift_control_points([1], 1, 2)
+        lu._shift_control_points([1], 1, 2)
 
     with pytest.raises(ValueError):
-        lu.shift_control_points([1, 2, 3], 10, 100)
+        lu._shift_control_points([1, 2, 3], 10, 100)
 
 
 def test_euclidean_distance():
