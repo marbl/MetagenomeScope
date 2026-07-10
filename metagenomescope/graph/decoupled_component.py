@@ -92,8 +92,10 @@ class DecoupledComponent(Subgraph):
             j["classes"] += " inval"
             if inval_type == config.INVAL_SRC:
                 j["data"]["source"] = rn_id
+                j["classes"] += " invalsrc"
             else:
                 j["data"]["target"] = rn_id
+                j["classes"] += " invaltgt"
             layout_utils.try_add_control_points_to_cyjs(j, e, edgeid2ctrlpts)
             eles.append(j)
         return eles

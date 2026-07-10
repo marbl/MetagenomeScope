@@ -236,6 +236,20 @@ def get_cyjs_stylesheet(
                 "z-index-compare": "manual",
             },
         },
+        {
+            "selector": "edge:loop.invalsrc",
+            "style": {
+                "source-endpoint": "-90deg",
+                "target-endpoint": "-90deg",
+            },
+        },
+        {
+            "selector": "edge:loop.invaltgt",
+            "style": {
+                "source-endpoint": "90deg",
+                "target-endpoint": "90deg",
+            },
+        },
     ]
 
     labelstyle = cy_config.LABEL_STYLE.copy()
