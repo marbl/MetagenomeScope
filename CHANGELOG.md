@@ -72,7 +72,8 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   - Components should also now be sorted deterministically. Probably that
     was already the case but now it is at least more provably consistent.
 
-- Adjust component tiling -- mostly by adjusting "breakpoint detection"
+- Various improvements to component tiling and padding, including adjusting
+  "breakpoint detection"
   ([#452](https://github.com/marbl/MetagenomeScope/issues/452)).
 
 - Adjust how nodes are scaled based on length

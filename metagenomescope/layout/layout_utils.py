@@ -627,3 +627,7 @@ def try_add_control_points_to_cyjs(j, e, edgeid2ctrlpts):
             j["classes"] += " withctrlpts"
             j["data"]["cpd"] = cpd
             j["data"]["cpw"] = cpw
+
+
+def get_xpad(lay, min_xpad, xpadfrac):
+    return max(min_xpad, xpadfrac * lay.width)
