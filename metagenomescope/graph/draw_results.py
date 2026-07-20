@@ -328,7 +328,7 @@ class DrawResults(object):
             # below it (but not, like, OTHER y-paddings). Useful for graphs
             # where e.g. the first row has a really big hairball component, and
             # we want to have a clear boundary after this row.
-            ypad_after = max(min_ypad, row_height * 0.08)
+            ypad_after = max(min_ypad, row_height * 0.03)
             y += row_height + ypad_after
 
         # PASS 4: ACTUALLY ASSIGN POSITIONS TO ELEMENTS
