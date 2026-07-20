@@ -284,7 +284,7 @@ class DrawResults(object):
                 curr_row += 1
                 x = 0
 
-        # PASS 2: COMPUTE MINIMUM Y-PADDING
+        # PASS 2: ADJUST MINIMUM Y-PADDING TO FIT GOAL HEIGHT-TO-WIDTH RATIO
         # We *could* not bother with this and just set the y-padding to some
         # constant, but that can result in drawings with weird aspect ratios.
 
