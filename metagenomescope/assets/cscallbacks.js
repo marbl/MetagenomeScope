@@ -136,7 +136,7 @@ function tryToSetBadEdgeDragRescuer(cy) {
 }
 
 const WIPE_DONE_FLAG = "_mgscWipeDone";
-const FIT_PADDING_PX = 15;
+const FIT_PADDING_PX = 20;
 
 /* For more information about clientside callbacks, see
  * https://dash.plotly.com/clientside-callbacks -- this next line
