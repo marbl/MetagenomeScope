@@ -237,6 +237,7 @@ class DrawResults(object):
         curr_row = 0
         r2xrow = {}
         row2max_height = defaultdict(int)
+        row2max_width = defaultdict(int)
         for r in sorted_regions:
             lay = self.region2layout[r]
 
@@ -275,10 +276,16 @@ class DrawResults(object):
 
             r2xrow[r] = (x, curr_row)
 
-            x += lay.width + layout_utils.get_xpad(lay, min_xpad, xpadfrac)
             row2max_height[curr_row] = max(
                 row2max_height[curr_row], lay.height
             )
+            # only increase a row's max width when we add a region to it;
+            # avoids rightmost padding in a row counting towards row width
+            row2max_width[curr_row] = max(
+                row2max_width[curr_row], x + lay.width
+            )
+
+            x += lay.width + layout_utils.get_xpad(lay, min_xpad, xpadfrac)
 
             if end_row_after_adding_this_region:
                 curr_row += 1
@@ -338,6 +345,9 @@ class DrawResults(object):
         for r in sorted_regions:
             lay = self.region2layout[r]
             x, row = r2xrow[r]
+            # horizontally center stuff within the row -- but don't do this for
+            # the last row (that should remain "left-aligned")
+            x += (row_width - row2max_width[row]) / 2
             # vertically center stuff within the row
             y = row2y[row] + ((row2max_height[row] - lay.height) / 2)
             nodeid2xy, edgeid2ctrlpts = lay.to_abs_coords(x, y)

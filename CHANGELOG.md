@@ -30,6 +30,8 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 - You can now select and copy text from the node/edge/pattern/path tables
   ([#298](https://github.com/marbl/MetagenomeScope/issues/298)).
 
+- Horizontally center each row of components (when using _dot_ / _sfdp_).
+
 ### Changed
 
 - Dramatically speed up pattern decomposition, mostly by addressing a
