@@ -9,7 +9,7 @@ from . import graph_utils
 class DrawResults(object):
     """Takes care of preparing Cytoscape.js JSON elements to be drawn."""
 
-    def __init__(self, region2layout, scope_settings):
+    def __init__(self, region2layout, scope_settings, modifier_settings):
         """Initializes this DrawResults object.
 
         Parameters
@@ -21,13 +21,21 @@ class DrawResults(object):
         scope_settings: list
             Describes what to draw (e.g. should we draw patterns?)
 
+        modifier_settings: list
+            Describes settings for how we should draw things. Most of these
+            should already have been considered during layout, but some are
+            relevant here -- e.g. horizontally centering rows impacts the
+            component tiling procedure.
+
         Notes
         -----
         The region2layout thing exploits the fact that Subgraphs are hashable.
         """
         self.region2layout = region2layout
         self.scope_settings = scope_settings
+        self.modifier_settings = modifier_settings
         self.incl_patterns = ui_utils.show_patterns(self.scope_settings)
+        self.hcenter = ui_utils.hcenter(self.modifier_settings)
 
         # if we see even a single layout that is None, we will immediately give
         # up on processing layouts. In practice we should never see mix-and-
@@ -53,7 +61,10 @@ class DrawResults(object):
     def __repr__(self):
         asum = self.get_fancy_count_text()
         rsum = ui_utils.pluralize(len(self.region2layout), "region")
-        return f"DrawResults({rsum} ({asum}); {self.scope_settings})"
+        return (
+            f"DrawResults({rsum} ({asum}); {self.scope_settings}; "
+            f"{self.modifier_settings})"
+        )
 
     def get_node_and_edge_ids(self):
         nodeids = []
@@ -70,6 +81,11 @@ class DrawResults(object):
         if self.scope_settings != other.scope_settings:
             raise WeirdError(f"Incompatible scope settings: {self}, {other}")
 
+        if self.modifier_settings != other.modifier_settings:
+            raise WeirdError(
+                f"Incompatible modifier settings: {self}, {other}"
+            )
+
         if set(self.region2layout) & set(other.region2layout):
             raise WeirdError(
                 "Regions present in multiple DrawResults: "
@@ -82,7 +98,7 @@ class DrawResults(object):
         d = self.region2layout.copy()
         for r, lay in other.region2layout.items():
             d[r] = lay
-        return DrawResults(d, self.scope_settings)
+        return DrawResults(d, self.scope_settings, self.modifier_settings)
 
     def get_sorted_regions(self):
         """Sorts all of the regions represented here.
@@ -345,9 +361,9 @@ class DrawResults(object):
         for r in sorted_regions:
             lay = self.region2layout[r]
             x, row = r2xrow[r]
-            # horizontally center stuff within the row -- but don't do this for
-            # the last row (that should remain "left-aligned")
-            x += (row_width - row2max_width[row]) / 2
+            # horizontally center stuff within the row, if requested
+            if self.hcenter:
+                x += (row_width - row2max_width[row]) / 2
             # vertically center stuff within the row
             y = row2y[row] + ((row2max_height[row] - lay.height) / 2)
             nodeid2xy, edgeid2ctrlpts = lay.to_abs_coords(x, y)

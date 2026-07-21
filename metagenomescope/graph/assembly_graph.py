@@ -2524,7 +2524,7 @@ class AssemblyGraph(object):
 
         if draw_type == config.DRAW_ALL:
             # draw all component(s)
-            dr = DrawResults({}, scope_settings)
+            dr = DrawResults({}, scope_settings, modifier_settings)
             for cc in self.components:
                 dr += cc.to_cyjs(
                     scope_settings,
@@ -2535,7 +2535,7 @@ class AssemblyGraph(object):
 
         elif draw_type == config.DRAW_CCS:
             # draw certain component(s)
-            dr = DrawResults({}, scope_settings)
+            dr = DrawResults({}, scope_settings, modifier_settings)
             for ccn in done_flushing["cc_nums"]:
                 cc = self.get_cc_by_num(ccn)
                 dr += cc.to_cyjs(
@@ -2549,7 +2549,7 @@ class AssemblyGraph(object):
             # draw all component(s), but only the nonredundant ones (so for
             # each pair of perfectly reverse-complementary components, we'll
             # just draw one of these)
-            dr = DrawResults({}, scope_settings)
+            dr = DrawResults({}, scope_settings, modifier_settings)
             for ccn in self.get_nr_cc_nums():
                 cc = self.get_cc_by_num(ccn)
                 dr += cc.to_cyjs(

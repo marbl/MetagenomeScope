@@ -28,6 +28,7 @@ SCOPE_SETTINGS_OPTIONS = [
 
 DO_RECURSIVE_LAYOUT = "recursive"
 USE_GV_PORTS = "ports"
+HCENTER = "hcenter"
 DO_LAYOUT_ANIMATION = "animate"
 
 MODIFIER_SETTINGS_OPTIONS = [
@@ -52,11 +53,21 @@ MODIFIER_SETTINGS_OPTIONS = [
         "value": USE_GV_PORTS,
     },
     {
+        "label": html.Span(
+            [
+                "Horizontally center rows (",
+                DOT_TEXT,
+                " & sfdp only)",
+            ]
+        ),
+        "value": HCENTER,
+    },
+    {
         "label": "Animate layout (Dagre & fCoSE only)",
         "value": DO_LAYOUT_ANIMATION,
     },
 ]
-DEFAULT_MODIFIER_SETTINGS = [DO_LAYOUT_ANIMATION]
+DEFAULT_MODIFIER_SETTINGS = [HCENTER, DO_LAYOUT_ANIMATION]
 
 
 COLORING_RANDOM = "random"

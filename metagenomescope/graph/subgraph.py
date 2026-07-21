@@ -294,4 +294,4 @@ class Subgraph(object):
                 layout_alg,
                 layout_params,
             )
-        return DrawResults({self: lay}, scope_settings)
+        return DrawResults({self: lay}, scope_settings, modifier_settings)

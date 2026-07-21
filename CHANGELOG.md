@@ -30,7 +30,11 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 - You can now select and copy text from the node/edge/pattern/path tables
   ([#298](https://github.com/marbl/MetagenomeScope/issues/298)).
 
-- Horizontally center each row of components (when using _dot_ / _sfdp_).
+- Add the option to horizontally center each row of components (when using
+  _dot_ / sfdp) to the drawing options dialog.
+
+  - This is now done by default. It should make drawings of many components at
+    once look nicer.
 
 ### Changed
 
@@ -169,7 +173,7 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
     working with massive graphs on low-memory systems.
 
   - _By default,_ this is set to `--no-dcheck`: that is, this sanity check is
-    turned off.
+    now turned off.
 
 ### Changed
 
@@ -196,9 +200,6 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
     property to do this for us. I am not 100% sure that the way we handle
     edges in these paths will always match Gfapy's, but it should be fine.
 
-- By default, MetagenomeScope will now remove parallel edges in GFA files.
-  As discussed in "Added" above, this can be controlled by `--rmdup`.
-
 - Allow paths to span multiple connected components of the graph, since this
   can occur in Verkko output.
 
@@ -223,11 +224,6 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   something on a path is a gap or not.
 
 - Add more detail to the `--verbose` log messages during pattern decomposition.
-
-- Turn off the creation of `AssemblyGraph.original_graph`, the call to
-  `AssemblyGraph._sanity_check_graph()`, etc. by default; as discussed in
-  "Added" above, this is now controlled by the `--dcheck` command-line flag
-  ([#421](https://github.com/marbl/MetagenomeScope/issues/421)).
 
 - Clean up and add some more tests for the path-parsing parts of the code.
 

@@ -5,9 +5,10 @@ from metagenomescope.errors import WeirdError
 
 
 def test_init_empty():
-    dr = DrawResults({}, [ui_config.SHOW_PATTERNS])
+    dr = DrawResults({}, [ui_config.SHOW_PATTERNS], [])
     assert dr.region2layout == {}
     assert dr.scope_settings == [ui_config.SHOW_PATTERNS]
+    assert dr.modifier_settings == []
     assert dr.incl_patterns
     assert dr.layouts_given
     assert dr.num_full_nodes == 0

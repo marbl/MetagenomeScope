@@ -1209,6 +1209,10 @@ def use_gv_ports(modifier_settings):
     return ui_config.USE_GV_PORTS in modifier_settings
 
 
+def hcenter(modifier_settings):
+    return ui_config.HCENTER in modifier_settings
+
+
 def nrfilter_draw_request(scope_settings, draw_type, cc_nums, ag):
     """Filters a draw request to remove nonredundant components.
 
