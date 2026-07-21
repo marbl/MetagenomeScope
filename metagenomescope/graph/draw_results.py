@@ -311,10 +311,10 @@ class DrawResults(object):
         # We *could* not bother with this and just set the y-padding to some
         # constant, but that can result in drawings with weird aspect ratios.
 
+        # total height of all rows, without adding any y-padding at all
+        h = sum(row2max_height.values())
         num_rows = len(row2max_height)
         if num_rows > 1:
-            # total height of all rows, without adding any y-padding at all
-            h = sum(row2max_height.values())
             # height-to-width ratio, if we didn't use any y-padding at all
             min_hwr = h / row_width
 
@@ -350,36 +350,49 @@ class DrawResults(object):
                 # bottom with a bunch of dead space between).
                 min_ypad = min(max(min_ypad, ratio_ypad), h / 2)
 
-            else:
-                # Case 2: the height-to-width ratio >= the goal ratio.
-                # I guess this can happen if the drawing includes just ... a
-                # LOT of stuff, or if there are some really tall components.
-                # Test case: the hg002-verkko1.1.gfa file -- drawing all ccs
-                # with only nonredundant components + decoupling triggers this,
-                # at least as of writing -- the H:W ratio before y-padding is
-                # 0.878 ._.
-                #
-                # Anyway, in this case we STILL NEED TO ADD Y-PADDING because
-                # otherwise the graph will (probably) look cluttered. Using
-                # simple %-based padding seems to work well; this might be too
-                # much padding, if anything, but that is A Good Side To Err On
-                for row in range(num_rows):
-                    min_ypad = max(min_ypad, row2max_height[row] * 0.01)
+            # Case 2: the height-to-width ratio >= the goal ratio, and we
+            # skipped the above block entirely (and left min_ypad as whatever
+            # its default numeric value is).
+            #
+            # This can happen if the drawing includes just ... a LOT of stuff,
+            # or if there are some really tall components. Test case: the
+            # hg002-verkko1.1.gfa file -- drawing all ccs with only nr ccs +
+            # decoupling triggers this, as of writing -- the H:W ratio before
+            # y-padding is 0.878 ._.
+            #
+            # Anyway, in this case we STILL NEED TO ADD SOME Y-PADDING because
+            # otherwise the graph will (probably) look cluttered. We'll do this
+            # in pass 3 below.
 
         # PASS 3: COMPUTE ROW Y-POSITIONS, ADJUSTING PADDING IF NEEDED
-        # This is *mostly* straightforward, but we allow the y-padding below a
-        # row to be slightly adjusted in certain case(s).
+        # We may have set min_ypad above, in which case we cooould just use
+        # that for all of the y-paddings here. But we allow the amount of
+        # y-padding after a row to be adjusted.
         y = 0
         row2y = {}
         for row in range(num_rows):
             row2y[row] = y
             row_height = row2max_height[row]
-            # If a row is super tall, then allow this to increase the y-padding
-            # below it (but not, like, OTHER y-paddings). Useful for graphs
-            # where e.g. the first row has a really big hairball component, and
-            # we want to have a clear boundary after this row.
-            ypad_after = max(min_ypad, row_height * 0.03)
-            y += row_height + ypad_after
+            # If we didn't set min_ypad (or even if we did and it's just kind
+            # of small), then allow for row heights to expand y-padding after.
+            relative_row_height = row_height / h
+            # I used Wolfram Alpha to fit a curve to these points, which works
+            # and everything, but it's easier to reason about this - and more
+            # efficient, right? - to just hardcode some thresholds.
+            # (For reference, the curve is 10.0132x^2 - 7.50184x + 1.31615.)
+            if relative_row_height <= 0.01:
+                f = 1.5
+            if relative_row_height <= 0.02:
+                f = 1
+            elif relative_row_height <= 0.1:
+                f = 0.5
+            elif relative_row_height <= 0.2:
+                f = 0.2
+            elif relative_row_height <= 0.3:
+                f = 0.1
+            else:
+                f = 0.03
+            y += row_height + max(min_ypad, f * row_height)
 
         # PASS 4: HORIZONTALLY CENTER ROWS, IF REQUESTED
         # (Unlike vertical centering, which I guess we need to do for each
