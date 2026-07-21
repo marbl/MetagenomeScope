@@ -307,19 +307,22 @@ class DrawResults(object):
                 curr_row += 1
                 x = 0
 
-        # PASS 2: ADJUST MINIMUM Y-PADDING TO FIT GOAL HEIGHT-TO-WIDTH RATIO
+        # PASS 2: ADJUST MINIMUM Y-PADDING
         # We *could* not bother with this and just set the y-padding to some
         # constant, but that can result in drawings with weird aspect ratios.
 
-        # Expand the minimum y-padding (after each row) as needed, to try to
-        # get a more desirable aspect ratio. Kinda like what Bandage does.
         num_rows = len(row2max_height)
         if num_rows > 1:
             # total height of all rows, without adding any y-padding at all
             h = sum(row2max_height.values())
             # height-to-width ratio, if we didn't use any y-padding at all
             min_hwr = h / row_width
+
             if min_hwr < goal_hwr:
+                # Case 1: the current height-to-width ratio < the goal ratio.
+                # Expand the minimum y-padding (after each row) as needed, to
+                # try to fit the goal ratio. Kiiinda like what Bandage does.
+                #
                 # If we add y-padding of some fixed number P, then this would
                 # occur in each of the spaces between rows -- and there are
                 # |rows| - 1 such spaces (just like how your hand [probably]
@@ -338,6 +341,22 @@ class DrawResults(object):
                 # Allow the minimum y-ypadding to expand if it will get us to
                 # the desired height-to-width ratio.
                 min_ypad = max(min_ypad, ratio_ypad)
+
+            else:
+                # Case 2: the height-to-width ratio >= the goal ratio.
+                # I guess this can happen if the drawing includes just ... a
+                # LOT of stuff, or if there are some really tall components.
+                # Test case: the hg002-verkko1.1.gfa file -- drawing all ccs
+                # with only nonredundant components + decoupling triggers this,
+                # at least as of writing -- the H:W ratio before y-padding is
+                # 0.878 ._.
+                #
+                # Anyway, in this case we STILL NEED TO ADD Y-PADDING because
+                # otherwise the graph will (probably) look cluttered. Using
+                # simple %-based padding seems to work well; this might be too
+                # much padding, if anything, but that is A Good Side To Err On
+                for row in range(num_rows):
+                    min_ypad = max(min_ypad, row2max_height[row] * 0.01)
 
         # PASS 3: COMPUTE ROW Y-POSITIONS, ADJUSTING PADDING IF NEEDED
         # This is *mostly* straightforward, but we allow the y-padding below a
