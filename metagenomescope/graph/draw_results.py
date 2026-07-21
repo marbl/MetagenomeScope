@@ -338,9 +338,17 @@ class DrawResults(object):
                 # P is positive when H / W < T, which should always be the case
                 # if the above if statement was True.
                 ratio_ypad = ((goal_hwr * row_width) - h) / (num_rows - 1)
-                # Allow the minimum y-ypadding to expand if it will get us to
-                # the desired height-to-width ratio.
-                min_ypad = max(min_ypad, ratio_ypad)
+                # Allow the minimum y-padding to expand to ratio_ypad, which
+                # will get us to the desired height-to-width ratio (ignoring
+                # any y-padding adjustments that might happen in pass 3 below).
+                #
+                # We set an upper bound on how big this can be, and say that
+                # the min y-padding must be <= some fraction of the total row
+                # height without padding (h). This addresses the case where
+                # there are just a few not-very-tall rows (otherwise you just
+                # see two-row drawings have one at the top and one at the
+                # bottom with a bunch of dead space between).
+                min_ypad = min(max(min_ypad, ratio_ypad), h / 2)
 
             else:
                 # Case 2: the height-to-width ratio >= the goal ratio.
