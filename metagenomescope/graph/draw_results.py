@@ -354,7 +354,15 @@ class DrawResults(object):
             ypad_after = max(min_ypad, row_height * 0.03)
             y += row_height + ypad_after
 
-        # PASS 4: ACTUALLY ASSIGN POSITIONS TO ELEMENTS
+        # PASS 4: HORIZONTALLY CENTER ROWS, IF REQUESTED
+        # (Unlike vertical centering, which I guess we need to do for each
+        # region, horizontally centering each row can just be done once up top)
+        row2xoffset = {}
+        if self.hcenter:
+            for row in range(num_rows):
+                row2xoffset[row] = (row_width - row2max_width[row]) / 2
+
+        # PASS 5: ACTUALLY ASSIGN POSITIONS TO ELEMENTS
         # All rows (and, thus, regions)' positions are fixed by this point,
         # so this part is straightforward.
         eles = []
@@ -363,7 +371,7 @@ class DrawResults(object):
             x, row = r2xrow[r]
             # horizontally center stuff within the row, if requested
             if self.hcenter:
-                x += (row_width - row2max_width[row]) / 2
+                x += row2xoffset[row]
             # vertically center stuff within the row
             y = row2y[row] + ((row2max_height[row] - lay.height) / 2)
             nodeid2xy, edgeid2ctrlpts = lay.to_abs_coords(x, y)
