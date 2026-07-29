@@ -77,7 +77,18 @@ class DrawResults(object):
         return nodeids, edgeids
 
     def __add__(self, other):
-        """Adds two DrawResults objects and does some validation."""
+        """Adds two DrawResults objects and does some validation.
+
+        We can add two DrawResults objects together if they have:
+
+        1. identical scope settings (e.g. "show patterns").
+        2. identical modifier settings (e.g. "horizontally center rows").
+        3. no overlapping regions (i.e. no subgraphs represented by both
+           DrawResults objects for some reason).
+
+        You could probably make an argument for relaxing any of these criteria,
+        but these should always hold in practice (... as of writing) so whatevs
+        """
         if self.scope_settings != other.scope_settings:
             raise WeirdError(f"Incompatible scope settings: {self}, {other}")
 
