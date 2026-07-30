@@ -1,3 +1,4 @@
+from metagenomescope.graph import graph_utils
 from metagenomescope.graph import AssemblyGraph
 
 
@@ -60,6 +61,13 @@ def check_layout_cycle_with_tip(ag, lay, n1, n2, n3):
     assert f"{i2} [width=" in lay.dot
     assert f"{i3} [width=" in lay.dot
 
+    # edge IDs - these should now be written to the DOT as "key" attributes,
+    # which allows us to unambiguously associate layout info w/ parallel edges.
+    # (that matters for stuff like invalidated edges due to decoupling.)
+    e12 = graph_utils.get_only_connecting_edge_uid(ag.graph, i1, i2)
+    e21 = graph_utils.get_only_connecting_edge_uid(ag.graph, i2, i1)
+    e23 = graph_utils.get_only_connecting_edge_uid(ag.graph, i2, i3)
+
     # IMPORTANT!!!! and actually the motivating factor for this whole test.
     # verify that the back edge detection worked, and that the back edge in
     # this cyclic chain is specially marked with constraint=false :)
@@ -68,9 +76,9 @@ def check_layout_cycle_with_tip(ag, lay, n1, n2, n3):
     # chain (https://github.com/marbl/MetagenomeScope/issues/368)
     # ... so that i can say in the paper that we do this, and not have to worry
     # that it has subtly become broken since i implemented it a while back ...
-    assert f"{i1} -> {i2};\n" in lay.dot
-    assert f'{i2} -> {i1} [constraint="false"];\n' in lay.dot
-    assert f"{i2} -> {i3};\n" in lay.dot
+    assert f"{i1} -> {i2} [key={e12}];\n" in lay.dot
+    assert f'{i2} -> {i1} [key={e21},constraint="false"];\n' in lay.dot
+    assert f"{i2} -> {i3} [key={e23}];\n" in lay.dot
 
     # consider node positions. Because we use rankdir=LR by default,
     # we should see 1, 2, and 3 occur from left to right. (And the 2 -> 1
