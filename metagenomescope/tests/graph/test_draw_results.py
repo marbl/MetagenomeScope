@@ -142,11 +142,14 @@ def test_add_incompatible_modifier_settings():
     c = Node(1, "C", {"orientation": config.REV, "length": 50})
     sg6 = Subgraph(6, "sg6", [c], [], [])
 
-    dr = DrawResults({sg5: None}, [ui_config.SHOW_PATTERNS], [ui_config.HCENTER])
+    dr = DrawResults(
+        {sg5: None}, [ui_config.SHOW_PATTERNS], [ui_config.HCENTER]
+    )
     dr2 = DrawResults({sg6: None}, [ui_config.SHOW_PATTERNS], [])
     with pytest.raises(WeirdError) as ei:
         dr + dr2
     assert "Incompatible modifier settings" in str(ei.value)
+
 
 def test_get_sorted_regions_subgraphs():
     b = Node(0, "B", {"orientation": config.FWD, "length": 30})
@@ -188,6 +191,8 @@ def test_get_sorted_regions_subgraphs_and_components():
     # practice; see get_sorted_regions()'s docs for details)
 
     dr2 = DrawResults(
-        {sg5: None, sg6: None, sg7: None, cc: None}, [ui_config.SHOW_PATTERNS], []
+        {sg5: None, sg6: None, sg7: None, cc: None},
+        [ui_config.SHOW_PATTERNS],
+        [],
     )
     assert dr2.get_sorted_regions() == [cc, sg7, sg5, sg6]
