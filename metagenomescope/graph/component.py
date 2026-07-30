@@ -152,10 +152,14 @@ class Component(Subgraph):
         # Also: we use is_fwd() instead of the node "orientation" data because
         # the DOT parsing code doesn't assign orientations even to LJA DOT
         # nodes, at least for now.
-        fwd_nids = [
-            n.unique_id for n in self.nodes if name_utils.is_fwd(n.basename)
-        ]
-        mid = graph_utils.get_max_degree_node(g, fwd_nids)
+        #
+        # Also also, we sort the nodes by name first to make this consistent.
+        # (Node IDs should be assigned consistently, so sorting using IDs
+        # should be kosher, but let's be paranoid.)
+        fwd_nodes = [n for n in self.nodes if name_utils.is_fwd(n.basename)]
+        sorted_fwd_nodes = graph_utils.get_sorted_nodes(fwd_nodes)
+        sorted_fwd_nids = [n.unique_id for n in sorted_fwd_nodes]
+        mid = graph_utils.get_max_degree_node(g, sorted_fwd_nids)
         m = self.nodeid2obj[mid]
         on2orient[name_utils.get_orientationless_name(m.basename)] = config.FWD
 
@@ -181,8 +185,12 @@ class Component(Subgraph):
             as_view=True
         )
         for nids in nx.bfs_layers(ccug, mid):
-            for nid in nids:
-                n = self.nodeid2obj[nid]
+            layer_nodes = [self.nodeid2obj[i] for i in nids]
+            # sort the nodes in each layer to make this consistent, so that if
+            # X and -X occur in the same layer then the choice of which we pick
+            # is consistent
+            sorted_layer_nodes = graph_utils.get_sorted_nodes(layer_nodes)
+            for n in sorted_layer_nodes:
                 on = name_utils.get_orientationless_name(n.basename)
                 if on not in on2orient:
                     on2orient[on] = name_utils.get_orientation(n.basename)

@@ -468,6 +468,25 @@ def get_sorted_subgraphs(sgs):
     )
 
 
+def get_sorted_nodes(nodes):
+    """Sorts nodes by their names, just for the sake of consistency.
+
+    This sorts by basename first, breaking ties with full name. The reason for
+    including full name is to add consistency for which of {X-L, X-R} comes
+    first. And, um, the reason we don't ONLY sort by name (ignoring basename)
+    is that I guess -- if splitting is inconsistent, and sometimes node X is
+    split but sometimes it isn't -- then maybe you could have weird node names
+    of the form X-asdf or something whose order in the sorting would change?
+    Ugh.
+
+    Anyway, this is kind of lazy and inefficient, but sorting is relatively
+    cheap so I think this is fine for now.
+    """
+    # uses reverse=True so that -- if "nodes" includes both X and -X -- the
+    # positive node (X) comes first
+    return sorted(nodes, key=lambda n: (n.basename, n.name), reverse=True)
+
+
 def get_candidate_twin_cc_num_from_nodes(cc, nodename2objs):
     """Looks at the nodes in a Component to determine a possible twin.
 
