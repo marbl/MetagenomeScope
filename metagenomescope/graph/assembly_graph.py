@@ -2165,8 +2165,9 @@ class AssemblyGraph(object):
             # Only consider components that do not have a twin (and that have
             # multiple nodes)
             if self.ccnum2twinccnum[cc.cc_num] is None and len(cc.nodes) > 1:
-                cc.decouple(self.graph, self.nodename2objs)
-                self.st_cc_nums.add(cc.cc_num)
+                dc_results = cc.decouple(self.graph, self.nodename2objs)
+                if dc_results:
+                    self.st_cc_nums.add(cc.cc_num)
 
     def get_nr_cc_nums(self):
         """Returns the size ranks of all nonredundant components."""
@@ -2482,6 +2483,8 @@ class AssemblyGraph(object):
             record_node_names=not self.is_flye_dot,
             count_positive_names=self.orientation_in_name,
         )
+        if ui_utils.decouple(scope_settings):
+            sg.decouple(self.graph, self.nodename2objs)
         return sg.to_cyjs(
             scope_settings, modifier_settings, layout_alg, layout_params
         )

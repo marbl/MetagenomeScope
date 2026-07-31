@@ -47,6 +47,8 @@ class DrawResults(object):
         for r, lay in self.region2layout.items():
             self.num_full_nodes += r.num_full_nodes
             self.num_real_edges += r.num_real_edges
+            # invalidated edges must also be real edges, so those get included
+            self.num_real_edges += r.num_inval_edges
             if self.incl_patterns:
                 self.num_patterns += len(r.patterns)
             if lay is None:
@@ -74,6 +76,8 @@ class DrawResults(object):
                 nodeids.append(n.unique_id)
             for e in r.edges:
                 edgeids.append(e.unique_id)
+            if hasattr(r, "inval_edge_info"):
+                edgeids.extend(r.get_inval_edge_ids())
         return nodeids, edgeids
 
     def __add__(self, other):

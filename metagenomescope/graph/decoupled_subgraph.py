@@ -23,40 +23,52 @@ from . import graph_utils
 from .subgraph import Subgraph
 
 
-class DecoupledComponent(Subgraph):
-    """Represents a decoupled connected component."""
+class DecoupledSubgraph(Subgraph):
+    """Represents a decoupled subgraph."""
 
-    def __init__(self, cc):
+    def __init__(self, sg):
         """Initializes this object.
 
         Parameters
         ----------
-        cc: Component
+        sg: Subgraph
         """
-        if not cc.decoupling_done:
-            raise WeirdError(f"{cc} not decoupled?")
+        if not sg.decoupling_done:
+            raise WeirdError(f"{sg} not decoupled?")
 
-        # Set the component number attribute so this is sorted properly
-        # by DrawResults.get_sorted_regions()
-        self.cc_num = cc.cc_num
+        # If sg is a Component, set the same component number for this obj --
+        # so it is sorted properly by DrawResults.get_sorted_regions()
+        if hasattr(sg, "cc_num"):
+            self.cc_num = sg.cc_num
 
         # "Invalidated edges" are edges from s -> t where one of (s, t) is not
         # present in the set of "shown nodes," but its reverse-complement node
         # (-s or -t) is present in the shown nodes. These edges can be drawn by
         # adjusting them to hit the RC node but on the opposite side as usual.
-        self.inval_edge_info = cc.dc_inval_edge_info
+        self.inval_edge_info = sg.dc_inval_edge_info
 
         super().__init__(
             None,
-            f"dc_{cc.name}",
-            graph_utils.get_objs_by_ids(cc.nodes, cc.dc_shown_node_ids),
-            graph_utils.get_objs_by_ids(cc.edges, cc.dc_shown_edge_ids),
-            graph_utils.get_objs_by_ids(cc.patterns, cc.dc_shown_patt_ids),
-            node_centric=cc.node_centric,
-            length_field=cc.length_field,
-            record_node_names=cc.record_node_names,
-            count_positive_names=cc.count_positive_names,
+            f"dc_{sg.name}",
+            # filter to shown nodes / edges / patterns.
+            # TODO: this means that stuff like total_length will not be
+            # accurate if there are invalidated edges and this is an
+            # edge-centric graph? hm. shouldn't matter for anything but repr()
+            # right ... but maybe store inval edges with real edges, and alter
+            # layout / DR / etc to handle em accordingly.
+            graph_utils.get_objs_by_ids(sg.nodes, sg.dc_shown_node_ids),
+            graph_utils.get_objs_by_ids(sg.edges, sg.dc_shown_edge_ids),
+            graph_utils.get_objs_by_ids(sg.patterns, sg.dc_shown_patt_ids),
+            node_centric=sg.node_centric,
+            length_field=sg.length_field,
+            record_node_names=sg.record_node_names,
+            count_positive_names=sg.count_positive_names,
         )
+
+        self.num_inval_edges = len(self.inval_edge_info)
+
+    def get_inval_edge_ids(self):
+        return [e.unique_id for e, _, _ in self.inval_edge_info]
 
     def inval_edges_to_dot(self):
         out_dot = ""

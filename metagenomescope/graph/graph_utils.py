@@ -436,6 +436,32 @@ def validate_split_type(split):
 
 
 def get_sorted_subgraphs(sgs):
+    """Sorts a set of Subgraphs from "biggest" to "smallest."
+
+    Parameters
+    ----------
+    sgs: collection of Subgraph
+
+    Returns
+    -------
+    list of Subgraph
+
+    Notes
+    -----
+    At least as of July 2026, this is called in two main places:
+
+    1. On all Components in the graph, to assign component "size ranks" --
+       numbers from 1 to |Components|.
+
+    2. On certain Subgraphs in DrawResults.get_sorted_regions(). This is only
+       done, there, for Subgraphs that do not represent Components -- so
+       both Component objects, and DecoupledSubgraph objects with set cc_num
+       attributes, are excluded.
+
+    Anyway, the upshot of this is that this does not explicitly consider
+    the results of decoupling. Component size ranks remain the same regardless
+    of if decoupling was done (since those are set once, at the start).
+    """
     # The number of "full" nodes (i.e. ignoring node splitting) MUST be the
     # highest-priority sorting criterion. Otherwise, we will be unable to
     # say that an aggregated group of components with the exact same
