@@ -111,18 +111,12 @@ GLOBALEDGE_STYLE = ""
 FAKEEDGE_STYLE = 'style="dashed"'
 
 # invalidated edges
-# Using constraint="false" (like for back edges) is nice, I think
-# -- see simple-strand-tangled.gfa test file. If you draw around
-# node -2 with distance 1, then by default (at least on my system)
-# the output layout will look like
-#
-#   /--------/
-# -2 <--- 1 <
-#
-# ... because the -2 -> 1 edge (which is really -2 -> -1) is treated
-# as if it were a "forward" edge, I think. ANYWAY telling dot to ignore
-# invalidated edges during node ranking fixes this kinda situation
-INVALEDGE_STYLE = 'style="bold",constraint="false"'
+# Using constraint="false" (like for back edges) can be helpful for small ccs
+# (e.g. simple-strand-tangled.gfa when drawing around node -2 with distance 1),
+# but for bigger graphs (e.g. E. coli cc 1, HPRC HG002 cc 1) the invalidated
+# edges become long and messy. I think letting invalidated edges impact the
+# layout process (and not setting constraint="false") makes sense.
+INVALEDGE_STYLE = 'style="bold"'
 
 # back edges (from an end node to a start node of a single pattern)
 # this prevents these edges from impacting node ranking, which makes
