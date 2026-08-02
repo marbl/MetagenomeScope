@@ -478,19 +478,10 @@ def get_sorted_subgraphs(sgs):
 
     Notes
     -----
-    At least as of July 2026, this is called in two main places:
-
-    1. On all Components in the graph, to assign component "size ranks" --
-       numbers from 1 to |Components|.
-
-    2. On certain Subgraphs in DrawResults.get_sorted_regions(). This is only
-       done, there, for Subgraphs that do not represent Components -- so
-       both Component objects, and DecoupledSubgraph objects with set cc_num
-       attributes, are excluded.
-
-    Anyway, the upshot of this is that this does not explicitly consider
-    the results of decoupling. Component size ranks remain the same regardless
-    of if decoupling was done (since those are set once, at the start).
+    At least as of July 2026, the main purpose of this function is assigning
+    "size ranks" to all Components in the graph. It is also used for sorting
+    Subgraphs later on, although I don't know if that will ever happens in
+    practice ...
     """
     # The number of "full" nodes (i.e. ignoring node splitting) MUST be the
     # highest-priority sorting criterion. Otherwise, we will be unable to
