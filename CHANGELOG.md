@@ -10,6 +10,19 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 
 ### Added
 
+- Add a new option to the the drawing options dialog,
+  `Decouple strand-tangled components`
+  ([#449](https://github.com/marbl/MetagenomeScope/issues/449)).
+
+  - If this checkbox is checked, then -- when we draw a component or region
+    in the graph that contains both a node `X` and a node `-X` -- we will
+    adjust the region to remove reverse-complementary nodes / edges. This is
+    similar to
+    ["single" mode](https://github.com/rrwick/Bandage/wiki/Single-vs-double-node-style)
+    in Bandage.
+
+  - This option is now selected by default.
+
 - Add a new section, "Style," in the drawing options dialog.
 
   - Currently, this contains controls that can be used to change how selected
@@ -33,8 +46,8 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 - Add the option to horizontally center each row of components (when using
   _dot_ / sfdp) to the drawing options dialog.
 
-  - This is now done by default. It should make drawings of many components at
-    once look nicer.
+  - This option is now selected by default. It should make drawings of many
+    components at once look nicer.
 
 ### Changed
 
@@ -56,7 +69,7 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   `Just nonredundant components`
   ([#442](https://github.com/marbl/MetagenomeScope/issues/442)).
 
-  - If this checkbox is checked, then -- for the `Component(s), by size rank`,
+  - If this option is selected, then -- for the `Component(s), by size rank`,
     `Component(s), by node name`, and `Entire graph (all components)` drawing
     methods -- all pairs of redundant components in a draw request will be
     filtered to just nonredundant components.
