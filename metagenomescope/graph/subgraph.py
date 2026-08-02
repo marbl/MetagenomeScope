@@ -25,6 +25,7 @@ from ..errors import WeirdError
 from . import graph_utils
 from .pattern_stats import PatternStats
 from .draw_results import DrawResults
+from .invalidated_edge import InvalidatedEdge
 
 
 class Subgraph(object):
@@ -158,11 +159,6 @@ class Subgraph(object):
         # num_real_edges + num_fake_edges).
         self.num_total_edges = 0
 
-        # Number of invalidated edges in this Subgraph. This should always be
-        # 0 for ordinary Subgraphs / Components, but DecoupledSubgraph objects
-        # will override this.
-        self.num_inval_edges = 0
-
         # PatternStats for this Subgraph.
         self.pattern_stats = PatternStats()
 
@@ -179,9 +175,12 @@ class Subgraph(object):
         # relevant if this subgraph is "strand-tangled."
         self.decoupling_done = False
         self.dc_shown_node_ids = set()
-        self.dc_shown_edge_ids = set()
-        self.dc_inval_edge_ids = set()
         self.dc_shown_patt_ids = set()
+        # This does not include the IDs of invalidated edges.
+        self.dc_shown_edge_ids = set()
+        # This does! Well, really, this includes the full InvalidatedEdge
+        # objects, since we've gotta store them somewhere...
+        self.dc_inval_edges = []
 
         for n in nodes:
             self._add_node(n)
@@ -412,13 +411,13 @@ class Subgraph(object):
         if hasattr(self, "cc_num"):
             graph_utils.warn_if_cc_edge_cts_asymmetric(self)
 
-        # Record what edges will be drawn in the decoupled version of
-        # this subgraph
+        # Record what edges will be drawn in the decoupled version of this
+        # subgraph...
         shown_eids = set()
-        # ... and what edges are impossible to draw normally (even when
-        # reverse-complemented) given just the shown nodes
+        # ...as well as InvalidatedEdge objects created to represent edges that
+        # cannot be shown as-is.
         inval_edgetups = set()
-        inval_edge_info = []
+        inval_edges = []
         for e in self.edges:
             src_shown = e.new_src_id in shown_nids
             tgt_shown = e.new_tgt_id in shown_nids
@@ -485,13 +484,15 @@ class Subgraph(object):
                     else:
                         # okay, rn corresponds to a shown node! yay. we will
                         # draw this invalidated edge specially using it
-                        inval_edge_info.append((e, inval_type, rn.unique_id))
+                        inval_edges.append(
+                            InvalidatedEdge(e, inval_type, rn.unique_id)
+                        )
 
         # Record this subgraph, so that we can handle it specially
         # when drawing with the decoupling option turned on.
         self.dc_shown_node_ids = shown_nids
         self.dc_shown_edge_ids = shown_eids
-        self.dc_inval_edge_info = inval_edge_info
+        self.dc_inval_edges = inval_edges
         self.dc_shown_patt_ids = graph_utils.get_avail_pattern_ids(
             self.patterns,
             self.dc_shown_node_ids,

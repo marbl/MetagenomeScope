@@ -61,11 +61,6 @@ class Layout(object):
         if not self.region_is_pattern:
             self.pattern_ids = self.region.pattid2obj.keys()
 
-        # Does this region have invalidated edges, where we'll need to adjust
-        # the ports of the edges to show them? Again, this is kind of a lazy
-        # way to test this, but...
-        self.has_invals = hasattr(self.region, "inval_edge_info")
-
         # when laid out as a "solid object," this region will be represented
         # as just a rectangle. ofc in the fancy viz we may use a diff shape
         self.shape = "rectangle"
@@ -208,12 +203,6 @@ class Layout(object):
                 for edge in self.region.edges:
                     dot += edge.to_dot()
 
-            # Because invalidated edges are, fundamentally, between a drawn
-            # node and an undrawn node, none of the patterns containing them
-            # should be drawn. Thus, we don't need to worry about being at the
-            # top level of the region or whatever.
-            if self.has_invals:
-                dot += self.region.inval_edges_to_dot()
         dot += "}"
         return dot
 
@@ -378,15 +367,6 @@ class Layout(object):
                         edge.new_tgt_id,
                     )
 
-                if self.has_invals:
-                    for edge, inval_type, rn_id in self.region.inval_edge_info:
-                        src, tgt = layout_utils.get_inval_edge_stids(
-                            edge, inval_type, rn_id
-                        )
-                        layout_utils.save_control_points(
-                            cg, self.edgeid2rel, edge.unique_id, src, tgt
-                        )
-
     def to_abs_coords(self, dx=0, dy=0):
         """Returns the absolute coordinates of descendant nodes and edges.
 
@@ -527,21 +507,6 @@ class Layout(object):
                             dy=dy,
                         )
                     )
-                if self.has_invals:
-                    for edge, inval_type, rn_id in self.region.inval_edge_info:
-                        src, tgt = layout_utils.get_inval_edge_stids(
-                            edge, inval_type, rn_id
-                        )
-                        edgeid2ctrlpts[edge.unique_id] = (
-                            layout_utils.dot_to_cyjs_control_points(
-                                nodeid2xy[src],
-                                nodeid2xy[tgt],
-                                self.edgeid2rel[edge.unique_id],
-                                self.height,
-                                dx=dx,
-                                dy=dy,
-                            )
-                        )
         if self.record_edge_ctrl_pts:
             layout_utils.flatten_some_edges(self.region, edgeid2ctrlpts)
 

@@ -886,8 +886,8 @@ def get_avail_pattern_ids(poss_patterns, node_ids, edge_ids):
     return avail_patt_ids
 
 
-def get_objs_by_ids(objs, ids):
-    return {o for o in objs if o.unique_id in ids}
+def filter_objs_by_ids(objs, ids):
+    return [o for o in objs if o.unique_id in ids]
 
 
 def find_full_or_certain_split_node(nodename2objs, name, desired_split):

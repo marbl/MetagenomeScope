@@ -148,6 +148,9 @@ class Edge(object):
         self.prev_dec_src_id = orig_src_id
         self.prev_dec_tgt_id = orig_tgt_id
 
+        # NOTE: If we end up updating these attributes / adding more, we should
+        # also update the InvalidatedEdge constructor accordingly
+
         # for random coloring
         self.rand_idx = None
 
