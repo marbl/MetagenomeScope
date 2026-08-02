@@ -10,18 +10,23 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 
 ### Added
 
-- Add a new option to the the drawing options dialog,
-  `Decouple strand-tangled components`
-  ([#449](https://github.com/marbl/MetagenomeScope/issues/449)).
+- Add new options to the the drawing options dialog (both selected by default):
 
-  - If this checkbox is checked, then -- when we draw a component or region
-    in the graph that contains both a node `X` and a node `-X` -- we will
-    adjust the region to remove reverse-complementary nodes / edges. This is
-    similar to
-    ["single" mode](https://github.com/rrwick/Bandage/wiki/Single-vs-double-node-style)
-    in Bandage.
+  - `Decouple strand-tangled components`
+    ([#449](https://github.com/marbl/MetagenomeScope/issues/449)).
 
-  - This option is now selected by default.
+    - If this option is selected, then -- when we draw a component or region
+      in the graph that contains both a node `X` and a node `-X` -- we will
+      adjust the region to remove reverse-complementary nodes / edges. This is
+      similar to
+      ["single" mode](https://github.com/rrwick/Bandage/wiki/Single-vs-double-node-style)
+      in Bandage.
+
+  - `Horizontally center rows`
+
+    - If this option is selected, then -- when we are drawing multiple
+      components at once, when using the _dot_ or sfdp layout
+      algorithms -- we will horizontally center each row of components.
 
 - Add a new section, "Style," in the drawing options dialog.
 
@@ -42,11 +47,6 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 
 - You can now select and copy text from the node/edge/pattern/path tables
   ([#298](https://github.com/marbl/MetagenomeScope/issues/298)).
-
-- Add the option to the drawing options dialog, `Horizontally center rows`.
-
-  - This option is now selected by default. It should make drawings of many
-    components at once look nicer.
 
 ### Changed
 
