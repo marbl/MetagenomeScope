@@ -210,10 +210,40 @@ def check_node_split_properly(g, basename, nodename2obj, edgeid2obj):
     return left, right, check_and_get_fake_edge_id(g, left, right, edgeid2obj)
 
 
-def add_node_and_counterpart_ids(s, n):
-    s.add(n.unique_id)
+def add_node_and_counterpart_ids(addto, n, nodeid2obj):
+    """Adds IDs of a Node n and its counterpart node (if applicable) to a set.
+
+    Parameters
+    ----------
+    addto: set of int
+        The set to add these ID(s) to.
+
+    n: Node
+
+    nodeid2obj: dict of int -> Node
+        We will only add a node ID to "addto" if it is present as a key in this
+        dict. If it is not present, then we will not add it.
+
+    Returns
+    -------
+    None
+        (This modifies "addto" in place.)
+
+    Notes
+    -----
+    - We only add a node ID to "addto" if it is in nodeid2obj. This check
+      applies to both the ID of n and the ID of its counterpart node (and
+      these checks are independent of each other, so it is possible for only
+      one of them to be added to addto).
+    """
+
+    def add_if_in(nid):
+        if nid in nodeid2obj:
+            addto.add(nid)
+
+    add_if_in(n.unique_id)
     if n.is_split():
-        s.add(n.counterpart_node_id)
+        add_if_in(n.counterpart_node_id)
 
 
 def get_one_side_of_edge_ids(g, node_id, in_edges=True):

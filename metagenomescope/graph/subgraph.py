@@ -354,18 +354,12 @@ class Subgraph(object):
         m = self.nodeid2obj[mid]
         on2orient[name_utils.get_orientationless_name(m.basename)] = config.FWD
 
-        # if we show a split node, we really should also show its
-        # counterpart (I mean it's not like a huge deal if we omit the
-        # counterpart but I think it would look gross and confusing).
-        # USUALLY the max-degree node should not be split, but maybe it
-        # could happen?
-        #
-        # A more elegant way of handling this would be only creating
-        # fwd_nids to include unsplit nodes, but some subgraphs might only
-        # include split nodes, at least as of writing with how drawing around
-        # nodes works. So let's be fancy schmancy
+        # Record max-degree node (and counterpart, if applicable & present in
+        # this subgraph) as shown
         shown_nids = set()
-        graph_utils.add_node_and_counterpart_ids(shown_nids, m)
+        graph_utils.add_node_and_counterpart_ids(
+            shown_nids, m, self.nodeid2obj
+        )
 
         # Go through the graph and fix node orientations.
         # We use BFS to do this, which seems to work ok; see docstring.
@@ -385,7 +379,9 @@ class Subgraph(object):
                 on = name_utils.get_orientationless_name(n.basename)
                 if on not in on2orient:
                     on2orient[on] = name_utils.get_orientation(n.basename)
-                    graph_utils.add_node_and_counterpart_ids(shown_nids, n)
+                    graph_utils.add_node_and_counterpart_ids(
+                        shown_nids, n, self.nodeid2obj
+                    )
 
         # Was this subgraph changed by fixing node orientations?
         # It might not have been, if it was not strand-tangled. (Even for
@@ -530,9 +526,6 @@ class Subgraph(object):
 
         if self.decoupling_done and ui_utils.decouple(scope_settings):
             sobj = DecoupledSubgraph(self)
-            print("decoupled of ", self, "is", sobj)
-            print(sobj.num_inval_edges)
-            print(sobj.inval_edge_info)
         else:
             sobj = self
 
