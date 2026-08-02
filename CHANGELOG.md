@@ -13,7 +13,7 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 - Add new options to the the drawing options dialog (both selected by default):
 
   - `Decouple strand-tangled components`
-    ([#449](https://github.com/marbl/MetagenomeScope/issues/449)).
+    ([#449](https://github.com/marbl/MetagenomeScope/issues/449))
 
     - If this option is selected, then -- when we draw a component or region
       in the graph that contains both a node `X` and a node `-X` -- we will
