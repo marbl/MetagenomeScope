@@ -236,6 +236,49 @@ def test_check_node_split_properly_not_split():
         gu.check_node_split_properly(g, "x", {"x": x, "y": y}, {9: e})
 
 
+def test_add_node_and_counterpart_ids_bothin():
+    left = Node(0, "N", {})
+    right = Node(1, "N", {}, split=config.SPLIT_RIGHT, counterpart_node=left)
+    s = set()
+    nodeid2obj = {0: left, 1: right}
+    gu.add_node_and_counterpart_ids(s, left, nodeid2obj)
+    assert s == {0, 1}
+
+
+def test_add_node_and_counterpart_ids_onein():
+    left = Node(0, "N", {})
+    right = Node(1, "N", {}, split=config.SPLIT_RIGHT, counterpart_node=left)
+
+    s = set()
+    nodeid2obj = {0: left}
+    gu.add_node_and_counterpart_ids(s, left, nodeid2obj)
+    assert s == {0}
+
+    s = set()
+    nodeid2obj = {0: left}
+    gu.add_node_and_counterpart_ids(s, right, nodeid2obj)
+    assert s == {0}
+
+    s = set()
+    nodeid2obj = {1: right}
+    gu.add_node_and_counterpart_ids(s, left, nodeid2obj)
+    assert s == {1}
+
+    s = set()
+    nodeid2obj = {1: right}
+    gu.add_node_and_counterpart_ids(s, right, nodeid2obj)
+    assert s == {1}
+
+
+def test_add_node_and_counterpart_ids_neitherin():
+    left = Node(0, "N", {})
+    _ = Node(1, "N", {}, split=config.SPLIT_RIGHT, counterpart_node=left)
+    s = set()
+    nodeid2obj = {2: "hi i'm a mock object hello"}
+    gu.add_node_and_counterpart_ids(s, left, nodeid2obj)
+    assert s == set()
+
+
 def test_get_one_side_of_edge_ids():
     g = nx.MultiDiGraph()
     g.add_edge(0, 1, uid=5)
