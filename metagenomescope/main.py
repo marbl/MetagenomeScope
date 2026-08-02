@@ -3259,6 +3259,17 @@ def run(
             # Although node IDs have to be strings in Cytoscape.js, "edgeID"
             # (not a real field) can be whatever. So we've left it as an int,
             # avoiding the need to do any conversion.
+            #
+            # NOTE: InvalidatedEdge objects are set to have the same .unique_id
+            # (and "uid" in Cytoscape.js JSON form) as the Edge object from
+            # which they originate. This is Okay, since we should never draw
+            # an InvalidatedEdge and its corresponding original Edge at the
+            # same time.
+            #
+            # Anyway! We do not store InvalidatedEdges in ag.edgeid2obj -- they
+            # "live" at the Subgraph level. So, when we look up the edge ID
+            # here, we will look up the original edge's data, which actually
+            # works out perfectly -- this is exactly what we want. Yay!
             obj = ag.edgeid2obj[e["uid"]]
             row = {
                 ui_config.EDGE_TBL_SRC_COL: ag.nodeid2obj[obj.new_src_id].name,
