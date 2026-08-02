@@ -523,8 +523,6 @@ class Subgraph(object):
         -------
         DrawResults
         """
-        from .decoupled_subgraph import DecoupledSubgraph
-
         if self.decoupling_done and ui_utils.decouple(scope_settings):
             sobj = DecoupledSubgraph(self)
         else:
@@ -540,3 +538,48 @@ class Subgraph(object):
                 layout_params,
             )
         return DrawResults({sobj: lay}, scope_settings, modifier_settings)
+
+
+class DecoupledSubgraph(Subgraph):
+    """Represents a decoupled subgraph.
+
+    Um, the reason this is in this file -- and not in its own file -- is to
+    avoid circular imports, since this relies on Subgraph and Subgraph relies
+    on this. You could totally avoid that problem by making Subgraph defer
+    importing DecoupledSubgraph until to_cyjs() gets called, but that seems
+    messy and inefficient.
+    """
+
+    def __init__(self, sg):
+        """Initializes this object.
+
+        Parameters
+        ----------
+        sg: Subgraph
+        """
+        if not sg.decoupling_done:
+            raise WeirdError(f"{sg} not decoupled?")
+
+        # If sg is a Component, set the same component number for this obj --
+        # so it is sorted properly by DrawResults.get_sorted_regions()
+        if hasattr(sg, "cc_num"):
+            self.cc_num = sg.cc_num
+
+        # Lump shown Edges and InvalidatedEdges together, which makes
+        # downstream stuff easier to think about -- less special-casing needed.
+        # (We defer doing this to here in order to avoid having to store extra
+        # stuff all the time, I guess ...?)
+        edges = graph_utils.filter_objs_by_ids(sg.edges, sg.dc_shown_edge_ids)
+        edges += sg.dc_inval_edges
+
+        super().__init__(
+            None,
+            f"dc_{sg.name}",
+            graph_utils.filter_objs_by_ids(sg.nodes, sg.dc_shown_node_ids),
+            edges,
+            graph_utils.filter_objs_by_ids(sg.patterns, sg.dc_shown_patt_ids),
+            node_centric=sg.node_centric,
+            length_field=sg.length_field,
+            record_node_names=sg.record_node_names,
+            count_positive_names=sg.count_positive_names,
+        )
