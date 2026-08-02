@@ -43,8 +43,7 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 - You can now select and copy text from the node/edge/pattern/path tables
   ([#298](https://github.com/marbl/MetagenomeScope/issues/298)).
 
-- Add the option to horizontally center each row of components (when using
-  _dot_ / sfdp) to the drawing options dialog.
+- Add the option to the drawing options dialog, `Horizontally center rows`.
 
   - This option is now selected by default. It should make drawings of many
     components at once look nicer.
@@ -77,6 +76,8 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   - Making this setting a "modifier" (rather than its own drawing method)
     enables some useful functionalities. In particular, it plays nicely with
     [#448](https://github.com/marbl/MetagenomeScope/issues/448).
+
+  - This option is now selected by default.
 
 - Simplify and improve component sorting procedure
   ([#378](https://github.com/marbl/MetagenomeScope/issues/378),
