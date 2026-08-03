@@ -137,7 +137,10 @@ def run(
         default_labels = ui_config.DEFAULT_LABELS_EDGE_CENTRIC
 
     DOT_ALG_DESC, DOT_ALG_DESC_PATTS, default_dot_alg_desc = (
-        ui_utils.get_dot_alg_descriptions()
+        ui_utils.get_dot_alg_descriptions(
+            ui_config.DEFAULT_SCOPE_SETTINGS,
+            ui_config.DEFAULT_MODIFIER_SETTINGS,
+        )
     )
 
     # If there are multiple components, show a "Components" tab in the info
@@ -2666,21 +2669,25 @@ def run(
         prevent_initial_call=True,
     )
     def update_recursive_layout_plans(scope_settings, modifier_settings):
-        show_patts = ui_utils.show_patterns(scope_settings)
-        do_rec_layout = ui_utils.do_recursive_layout(modifier_settings)
-
-        if show_patts and do_rec_layout:
+        # Are we actually gonna *do* recursive layout, if we were to draw
+        # the graph right now?
+        if ui_utils.do_recursive_layout(scope_settings, modifier_settings):
             desc = DOT_ALG_DESC_PATTS
         else:
             desc = DOT_ALG_DESC
 
-        if not show_patts:
+        # Should we disable the checkbox for recursive layout? This could
+        # be needed if the scope settings make doing recursive layout
+        # impossible (e.g. "show patterns" is turned off)
+        if ui_utils.recursive_layout_enabled(scope_settings):
+            # enable the checkbox (or leave it enabled, at least)
+            opts = ui_config.MODIFIER_SETTINGS_OPTIONS
+        else:
+            # disable the checkbox (or leave it disabled, at least)
             opts = copy.deepcopy(ui_config.MODIFIER_SETTINGS_OPTIONS)
             ui_utils.disable_dcc_checklist_option(
                 opts, ui_config.DO_RECURSIVE_LAYOUT
             )
-        else:
-            opts = ui_config.MODIFIER_SETTINGS_OPTIONS
 
         return desc, opts
 
