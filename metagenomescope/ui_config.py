@@ -26,7 +26,7 @@ SCOPE_SETTINGS_OPTIONS = [
     },
 ]
 
-DO_RECURSIVE_LAYOUT = "recursive"
+RECURSIVE = "recursive"
 USE_GV_PORTS = "ports"
 HCENTER = "hcenter"
 DO_LAYOUT_ANIMATION = "animate"
@@ -40,7 +40,7 @@ MODIFIER_SETTINGS_OPTIONS = [
                 " only)",
             ]
         ),
-        "value": DO_RECURSIVE_LAYOUT,
+        "value": RECURSIVE,
     },
     {
         "label": html.Span(

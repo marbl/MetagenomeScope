@@ -2685,9 +2685,7 @@ def run(
         else:
             # disable the checkbox (or leave it disabled, at least)
             opts = copy.deepcopy(ui_config.MODIFIER_SETTINGS_OPTIONS)
-            ui_utils.disable_dcc_checklist_option(
-                opts, ui_config.DO_RECURSIVE_LAYOUT
-            )
+            ui_utils.disable_dcc_checklist_option(opts, ui_config.RECURSIVE)
 
         return desc, opts
 

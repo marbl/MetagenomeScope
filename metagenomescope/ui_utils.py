@@ -1202,7 +1202,7 @@ def show_patterns(scope_settings):
 
 
 def recursive(modifier_settings):
-    return ui_config.DO_RECURSIVE_LAYOUT in modifier_settings
+    return ui_config.RECURSIVE in modifier_settings
 
 
 def use_gv_ports(modifier_settings):
@@ -1475,11 +1475,9 @@ def get_layout_options_tab(
     # Finally, we don't support recursive layout when patterns are not drawn
     # and/or when decoupling is selected.
     if not recursive_layout_enabled(ui_config.DEFAULT_SCOPE_SETTINGS):
-        disable_dcc_checklist_option(
-            modifier_options, ui_config.DO_RECURSIVE_LAYOUT
-        )
+        disable_dcc_checklist_option(modifier_options, ui_config.RECURSIVE)
         misc_utils.safe_list_discard(
-            default_modifier_settings, ui_config.DO_RECURSIVE_LAYOUT
+            default_modifier_settings, ui_config.RECURSIVE
         )
 
     return html.Div(
