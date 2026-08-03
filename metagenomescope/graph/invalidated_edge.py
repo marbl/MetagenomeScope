@@ -131,7 +131,7 @@ class InvalidatedEdge(Edge):
 
     def to_dot(self, level="new", is_back=False, indent=layout_config.INDENT):
         if level != "new":
-            raise WeirdError(f"Only level='new' supported: inval edge {self}")
+            raise WeirdError(f"Only level='new' supported: {self}")
 
         return layout_utils.get_edge_dot(
             self.new_src_id,
