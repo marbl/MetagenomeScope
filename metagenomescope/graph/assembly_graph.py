@@ -2389,6 +2389,25 @@ class AssemblyGraph(object):
             names.append(self.nodeid2obj[i].name)
         return names
 
+    def get_rc_nodes(self, node_id):
+        """Generates Node(s) with reverse-complementary basenames.
+
+        Parameters
+        ----------
+        node_id: int
+            The unique ID of a Node in the graph.
+
+        Yields
+        ------
+        Node
+            Each yielded Node object will have a basename that is reverse-
+            complementary to (the basename of the node with ID node_id).
+        """
+        rcname = name_utils.negate(self.nodeid2obj[node_id].basename)
+        for found, rn in self.find_nodes({rcname}):
+            if found:
+                yield rn
+
     def get_avail_paths(self, curr_drawn_ids):
         """Returns a list of names of "available" paths."""
         id_field = (

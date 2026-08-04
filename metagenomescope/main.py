@@ -29,7 +29,6 @@ from . import (
     chart_utils,
     color_utils,
     path_utils,
-    name_utils,
 )
 from .graph import AssemblyGraph, graph_utils
 from .errors import UIError, WeirdError
@@ -3293,9 +3292,7 @@ def run(
         Input("searchInput", "n_submit"),
         prevent_initial_call=True,
     )
-    def check_nodes_for_search(
-        curr_toasts, node_names, curr_drawn_ids, n_clicks, n_submit
-    ):
+    def search(curr_toasts, node_names, curr_drawn_ids, n_clicks, n_submit):
         try:
             # NOTE: this will "expand" split nodes' basenames into their
             # splits (for example, "40" will be represented in nn2ccnum with
@@ -3317,40 +3314,38 @@ def run(
         drawn_nodes = []
         undrawn_nodes = []
 
+        def drawn(ni):
+            return ni in curr_drawn_ids[config.CDI_DRAWN_NODE_IDS]
+
         if curr_drawn_ids is None:
-            # nothing has been drawn yet, but let's still allow searching
+            # nothing has been drawn yet, but let's still allow searching (this
+            # will show the user the component size ranks of these nodes)
             undrawn_nodes = list(nn2ccnum.keys())
         else:
             for ni in nodeids:
                 name = ag.nodeid2obj[ni].name
-                if ni in curr_drawn_ids[config.CDI_DRAWN_NODE_IDS]:
+                if drawn(ni):
                     drawn_nodes.append(name)
                 else:
                     # If the node with ID "ni" wasn't drawn, see if its RC
-                    # node is drawn -- we could just show that.
+                    # node(s) are drawn -- we could just show that.
+                    # See https://github.com/marbl/MetagenomeScope/issues/407.
+                    #
+                    # NOTE: in the default searching, if the user searches for
+                    # 40-L, then JUST 40-L will be selected. However, if the
+                    # user searches for 40-L and only -40-L --> -40-R is drawn,
+                    # then we will select both -40 nodes. I think this makes
+                    # sense, since it is not immediately clear which RC split
+                    # node to map a split node to. (But like also realistically
+                    # nobody but me is gonna be searching for "40-L" ...)
                     rc_not_drawn = True
-                    rcname = name_utils.negate(ag.nodeid2obj[ni].basename)
-                    # If for some reason the user searches for, let's say,
-                    # "40-L", then the default searching will just show them
-                    # that left split node (if node 40-L is drawn). But if the
-                    # user searches for "40-L" AND node 40-L is undrawn, then
-                    # when we look for RC nodes we will find all nodes with a
-                    # basename of 40. So, "40-L" could lead to us finding
-                    # "-40-L" and "-40-R", or just "-40" if it is unsplit.
-                    # I think this behavior is reasonable (nobody will see it
-                    # anyway, I doubt anybody but me is out here searching for
-                    # split nodes specifically).
-                    for found, rn in ag.find_nodes({rcname}):
-                        if (
-                            found
-                            and rn.unique_id
-                            in curr_drawn_ids[config.CDI_DRAWN_NODE_IDS]
-                        ):
+                    for rn in ag.get_rc_nodes(ni):
+                        if drawn(rn.unique_id):
                             drawn_nodes.append(rn.name)
                             rc_not_drawn = False
                     if rc_not_drawn:
-                        # this means this node wasn't drawn, and neither was
-                        # its reverse-complementary node (if any exists)
+                        # this node wasn't drawn, and neither were its reverse-
+                        # complementary node(s) (if any exist).
                         undrawn_nodes.append(name)
 
         # If none of these nodes are currently drawn, show an error.
