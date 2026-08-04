@@ -2218,7 +2218,7 @@ class AssemblyGraph(object):
             with open(output_fp, "w") as fh:
                 fh.write(output_stats)
 
-    def _find_nodes(self, names_to_search):
+    def find_nodes(self, names_to_search):
         """Generates information about Nodes matching a collection of names.
 
         Parameters
@@ -2244,9 +2244,7 @@ class AssemblyGraph(object):
             else:
                 yield (False, name)
 
-    def _search(
-        self, node_name_text, get_cc_map=False, get_ids=False, get_rc_ids=False
-    ):
+    def _search(self, node_name_text, get_cc_map=False, get_ids=False):
         """Searches through the graph and accumulates info about certain nodes.
 
         Parameters
@@ -2263,19 +2261,6 @@ class AssemblyGraph(object):
         get_ids: bool
             If True, include the key "ids" in the output dict. This will point
             to a list of node IDs.
-
-        get_rc_ids: bool
-            If True, include the key "rc_ids" in the output dict. This will
-            point to a list of IDs of nodes with basenames that are:
-
-                - in the graph (duh)
-                - NOT explicitly described in node_name_text
-                - reverse-complementary to a node described in node_name_text
-
-            Note that, if self.orientation_in_name is False, then rc_ids will
-            just point to an empty list (since nodes don't really have RCs in
-            such graphs). There is also no guarantee (for certain types of
-            graphs) that a node will have an RC in the first place.
 
         Returns
         -------
@@ -2294,55 +2279,33 @@ class AssemblyGraph(object):
             why are you calling this?)
 
         UIError
-            If any of the node names explicitly described in node_name_text are
-            not present in the graph at all.
-
-            Note that this doesn't apply to RC nodes that were only
-            "implicitly" searched for due to get_rc_ids. If the RC of a node is
-            not in the graph, then that won't cause an error here.
+            If any of the node names described in node_name_text are not
+            present in the graph at all.
 
         Notes
         -----
         - This will "expand" split nodes' basenames -- searching for a split
           node X will result in two entries (for X-L and X-R) in the cc map and
-          ID lists. (Similarly, if -X is split, then rc_ids will include both
-          of those IDs.)
+          ID lists.
         """
-        if not get_cc_map and not get_ids and not get_rc_ids:
+        if not get_cc_map and not get_ids:
             raise WeirdError("just running a search for the love of the game?")
 
         nodename2ccnum = {}
         ids = set()
-        rc_ids = set()
         node_names_to_search = ui_utils.get_node_names(node_name_text)
 
-        # Search for RC nodes
-        if get_rc_ids and self.orientation_in_name:
-            rc_node_names_to_search = set()
-            for name in node_names_to_search:
-                rc_node_names_to_search.add(name_utils.negate(name))
-            # If the user searched explicitly for both X and -X, then make sure
-            # to exclude these
-            rc_node_names_to_search -= node_names_to_search
-            for found, node in self._find_nodes(rc_node_names_to_search):
-                if found:
-                    rc_ids.add(node.unique_id)
-
-        # Search for the rest of the nodes that were requested
         unfound_node_names = set()
-        for found, n in self._find_nodes(node_names_to_search):
+        for found, n in self.find_nodes(node_names_to_search):
             if found:
                 if get_ids:
                     ids.add(n.unique_id)
                 if get_cc_map:
                     nodename2ccnum[n.name] = n.cc_num
             else:
-                # Okay this node just straight up isn't in the graph... and
-                # the user explicitly searched for it :O
+                # Okay, this node just straight up isn't in the graph.
                 # This means that "n" is actually a str, not a Node
                 unfound_node_names.add(n)
-
-        # Fail if any of the explicitly-searched-for nodes weren't in the graph
         ui_utils.fail_if_unfound_nodes(unfound_node_names)
 
         out = {}
@@ -2350,8 +2313,6 @@ class AssemblyGraph(object):
             out["cc_map"] = nodename2ccnum
         if get_ids:
             out["ids"] = list(ids)
-        if get_rc_ids:
-            out["rc_ids"] = list(rc_ids)
         return out
 
     def get_nodename2ccnum(self, node_name_text):
@@ -2417,11 +2378,9 @@ class AssemblyGraph(object):
         """
         return self._search(node_name_text, get_ids=True)["ids"]
 
-    def get_node_ids_and_cc_map_and_rc_ids(self, node_name_text):
-        s = self._search(
-            node_name_text, get_ids=True, get_cc_map=True, get_rc_ids=True
-        )
-        return s["ids"], s["cc_map"], s["rc_ids"]
+    def get_node_ids_and_cc_map(self, node_name_text):
+        s = self._search(node_name_text, get_ids=True, get_cc_map=True)
+        return s["ids"], s["cc_map"]
 
     def get_node_names_from_ids(self, node_ids):
         # include both A-L and A-R, if both IDs are in the input
@@ -2430,59 +2389,20 @@ class AssemblyGraph(object):
             names.append(self.nodeid2obj[i].name)
         return names
 
-    def get_avail_paths(self, curr_drawn_info):
-        """Returns a list of names of available paths based on what is drawn.
-
-        Parameters
-        ----------
-        curr_drawn_info: dict
-            Describes what is currently drawn. The output of draw() in main.py.
-            See that function for details.
-
-        Returns
-        -------
-        list
-            Contains the names of all available paths.
-
-        Raises
-        ------
-        WeirdError
-            If we don't recognize the draw_type attribute of curr_drawn_info.
-        """
-        draw_type = curr_drawn_info["draw_type"]
-        if draw_type == config.DRAW_ALL:
-            return self.pathname2objnames.keys()
-
-        elif draw_type == config.DRAW_CCS:
-            return path_utils.get_avail_paths_from_cc_nums(
-                self.pathname2ccnums, curr_drawn_info["cc_nums"]
-            )
-
-        elif draw_type == config.DRAW_NR:
-            return path_utils.get_avail_paths_from_cc_nums(
-                self.pathname2ccnums, self.get_nr_cc_nums()
-            )
-
-        elif draw_type == config.DRAW_AROUND:
-            return self.get_region_avail_paths(curr_drawn_info)
-
-        else:
-            raise WeirdError(f"Unrecognized draw type: {curr_drawn_info}")
-
-    def get_region_avail_paths(self, curr_drawn_info):
-        """Returns available paths when drawing "around" nodes."""
+    def get_avail_paths(self, curr_drawn_ids):
+        """Returns a list of names of "available" paths."""
         id_field = (
             config.CDI_DRAWN_NODE_IDS
             if self.node_centric
             else config.CDI_DRAWN_EDGE_IDS
         )
-        if id_field not in curr_drawn_info:
-            raise WeirdError(f"{id_field} not in {curr_drawn_info}?")
+        if id_field not in curr_drawn_ids:
+            raise WeirdError(f"{id_field} not in {curr_drawn_ids}?")
 
         avail_paths = []
         touched_paths = set()
         drawn_names = set()
-        for i in curr_drawn_info[id_field]:
+        for i in curr_drawn_ids[id_field]:
             if self.node_centric:
                 name = self.nodeid2obj[i].basename
             else:

@@ -29,6 +29,7 @@ from . import (
     chart_utils,
     color_utils,
     path_utils,
+    name_utils,
 )
 from .graph import AssemblyGraph, graph_utils
 from .errors import UIError, WeirdError
@@ -1842,14 +1843,11 @@ def run(
                 id="doneFlushing",
             ),
             # After successfully drawing the graph, we'll update this to
-            # include what was set in "doneFlushing". Keeping this info around
-            # is useful for searching, figuring out what paths are available,
-            # etc. (On that note, if the user selected drawing "around" certain
-            # node IDs, then this will also include the IDs of *all* nodes and
-            # edges that were drawn. This lets us avoid having to recompute
-            # this info a bunch of times.)
+            # include the IDs of all drawn nodes and edges. Makes life easier.
+            # Eventually we may want to use something besides a dcc.Store for
+            # this; see https://github.com/marbl/MetagenomeScope/issues/467
             dcc.Store(
-                id="currDrawnInfo",
+                id="currDrawnIDs",
             ),
             # Similarly, we'll update this during the process of searching
             # for nodes. There is some jank where (1) Dash Cytoscape doesn't
@@ -2929,7 +2927,7 @@ def run(
         Output("cyElementsHolder", "data", allow_duplicate=True),
         Output("currDrawnText", "children"),
         Output("currDrawnCounts", "children"),
-        Output("currDrawnInfo", "data"),
+        Output("currDrawnIDs", "data"),
         Input("doneFlushing", "data"),
         running=DRAW_RUNNING,
         prevent_initial_call=True,
@@ -2949,11 +2947,11 @@ def run(
             eles = dr.pack()
             asum = dr.get_fancy_count_text()
             logging.debug("...Done creating JSON.")
-            curr_drawn_info = curr_done_flushing.copy()
-            if curr_done_flushing["draw_type"] == config.DRAW_AROUND:
-                nodeids, edgeids = dr.get_node_and_edge_ids()
-                curr_drawn_info[config.CDI_DRAWN_NODE_IDS] = nodeids
-                curr_drawn_info[config.CDI_DRAWN_EDGE_IDS] = edgeids
+            nodeids, edgeids = dr.get_node_and_edge_ids()
+            curr_drawn_ids = {
+                config.CDI_DRAWN_NODE_IDS: nodeids,
+                config.CDI_DRAWN_EDGE_IDS: edgeids,
+            }
             return (
                 eles,
                 html.Span(
@@ -2967,7 +2965,7 @@ def run(
                     ]
                 ),
                 f"({asum})",
-                curr_drawn_info,
+                curr_drawn_ids,
             )
         else:
             logging.debug("Caught a bad drawing request. Not redrawing.")
@@ -3059,37 +3057,36 @@ def run(
             Output("pathCount", "children"),
             Output("pathList", "rowData"),
             Output("pathCount", "color"),
-            Input("currDrawnInfo", "data"),
+            Input("currDrawnIDs", "data"),
             prevent_initial_call=True,
         )
-        def update_curr_available_paths(curr_drawn_info):
+        def update_curr_available_paths(curr_drawn_ids):
             logging.debug(
                 "Updating info about available paths based on what was drawn..."
             )
             # update the table of available paths, based on what's drawn
             rows = []
             ct = 0
-            if curr_drawn_info is not None:
-                avail_paths = ag.get_avail_paths(curr_drawn_info)
-                for p in avail_paths:
-                    rows.append(
-                        {
-                            ui_config.PATH_TBL_NAME_COL: p,
-                            # this ignores gaps, and ignores if a node has been
-                            # split or not. this is what we want for just
-                            # counting the number of full/real nodes/edges on
-                            # this path
-                            ui_config.PATH_TBL_COUNT_COL: len(
-                                ag.pathname2objnames[p]
-                            ),
-                            # TODO this is ugly pls move to AssemblyGraph so
-                            # it can be tested...
-                            ui_config.PATH_TBL_CC_COL: ", ".join(
-                                str(ccn) for ccn in ag.pathname2ccnums[p]
-                            ),
-                        }
-                    )
-                    ct += 1
+            avail_paths = ag.get_avail_paths(curr_drawn_ids)
+            for p in avail_paths:
+                rows.append(
+                    {
+                        ui_config.PATH_TBL_NAME_COL: p,
+                        # this ignores gaps, and ignores if a node has been
+                        # split or not. this is what we want for just
+                        # counting the number of full/real nodes/edges on
+                        # this path
+                        ui_config.PATH_TBL_COUNT_COL: len(
+                            ag.pathname2objnames[p]
+                        ),
+                        # TODO this is ugly pls move to AssemblyGraph so
+                        # it can be tested...
+                        ui_config.PATH_TBL_CC_COL: ", ".join(
+                            str(ccn) for ccn in ag.pathname2ccnums[p]
+                        ),
+                    }
+                )
+                ct += 1
             # also show a summary
             count_text = path_utils.get_available_count_badge_text(
                 ct, len(ag.pathname2objnames)
@@ -3291,21 +3288,19 @@ def run(
         Output("nodeSelectionInfo", "data"),
         State("toastHolder", "children"),
         State("searchInput", "value"),
-        State("currDrawnInfo", "data"),
+        State("currDrawnIDs", "data"),
         Input("searchButton", "n_clicks"),
         Input("searchInput", "n_submit"),
         prevent_initial_call=True,
     )
     def check_nodes_for_search(
-        curr_toasts, node_names, curr_drawn_info, n_clicks, n_submit
+        curr_toasts, node_names, curr_drawn_ids, n_clicks, n_submit
     ):
         try:
             # NOTE: this will "expand" split nodes' basenames into their
             # splits (for example, "40" will be represented in nn2ccnum with
             # two entries: "40-L" -> (cc num), and "40-R" -> (cc num)).
-            nodeids, nn2ccnum, rc_ids = ag.get_node_ids_and_cc_map_and_rc_ids(
-                node_names
-            )
+            nodeids, nn2ccnum = ag.get_node_ids_and_cc_map(node_names)
         except UIError as err:
             # If we fail at this point, it is because either the input text
             # is empty / malformed or because it includes at least one node
@@ -3316,47 +3311,35 @@ def run(
                 ),
                 {"requestGood": False},
             )
-        # At this point, we know that all of these nodes are in the graph.
-        # Figure out which if any of them are currently drawn.
+
+        # At this point, we know that all of the searched-for nodes are in the
+        # graph. Figure out which if any of them are currently drawn.
         drawn_nodes = []
         undrawn_nodes = []
 
-        # TODO these assume that drawing a cc means drawing ALL its stuff.
-        # decoupling breaks this sofixit
-        if curr_drawn_info is None:
-            # nothing has been drawn yet
+        if curr_drawn_ids is None:
+            # nothing has been drawn yet, but let's still allow searching
             undrawn_nodes = list(nn2ccnum.keys())
-
-        elif curr_drawn_info["draw_type"] == config.DRAW_ALL:
-            # everything is drawn
-            drawn_nodes = list(nn2ccnum.keys())
-
-        elif curr_drawn_info["draw_type"] == config.DRAW_AROUND:
-            # some weird subregion of the graph is drawn, as specified in
-            # currDrawnInfo
-            if config.CDI_DRAWN_NODE_IDS in curr_drawn_info:
-                for ni in nodeids:
-                    name = ag.nodeid2obj[ni].name
-                    if ni in curr_drawn_info[config.CDI_DRAWN_NODE_IDS]:
-                        drawn_nodes.append(name)
-                    else:
-                        undrawn_nodes.append(name)
-            else:
-                raise WeirdError(f"No node IDs available in {curr_drawn_info}")
-
         else:
-            # only certain component(s) are drawn
-            if curr_drawn_info["draw_type"] == config.DRAW_CCS:
-                curr_drawn_cc_nums = set(curr_drawn_info["cc_nums"])
-            elif curr_drawn_info["draw_type"] == config.DRAW_NR:
-                curr_drawn_cc_nums = set(ag.get_nr_cc_nums())
-            else:
-                raise WeirdError(f"Unrecognized draw type: {curr_drawn_info}")
-            for n, c in nn2ccnum.items():
-                if c in curr_drawn_cc_nums:
-                    drawn_nodes.append(n)
+            for ni in nodeids:
+                name = ag.nodeid2obj[ni].name
+                if ni in curr_drawn_ids[config.CDI_DRAWN_NODE_IDS]:
+                    drawn_nodes.append(name)
                 else:
-                    undrawn_nodes.append(n)
+                    rc_not_drawn = True
+                    rcname = name_utils.negate(ag.nodeid2obj[ni].basename)
+                    for found, rn in ag.find_nodes({rcname}):
+                        if (
+                            found
+                            and rn.unique_id
+                            in curr_drawn_ids[config.CDI_DRAWN_NODE_IDS]
+                        ):
+                            drawn_nodes.append(rn.name)
+                            rc_not_drawn = False
+                    if rc_not_drawn:
+                        # this means this node wasn't drawn, and neither was
+                        # its reverse-complementary node (if any exists)
+                        undrawn_nodes.append(name)
 
         # If none of these nodes are currently drawn, show an error.
         if len(drawn_nodes) == 0:
