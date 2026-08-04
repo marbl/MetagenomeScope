@@ -15,10 +15,10 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   - `Decouple strand-tangled components`
     ([#449](https://github.com/marbl/MetagenomeScope/issues/449))
 
-    - If this option is selected, then -- when we draw a component or region
-      in the graph that contains both a node `X` and a node `-X` -- we will
-      adjust the region to remove reverse-complementary nodes / edges. This is
-      similar to
+    - If this option is selected, then -- when we draw a "strand-tangled"
+      component or region in the graph -- we will only show one copy of each
+      node and edge (rather than drawing both node `X` and `-X` at once).
+      This is similar to
       ["single" mode](https://github.com/rrwick/Bandage/wiki/Single-vs-double-node-style)
       in Bandage.
 
@@ -129,6 +129,10 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 
 - As a consequence to the above change, prevent node or edge IDs from including
   semicolons.
+
+- When searching for a node with ID `X`: if `X` is not currently drawn but its
+  reverse-complementary node `-X` is drawn, then searching will now find `-X`
+  ([#407](https://github.com/marbl/MetagenomeScope/issues/407)).
 
 - Clean up the logging messages made when starting layout (e.g. only show
   layout parameters relevant to the currently selected algorithm).
