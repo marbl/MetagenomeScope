@@ -2218,39 +2218,141 @@ class AssemblyGraph(object):
             with open(output_fp, "w") as fh:
                 fh.write(output_stats)
 
-    def _search(self, node_name_text, get_cc_map=False, get_ids=False):
-        """Searches through the graph and accumulates info about nodes."""
+    def _find_nodes(self, names_to_search):
+        """Generates information about Nodes matching a collection of names.
 
-        if not get_cc_map and not get_ids:
-            # yeah yeah yeah you could write out the bitwise XNOR or whatever
-            # but this is clearer imo
-            raise WeirdError("Only one of these should be specified.")
+        Parameters
+        ----------
+        names_to_search: set of str
+            Node names to search through self.nodename2objs for.
+
+        Yields
+        ------
+        (bool, Node or str)
+            If a node name was in self.nodename2objs, then we will yield a
+            (True, Node) for each of the Node objects to which this name maps.
+            (A node can map to multiple names if it is split.)
+
+            If a node name was NOT in self.nodename2objs, then we will yield
+            (False, str), where the str is the missing node name. This way,
+            the caller can raise an error if desired.
+        """
+        for name in names_to_search:
+            if name in self.nodename2objs:
+                for obj in self.nodename2objs[name]:
+                    yield (True, obj)
+            else:
+                yield (False, name)
+
+    def _search(
+        self, node_name_text, get_cc_map=False, get_ids=False, get_rc_ids=False
+    ):
+        """Searches through the graph and accumulates info about certain nodes.
+
+        Parameters
+        ----------
+        node_name_text: str
+            User-specified comma-separated list of node names (or, like, just a
+            single node name I guess) for which we will search the graph. See
+            ui_utils.get_node_names(), which handles parsing this stuff.
+
+        get_cc_map: bool
+            If True, include the key "cc_map" in the output dict. This will
+            point to a dict that maps node name -> component size rank.
+
+        get_ids: bool
+            If True, include the key "ids" in the output dict. This will point
+            to a list of node IDs.
+
+        get_rc_ids: bool
+            If True, include the key "rc_ids" in the output dict. This will
+            point to a list of IDs of nodes with basenames that are:
+
+                - in the graph (duh)
+                - NOT explicitly described in node_name_text
+                - reverse-complementary to a node described in node_name_text
+
+            Note that, if self.orientation_in_name is False, then rc_ids will
+            just point to an empty list (since nodes don't really have RCs in
+            such graphs). There is also no guarantee (for certain types of
+            graphs) that a node will have an RC in the first place.
+
+        Returns
+        -------
+        dict of str -> dict | list
+            Includes some combination of the outputs specified above, for the
+            node(s) that were searched for.
+
+            IDK, is this too confusing? Should I just make a SearchResults
+            class or something to store this stuff? Probably not worth it.
+            Let me know if you're reading this and you have an opinion.
+
+        Raises
+        ------
+        WeirdError
+            If none of the get_* parameters were set to True (because then
+            why are you calling this?)
+
+        UIError
+            If any of the node names explicitly described in node_name_text are
+            not present in the graph at all.
+
+            Note that this doesn't apply to RC nodes that were only
+            "implicitly" searched for due to get_rc_ids. If the RC of a node is
+            not in the graph, then that won't cause an error here.
+
+        Notes
+        -----
+        - This will "expand" split nodes' basenames -- searching for a split
+          node X will result in two entries (for X-L and X-R) in the cc map and
+          ID lists. (Similarly, if -X is split, then rc_ids will include both
+          of those IDs.)
+        """
+        if not get_cc_map and not get_ids and not get_rc_ids:
+            raise WeirdError("just running a search for the love of the game?")
 
         nodename2ccnum = {}
         ids = set()
+        rc_ids = set()
         node_names_to_search = ui_utils.get_node_names(node_name_text)
-        unfound_nodes = set()
-        for name in node_names_to_search:
-            if name in self.nodename2objs:
-                for obj in self.nodename2objs[name]:
-                    if get_ids:
-                        ids.add(obj.unique_id)
-                    if get_cc_map:
-                        nodename2ccnum[obj.name] = obj.cc_num
+
+        # Search for RC nodes
+        if get_rc_ids and self.orientation_in_name:
+            rc_node_names_to_search = set()
+            for name in node_names_to_search:
+                rc_node_names_to_search.add(name_utils.negate(name))
+            # If the user searched explicitly for both X and -X, then make sure
+            # to exclude these
+            rc_node_names_to_search -= node_names_to_search
+            for found, node in self._find_nodes(rc_node_names_to_search):
+                if found:
+                    rc_ids.add(node.unique_id)
+
+        # Search for the rest of the nodes that were requested
+        unfound_node_names = set()
+        for found, n in self._find_nodes(node_names_to_search):
+            if found:
+                if get_ids:
+                    ids.add(n.unique_id)
+                if get_cc_map:
+                    nodename2ccnum[n.name] = n.cc_num
             else:
-                # Okay this node just straight up isn't in the graph
-                unfound_nodes.add(name)
-        ui_utils.fail_if_unfound_nodes(unfound_nodes)
+                # Okay this node just straight up isn't in the graph... and
+                # the user explicitly searched for it :O
+                # This means that "n" is actually a str, not a Node
+                unfound_node_names.add(n)
+
+        # Fail if any of the explicitly-searched-for nodes weren't in the graph
+        ui_utils.fail_if_unfound_nodes(unfound_node_names)
+
+        out = {}
+        if nodename2ccnum:
+            out["cc_map"] = nodename2ccnum
         if get_ids:
-            if get_cc_map:
-                return (list(ids), nodename2ccnum)
-            else:
-                return list(ids)
-        else:
-            if get_cc_map:
-                return nodename2ccnum
-            else:
-                raise WeirdError("bruh")
+            out["ids"] = list(ids)
+        if get_rc_ids:
+            out["rc_ids"] = list(rc_ids)
+        return out
 
     def get_nodename2ccnum(self, node_name_text):
         """Returns a mapping of node names -> cc nums, given user-input text.
@@ -2289,7 +2391,7 @@ class AssemblyGraph(object):
           Bootstrap (?)'s formatting is collapsing spaces... but also, node
           names really shouldn't have spaces anyway, so probably nbd.
         """
-        return self._search(node_name_text, get_cc_map=True)
+        return self._search(node_name_text, get_cc_map=True)["cc_map"]
 
     def get_node_ids(self, node_name_text):
         """Returns a list of node IDs, given user-input text.
@@ -2313,10 +2415,13 @@ class AssemblyGraph(object):
         UIError
             For the same reasons as get_nodename2ccnum().
         """
-        return self._search(node_name_text, get_ids=True)
+        return self._search(node_name_text, get_ids=True)["ids"]
 
-    def get_node_ids_and_cc_map(self, node_name_text):
-        return self._search(node_name_text, get_ids=True, get_cc_map=True)
+    def get_node_ids_and_cc_map_and_rc_ids(self, node_name_text):
+        s = self._search(
+            node_name_text, get_ids=True, get_cc_map=True, get_rc_ids=True
+        )
+        return s["ids"], s["cc_map"], s["rc_ids"]
 
     def get_node_names_from_ids(self, node_ids):
         # include both A-L and A-R, if both IDs are in the input

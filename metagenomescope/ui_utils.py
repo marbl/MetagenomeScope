@@ -941,13 +941,13 @@ def get_fancy_node_name_list(node_names, quote=True, bracket=False):
         return out
 
 
-def fail_if_unfound_nodes(unfound_nodes):
-    if len(unfound_nodes) == 1:
-        n = unfound_nodes.pop()
+def fail_if_unfound_nodes(unfound_node_names):
+    if len(unfound_node_names) == 1:
+        n = unfound_node_names.pop()
         raise UIError(f'Can\'t find a node with name "{n}" in the graph.')
 
-    elif len(unfound_nodes) > 1:
-        ns = get_fancy_node_name_list(unfound_nodes)
+    elif len(unfound_node_names) > 1:
+        ns = get_fancy_node_name_list(unfound_node_names)
         raise UIError(f"Can't find nodes with names {ns} in the graph.")
 
 

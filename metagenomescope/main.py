@@ -3303,7 +3303,9 @@ def run(
             # NOTE: this will "expand" split nodes' basenames into their
             # splits (for example, "40" will be represented in nn2ccnum with
             # two entries: "40-L" -> (cc num), and "40-R" -> (cc num)).
-            nodeids, nn2ccnum = ag.get_node_ids_and_cc_map(node_names)
+            nodeids, nn2ccnum, rc_ids = ag.get_node_ids_and_cc_map_and_rc_ids(
+                node_names
+            )
         except UIError as err:
             # If we fail at this point, it is because either the input text
             # is empty / malformed or because it includes at least one node
@@ -3319,6 +3321,8 @@ def run(
         drawn_nodes = []
         undrawn_nodes = []
 
+        # TODO these assume that drawing a cc means drawing ALL its stuff.
+        # decoupling breaks this sofixit
         if curr_drawn_info is None:
             # nothing has been drawn yet
             undrawn_nodes = list(nn2ccnum.keys())
