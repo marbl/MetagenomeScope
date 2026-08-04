@@ -3326,8 +3326,20 @@ def run(
                 if ni in curr_drawn_ids[config.CDI_DRAWN_NODE_IDS]:
                     drawn_nodes.append(name)
                 else:
+                    # If the node with ID "ni" wasn't drawn, see if its RC
+                    # node is drawn -- we could just show that.
                     rc_not_drawn = True
                     rcname = name_utils.negate(ag.nodeid2obj[ni].basename)
+                    # If for some reason the user searches for, let's say,
+                    # "40-L", then the default searching will just show them
+                    # that left split node (if node 40-L is drawn). But if the
+                    # user searches for "40-L" AND node 40-L is undrawn, then
+                    # when we look for RC nodes we will find all nodes with a
+                    # basename of 40. So, "40-L" could lead to us finding
+                    # "-40-L" and "-40-R", or just "-40" if it is unsplit.
+                    # I think this behavior is reasonable (nobody will see it
+                    # anyway, I doubt anybody but me is out here searching for
+                    # split nodes specifically).
                     for found, rn in ag.find_nodes({rcname}):
                         if (
                             found
