@@ -299,6 +299,19 @@ class Subgraph(object):
 
         Notes
         -----
+        - By nature of, like, how this whole idea of decoupling works, this
+          should probably only be run on Subgraphs that are connected. I am
+          not sure if it makes sense to run this on a big Subgraph made up of
+          multiple weakly-connected components.
+
+          Anyway, for now we are only doing this on Components, so it's nbd.
+          And now that https://github.com/marbl/MetagenomeScope/issues/352 is
+          addressed, we could run this on connected Subgraphs anyway... but
+          there still might be other issues with running this on arbitrary
+          Subgraphs instead of entire Components from scratch
+          (https://github.com/marbl/MetagenomeScope/issues/459).
+
+
         - There is some ambiguity in how we determine which node orientations
           to fix. Like, as long as we consider all nodes in this subgraph, any
           traversal approach "works" (i.e. we will end up showing all nodes
