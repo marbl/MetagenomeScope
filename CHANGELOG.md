@@ -94,7 +94,8 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 
 - Various improvements to component tiling and padding, including adjusting
   "breakpoint detection"
-  ([#452](https://github.com/marbl/MetagenomeScope/issues/452)).
+  ([#452](https://github.com/marbl/MetagenomeScope/issues/452),
+  [#352](https://github.com/marbl/MetagenomeScope/issues/352)).
 
 - Adjust how nodes are scaled based on length
   ([#316](https://github.com/marbl/MetagenomeScope/issues/316),

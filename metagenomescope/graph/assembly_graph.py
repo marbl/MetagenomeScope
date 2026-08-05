@@ -2437,7 +2437,7 @@ class AssemblyGraph(object):
 
         return avail_paths
 
-    def get_neighborhood(self, node_ids, dist):
+    def _get_neighborhood(self, node_ids, dist):
         """Returns the induced subgraph within a given distance of some nodes.
 
         Parameters
@@ -2454,9 +2454,8 @@ class AssemblyGraph(object):
 
         Returns
         -------
-        subgraph, subgraph_node_ids: nx.MultiDiGraph, set of int
-            The induced subgraph, computed as described above, and the set of
-            all its contained node IDs (just for the sake of convenience).
+        nx.MultiDiGraph
+            The induced subgraph, computed as described above.
         """
         # There may be more efficient ways to do this (avoiding creating an
         # an undirected view of the graph, and instead just operating directly
@@ -2472,29 +2471,78 @@ class AssemblyGraph(object):
                 break
             subgraph_node_ids.update(ids)
 
-        subgraph = nx.induced_subgraph(self.graph, subgraph_node_ids)
-        return subgraph, subgraph_node_ids
+        return nx.induced_subgraph(self.graph, subgraph_node_ids)
 
-    def get_ids_in_neighborhood(self, node_ids, dist, scope_settings):
-        """Gets ID sets for all nodes, edges, and patterns in a neighborhood."""
-        # Get nodes
-        subgraph, subgraph_node_ids = self.get_neighborhood(node_ids, dist)
+    def get_neighborhood_ccs(self, node_ids, dist, scope_settings):
+        """Returns Subgraph objects representing a neighborhood's components.
 
-        # Get edges
-        subgraph_edge_ids = set()
-        for _, _, uid in subgraph.edges(data="uid"):
-            subgraph_edge_ids.add(uid)
+        Parameters
+        ----------
+        node_ids: collection of int
+            IDs of nodes around which to search.
 
-        # Get patterns, maybe
-        if ui_utils.show_patterns(scope_settings):
-            subgraph_patt_ids = graph_utils.get_avail_pattern_ids(
-                self.pattid2obj.values(),
-                subgraph_node_ids,
-                subgraph_edge_ids,
+        dist: int
+            BFS distance; see _get_neighborhood() docs.
+
+        scope_settings: list of str
+            Settings controlling what to draw (e.g. to show patterns or not).
+
+        Returns
+        -------
+        list of Subgraph
+            Each entry is a MetagenomeScope Subgraph object representing a
+            weakly-connected component in the graph from _get_neighborhood().
+        """
+        # Get the induced subgraph. Because node_ids can describe multiple
+        # nodes, this subgraph is not necessarily connected.
+        subgraph = self._get_neighborhood(node_ids, dist)
+
+        incl_patterns = ui_utils.show_patterns(scope_settings)
+
+        sgs = []
+        for wcc_node_ids in nx.weakly_connected_components(subgraph):
+            # calling induced_subgraph() AGAIN is kind of inefficient but I
+            # really don't think this will be a bottleneck
+            wcc_subgraph = nx.induced_subgraph(subgraph, wcc_node_ids)
+
+            # get edges
+            wcc_edge_ids = set()
+            for _, _, uid in wcc_subgraph.edges(data="uid"):
+                wcc_edge_ids.add(uid)
+
+            # get patterns, maybe
+            if incl_patterns:
+                wcc_patt_ids = graph_utils.get_avail_pattern_ids(
+                    self.pattid2obj.values(),
+                    wcc_node_ids,
+                    wcc_edge_ids,
+                )
+            else:
+                wcc_patt_ids = set()
+
+            # Create a Subgraph object
+            #
+            # NOTE: in theory, if a user draws around nodes multiple times then
+            # we will just keep creating new IDs here. However, since diff
+            # versions versions of mgsc on diff workers may not share memory,
+            # we may reuse IDs here. I think this is fine, but if we really
+            # want to keep things 100% stateless we can just use a constant id
+            # here, or create a uuid, etc
+            sid = self._get_unique_id()
+            sgs.append(
+                Subgraph(
+                    sid,
+                    f"Subgraph{sid}",
+                    [self.nodeid2obj[i] for i in wcc_node_ids],
+                    [self.edgeid2obj[i] for i in wcc_edge_ids],
+                    [self.pattid2obj[i] for i in wcc_patt_ids],
+                    node_centric=self.node_centric,
+                    length_field=self.length_field,
+                    record_node_names=not self.is_flye_dot,
+                    count_positive_names=self.orientation_in_name,
+                )
             )
-        else:
-            subgraph_patt_ids = set()
-        return subgraph_node_ids, subgraph_edge_ids, subgraph_patt_ids
+        return sgs
 
     def _to_cyjs_around_nodes(
         self,
@@ -2506,32 +2554,15 @@ class AssemblyGraph(object):
         layout_params,
     ):
         """Produces Cytoscape.js elements only "around" certain nodes."""
-        sel_node_ids, sel_edge_ids, sel_patt_ids = (
-            self.get_ids_in_neighborhood(node_ids, dist, scope_settings)
-        )
-        # NOTE: in theory, if a user draws around nodes multiple times then
-        # we will just keep creating new subgraph ids. however, since diff
-        # versions of mgsc on diff workers may not share memory, we may reuse
-        # IDs here. I think this is fine, but if we really want to keep things
-        # 100% stateless we can just use a constant id here, or create a uuid,
-        # etc
-        sid = self._get_unique_id()
-        sg = Subgraph(
-            sid,
-            f"Subgraph{sid}",
-            [self.nodeid2obj[i] for i in sel_node_ids],
-            [self.edgeid2obj[i] for i in sel_edge_ids],
-            [self.pattid2obj[i] for i in sel_patt_ids],
-            node_centric=self.node_centric,
-            length_field=self.length_field,
-            record_node_names=not self.is_flye_dot,
-            count_positive_names=self.orientation_in_name,
-        )
-        if ui_utils.decouple(scope_settings):
-            sg.decouple(self.graph, self.nodename2objs)
-        return sg.to_cyjs(
-            scope_settings, modifier_settings, layout_alg, layout_params
-        )
+        sgs = self.get_neighborhood_ccs(node_ids, dist, scope_settings)
+        dr = DrawResults({}, scope_settings, modifier_settings)
+        for sg in sgs:
+            if ui_utils.decouple(scope_settings):
+                sg.decouple(self.graph, self.nodename2objs)
+            dr += sg.to_cyjs(
+                scope_settings, modifier_settings, layout_alg, layout_params
+            )
+        return dr
 
     def to_cyjs(self, done_flushing):
         """Converts the graph's elements to a Cytoscape.js-compatible format.
