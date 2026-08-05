@@ -34,6 +34,39 @@ def test_is_isolated_circle():
     assert not gu.is_isolated_circle(g, 5)
 
 
+def test_get_max_degree_node_simple():
+    g = nx.MultiDiGraph()
+    g.add_edge(1, 2)
+    g.add_edge(2, 3)
+    assert gu.get_max_degree_node(g, [1, 2, 3]) == 2
+    assert gu.get_max_degree_node(g, [3, 1, 2]) == 2
+
+    # earlier entries in the list of node IDs get priority for tiebreaking
+    assert gu.get_max_degree_node(g, [1, 3]) == 1
+    assert gu.get_max_degree_node(g, [3, 1]) == 3
+
+    # apparently it is convention for each loop edge to give a degree of 2.
+    # kind of wild??? didn't realize that.
+    # but like https://en.wikipedia.org/wiki/Degree_(graph_theory) confirms it
+    g.add_edge(4, 4)
+    # ANYWAY at this point nodes 1 and 3 have degree 1, and nodes 2 and 4 have
+    # degree 2. node 2 still wins as the max degree node here because it is
+    # earlier in the list
+    assert gu.get_max_degree_node(g, [1, 2, 3, 4]) == 2
+
+    g.add_edge(4, 4)
+    # now, the degree of 4 is high enough that it always wins
+    assert gu.get_max_degree_node(g, [1, 2, 3, 4]) == 4
+
+
+def test_get_max_degree_node_empty_list():
+    g = nx.MultiDiGraph()
+    g.add_edge(2, 3)
+    with pytest.raises(WeirdError) as ei:
+        gu.get_max_degree_node(g, [])
+    assert str(ei.value) == "Not enough nodes given"
+
+
 def test_get_only_connecting_edge_uid_simple():
     g = nx.MultiDiGraph()
     g.add_edge(1, 2, uid=5)
@@ -201,6 +234,49 @@ def test_check_node_split_properly_not_split():
     g.add_edge(0, 1, uid=9)
     with pytest.raises(KeyError):
         gu.check_node_split_properly(g, "x", {"x": x, "y": y}, {9: e})
+
+
+def test_add_node_and_counterpart_ids_bothin():
+    left = Node(0, "N", {})
+    right = Node(1, "N", {}, split=config.SPLIT_RIGHT, counterpart_node=left)
+    s = set()
+    nodeid2obj = {0: left, 1: right}
+    gu.add_node_and_counterpart_ids(s, left, nodeid2obj)
+    assert s == {0, 1}
+
+
+def test_add_node_and_counterpart_ids_onein():
+    left = Node(0, "N", {})
+    right = Node(1, "N", {}, split=config.SPLIT_RIGHT, counterpart_node=left)
+
+    s = set()
+    nodeid2obj = {0: left}
+    gu.add_node_and_counterpart_ids(s, left, nodeid2obj)
+    assert s == {0}
+
+    s = set()
+    nodeid2obj = {0: left}
+    gu.add_node_and_counterpart_ids(s, right, nodeid2obj)
+    assert s == {0}
+
+    s = set()
+    nodeid2obj = {1: right}
+    gu.add_node_and_counterpart_ids(s, left, nodeid2obj)
+    assert s == {1}
+
+    s = set()
+    nodeid2obj = {1: right}
+    gu.add_node_and_counterpart_ids(s, right, nodeid2obj)
+    assert s == {1}
+
+
+def test_add_node_and_counterpart_ids_neitherin():
+    left = Node(0, "N", {})
+    _ = Node(1, "N", {}, split=config.SPLIT_RIGHT, counterpart_node=left)
+    s = set()
+    nodeid2obj = {2: "hi i'm a mock object hello"}
+    gu.add_node_and_counterpart_ids(s, left, nodeid2obj)
+    assert s == set()
 
 
 def test_get_one_side_of_edge_ids():

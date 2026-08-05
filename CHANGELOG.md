@@ -10,6 +10,27 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 
 ### Added
 
+- Add new options to the the drawing options dialog (both selected by default):
+
+  - `Decouple strand-tangled components`
+    ([#449](https://github.com/marbl/MetagenomeScope/issues/449))
+
+    - If this option is selected, then -- for the `Component(s), by size rank`,
+      `Component(s), by node name`, and `Entire graph (all components)` drawing
+      methods -- all "strand-tangled" components (containing both node `X` and
+      `-X` at once) will be decoupled, so that just one copy of each node is
+      shown.
+
+    - This is similar to
+      ["single" mode](https://github.com/rrwick/Bandage/wiki/Single-vs-double-node-style)
+      in Bandage.
+
+  - `Horizontally center rows`
+
+    - If this option is selected, then -- when we are drawing multiple
+      components at once, when using the _dot_ or sfdp layout
+      algorithms -- we will horizontally center each row of components.
+
 - Add a new section, "Style," in the drawing options dialog.
 
   - Currently, this contains controls that can be used to change how selected
@@ -50,7 +71,7 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   `Just nonredundant components`
   ([#442](https://github.com/marbl/MetagenomeScope/issues/442)).
 
-  - If this checkbox is checked, then -- for the `Component(s), by size rank`,
+  - If this option is selected, then -- for the `Component(s), by size rank`,
     `Component(s), by node name`, and `Entire graph (all components)` drawing
     methods -- all pairs of redundant components in a draw request will be
     filtered to just nonredundant components.
@@ -58,6 +79,8 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   - Making this setting a "modifier" (rather than its own drawing method)
     enables some useful functionalities. In particular, it plays nicely with
     [#448](https://github.com/marbl/MetagenomeScope/issues/448).
+
+  - This option is now selected by default.
 
 - Simplify and improve component sorting procedure
   ([#378](https://github.com/marbl/MetagenomeScope/issues/378),
@@ -72,8 +95,10 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   - Components should also now be sorted deterministically. Probably that
     was already the case but now it is at least more provably consistent.
 
-- Adjust component tiling -- mostly by adjusting "breakpoint detection"
-  ([#452](https://github.com/marbl/MetagenomeScope/issues/452)).
+- Various improvements to component tiling and padding, including adjusting
+  "breakpoint detection"
+  ([#452](https://github.com/marbl/MetagenomeScope/issues/452),
+  [#352](https://github.com/marbl/MetagenomeScope/issues/352)).
 
 - Adjust how nodes are scaled based on length
   ([#316](https://github.com/marbl/MetagenomeScope/issues/316),
@@ -108,6 +133,10 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 
 - As a consequence to the above change, prevent node or edge IDs from including
   semicolons.
+
+- When searching for a node with ID `X`: if `X` is not currently drawn but its
+  reverse-complementary node `-X` is drawn, then searching will now find `-X`
+  ([#407](https://github.com/marbl/MetagenomeScope/issues/407)).
 
 - Clean up the logging messages made when starting layout (e.g. only show
   layout parameters relevant to the currently selected algorithm).
@@ -166,7 +195,7 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
     working with massive graphs on low-memory systems.
 
   - _By default,_ this is set to `--no-dcheck`: that is, this sanity check is
-    turned off.
+    now turned off.
 
 ### Changed
 
@@ -193,9 +222,6 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
     property to do this for us. I am not 100% sure that the way we handle
     edges in these paths will always match Gfapy's, but it should be fine.
 
-- By default, MetagenomeScope will now remove parallel edges in GFA files.
-  As discussed in "Added" above, this can be controlled by `--rmdup`.
-
 - Allow paths to span multiple connected components of the graph, since this
   can occur in Verkko output.
 
@@ -220,11 +246,6 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   something on a path is a gap or not.
 
 - Add more detail to the `--verbose` log messages during pattern decomposition.
-
-- Turn off the creation of `AssemblyGraph.original_graph`, the call to
-  `AssemblyGraph._sanity_check_graph()`, etc. by default; as discussed in
-  "Added" above, this is now controlled by the `--dcheck` command-line flag
-  ([#421](https://github.com/marbl/MetagenomeScope/issues/421)).
 
 - Clean up and add some more tests for the path-parsing parts of the code.
 

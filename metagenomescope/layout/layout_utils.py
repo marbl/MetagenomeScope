@@ -46,40 +46,6 @@ def get_gv_header(prog, name="g", use_ports=False, params={}):
     return gv_input
 
 
-def get_control_points(pgv_edge):
-    """Extracts control points from a PyGraphviz edge after layout.
-
-    Parameters
-    ----------
-    pgv_edge: pygraphviz.agraph.Edge
-
-    Returns
-    -------
-    list of float
-        In the extremely rare case of "lost edges" (see issue #394), this
-        will return an empty list [].
-    """
-    # In rare cases, Graphviz can decide not to draw an edge. We'll fall
-    # back to a normal Bezier edge (aka a "flattened" edge) in these cases.
-    # See https://github.com/marbl/MetagenomeScope/issues/394 for details.
-    #
-    # NOTE: it seems like this check will always be True (even if an edge's
-    # position is unset, "pos" will still appear to be in pgv_edge.attr),
-    # but for the sake of future-proofing this we still check anyway.
-    if "pos" in pgv_edge.attr:
-        pos = pgv_edge.attr["pos"]
-        if len(pos) > 0:
-            return _extract_control_points(pos)
-    # Warn if there are lost edges. It doesn't seem like this happens often,
-    # so I think it is not too cluttered to log about every single lost edge
-    # we see
-    logging.warning(
-        f"    {pgv_edge}: no coords from Graphviz! No worries, we'll just "
-        "show this edge as a straight line. See issue #394."
-    )
-    return []
-
-
 def _extract_control_points(pos):
     """Converts a string of Graphviz control points to a list.
 
@@ -117,8 +83,56 @@ def _extract_control_points(pos):
     return coords
 
 
-def shift_control_points(coords, left, bottom):
-    r"""Given a list of coordinates (e.g. the output of get_control_points()),
+def _get_control_points(pgv_edge):
+    """Tries to get control points from a PyGraphviz edge after layout.
+
+    Parameters
+    ----------
+    pgv_edge: pygraphviz.agraph.Edge
+
+    Returns
+    -------
+    list of float
+        In the extremely rare case of "lost edges" (see issue #394), this
+        will return an empty list [].
+    """
+    # In rare cases, Graphviz can decide not to draw an edge. We'll fall
+    # back to a normal Bezier edge (aka a "flattened" edge) in these cases.
+    # See https://github.com/marbl/MetagenomeScope/issues/394 for details.
+    #
+    # NOTE: it seems like this check will always be True (even if an edge's
+    # position is unset, "pos" will still appear to be in pgv_edge.attr),
+    # but for the sake of future-proofing this we still check anyway.
+    if "pos" in pgv_edge.attr:
+        pos = pgv_edge.attr["pos"]
+        if len(pos) > 0:
+            return _extract_control_points(pos)
+    # Warn if there are lost edges. It doesn't seem like this happens often,
+    # so I think it is not too cluttered to log about every single lost edge
+    # we see
+    logging.warning(
+        f"    {pgv_edge}: no coords from Graphviz! No worries, we'll just "
+        "show this edge as a straight line. See issue #394."
+    )
+    return []
+
+
+def save_control_points(cg, edgeid2rel, edge_id, src_id, tgt_id):
+    # This assumes that the pygraphviz graph we laid out has keys corresponding
+    # to edges' unique IDs. This should always be the case, because of
+    # get_edge_dot().
+    #
+    # to make a long story short linking these edge layouts with their exact
+    # unique ID is super useful because "parallel edges" (btwn the same source
+    # and target nodes) are not always interchangeable! for example,
+    # invalidated edges get drawn in a funky way where we really want to use
+    # that exact control point layout in the viz.
+    pgv_edge = cg.get_edge(src_id, tgt_id, key=edge_id)
+    edgeid2rel[edge_id] = _get_control_points(pgv_edge)
+
+
+def _shift_control_points(coords, left, bottom):
+    r"""Given a list of coordinates (e.g. the output of _get_control_points()),
     increases each x coordinate in the list by "left" and increases each y
     coordinate in the list by "bottom".
 
@@ -306,13 +320,13 @@ def dot_to_cyjs_control_points(
     if src_pos == tgt_pos:
         return FLAT
 
-    # See get_control_points() check - if Graphviz didn't want to draw an edge
+    # See _get_control_points() check - if Graphviz didn't want to draw an edge
     # for some reason, then just fall back to a straight line
     if len(coords) == 0:
         return FLAT
 
     if left is not None and bottom is not None:
-        coords = shift_control_points(coords, left, bottom)
+        coords = _shift_control_points(coords, left, bottom)
     for i in range(len(coords)):
         if i % 2 == 1:
             coords[i] = (flipheight - coords[i]) + dy
@@ -534,23 +548,35 @@ def is_back_edge(edge, pattern):
     )
 
 
+def _add_attrs(curr_attrs, new_attrs):
+    if len(curr_attrs) > 0:
+        return f"{curr_attrs},{new_attrs}"
+    return new_attrs
+
+
 def get_edge_dot(
     srcid,
     tgtid,
+    unique_id,
     is_fake=False,
     is_back=False,
+    is_inval=False,
+    ports=None,
     indent=layout_config.INDENT,
 ):
-    attrs = ""
+    # Associate each edge with its unique ID, so that we can unambiguously
+    # parse control points from the layout later on.
+    attrs = f"key={unique_id}"
     if is_back:
-        attrs = layout_config.BACKEDGE_STYLE
+        attrs = _add_attrs(attrs, layout_config.BACKEDGE_STYLE)
     if is_fake:
-        if len(attrs) > 0:
-            attrs += ","
-        attrs += layout_config.FAKEEDGE_STYLE
-    if len(attrs) > 0:
-        attrs = f" [{attrs}]"
-    return f"{indent}{srcid} -> {tgtid}{attrs};\n"
+        attrs = _add_attrs(attrs, layout_config.FAKEEDGE_STYLE)
+    if is_inval:
+        attrs = _add_attrs(attrs, layout_config.INVALEDGE_STYLE)
+    if ports is not None:
+        srcid = f"{srcid}:{ports[0]}"
+        tgtid = f"{tgtid}:{ports[1]}"
+    return f"{indent}{srcid} -> {tgtid} [{attrs}];\n"
 
 
 def get_pattern_cluster_dot(pattern, indent=layout_config.INDENT):
@@ -585,3 +611,16 @@ def get_pattern_cluster_dot(pattern, indent=layout_config.INDENT):
         )
     dot += f"{indent}}}\n"
     return dot
+
+
+def try_add_control_points_to_cyjs(j, e, edgeid2ctrlpts):
+    if edgeid2ctrlpts is not None and e.unique_id in edgeid2ctrlpts:
+        straight, cpd, cpw = edgeid2ctrlpts[e.unique_id]
+        if not straight:
+            j["classes"] += " withctrlpts"
+            j["data"]["cpd"] = cpd
+            j["data"]["cpw"] = cpw
+
+
+def get_xpad(lay, min_xpad, xpadfrac):
+    return max(min_xpad, xpadfrac * lay.width)

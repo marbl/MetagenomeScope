@@ -148,6 +148,9 @@ class Edge(object):
         self.prev_dec_src_id = orig_src_id
         self.prev_dec_tgt_id = orig_tgt_id
 
+        # NOTE: If we end up updating these attributes / adding more, we should
+        # also update the InvalidatedEdge constructor accordingly
+
         # for random coloring
         self.rand_idx = None
 
@@ -245,7 +248,12 @@ class Edge(object):
         else:
             raise WeirdError(f"Unrecognized edge level: {level}")
         return layout_utils.get_edge_dot(
-            src, tgt, self.is_fake, is_back, indent
+            src,
+            tgt,
+            self.unique_id,
+            is_fake=self.is_fake,
+            is_back=is_back,
+            indent=indent,
         )
 
     def to_cyjs(self, scope_settings):

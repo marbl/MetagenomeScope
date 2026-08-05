@@ -1332,7 +1332,7 @@ HRFILETYPE2NODECENTRIC = {
 # divided into names that start with a "-" (RC-strand) or not (forward-strand).
 # If this is False for a filetype, then we assume that each sequence name has
 # a prescribed orientation that is independent of its name. This impacts how we
-# parse AGP files, as well as whether or not we try to detect redundant
+# parse paths, as well as whether or not we try to detect redundant
 # components (see https://github.com/marbl/MetagenomeScope/issues/67).
 HRFILETYPE2ORIENTATION_IN_NAME = {
     "LastGraph": True,

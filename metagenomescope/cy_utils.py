@@ -236,6 +236,20 @@ def get_cyjs_stylesheet(
                 "z-index-compare": "manual",
             },
         },
+        {
+            "selector": "edge:loop.invalsrc",
+            "style": {
+                "source-endpoint": "-90deg",
+                "target-endpoint": "-90deg",
+            },
+        },
+        {
+            "selector": "edge:loop.invaltgt",
+            "style": {
+                "source-endpoint": "90deg",
+                "target-endpoint": "90deg",
+            },
+        },
     ]
 
     labelstyle = cy_config.LABEL_STYLE.copy()
@@ -357,28 +371,35 @@ def get_cyjs_stylesheet(
             }
         )
 
-    # Apply styles to selected edges. Do this last so it takes
-    # precedence over even random edge colorings.
-    stylesheet.append(
-        {
-            "selector": "edge:selected",
-            "style": {
-                "line-color": cy_config.SELECTED_EDGE_COLOR,
-                "target-arrow-color": cy_config.SELECTED_EDGE_COLOR,
-                "width": real_selected_edgewidth,
-                "color": cy_config.SELECTED_EDGE_FONT_COLOR,
-                "z-index": "4",
-                "z-index-compare": "manual",
+    # Apply some last-minute styles. We save these until the end so that
+    # they take precedence over even the random coloring stuff.
+    stylesheet.extend(
+        [
+            {
+                "selector": "edge.inval",
+                "style": {
+                    "line-style": cy_config.INVAL_EDGE_LINE_STYLE,
+                    "line-dash-pattern": cy_config.INVAL_EDGE_LINE_DASH_PATTERN,
+                },
             },
-        }
-    )
-    stylesheet.append(
-        {
-            "selector": "edge.fake:selected",
-            "style": {
-                "width": fake_selected_edgewidth,
+            {
+                "selector": "edge:selected",
+                "style": {
+                    "line-color": cy_config.SELECTED_EDGE_COLOR,
+                    "target-arrow-color": cy_config.SELECTED_EDGE_COLOR,
+                    "width": real_selected_edgewidth,
+                    "color": cy_config.SELECTED_EDGE_FONT_COLOR,
+                    "z-index": "4",
+                    "z-index-compare": "manual",
+                },
             },
-        },
+            {
+                "selector": "edge.fake:selected",
+                "style": {
+                    "width": fake_selected_edgewidth,
+                },
+            },
+        ]
     )
     return stylesheet
 

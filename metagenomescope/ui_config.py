@@ -5,9 +5,9 @@ from dash import html
 ###############################################################################
 
 NR_CCS = "nr"
-# SPLIT_STRANDTANGLED = "detangle"
+DECOUPLE = "decouple"
 SHOW_PATTERNS = "patterns"
-DEFAULT_SCOPE_SETTINGS = [NR_CCS, SHOW_PATTERNS]
+DEFAULT_SCOPE_SETTINGS = [NR_CCS, DECOUPLE, SHOW_PATTERNS]
 
 DOT_TEXT = html.Span("dot", style={"font-style": "italic"})
 
@@ -16,18 +16,19 @@ SCOPE_SETTINGS_OPTIONS = [
         "label": "Just nonredundant components",
         "value": NR_CCS,
     },
-    # {
-    #     "label": "Split strand-tangled components",
-    #     "value": SPLIT_STRANDTANGLED,
-    # },
+    {
+        "label": "Decouple strand-tangled components",
+        "value": DECOUPLE,
+    },
     {
         "label": "Show patterns",
         "value": SHOW_PATTERNS,
     },
 ]
 
-DO_RECURSIVE_LAYOUT = "recursive"
+RECURSIVE = "recursive"
 USE_GV_PORTS = "ports"
+HCENTER = "hcenter"
 DO_LAYOUT_ANIMATION = "animate"
 
 MODIFIER_SETTINGS_OPTIONS = [
@@ -39,7 +40,7 @@ MODIFIER_SETTINGS_OPTIONS = [
                 " only)",
             ]
         ),
-        "value": DO_RECURSIVE_LAYOUT,
+        "value": RECURSIVE,
     },
     {
         "label": html.Span(
@@ -52,11 +53,21 @@ MODIFIER_SETTINGS_OPTIONS = [
         "value": USE_GV_PORTS,
     },
     {
+        "label": html.Span(
+            [
+                "Horizontally center rows (",
+                DOT_TEXT,
+                " & sfdp only)",
+            ]
+        ),
+        "value": HCENTER,
+    },
+    {
         "label": "Animate layout (Dagre & fCoSE only)",
         "value": DO_LAYOUT_ANIMATION,
     },
 ]
-DEFAULT_MODIFIER_SETTINGS = [DO_LAYOUT_ANIMATION]
+DEFAULT_MODIFIER_SETTINGS = [HCENTER, DO_LAYOUT_ANIMATION]
 
 
 COLORING_RANDOM = "random"

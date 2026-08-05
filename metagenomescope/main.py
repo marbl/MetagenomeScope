@@ -137,7 +137,10 @@ def run(
         default_labels = ui_config.DEFAULT_LABELS_EDGE_CENTRIC
 
     DOT_ALG_DESC, DOT_ALG_DESC_PATTS, default_dot_alg_desc = (
-        ui_utils.get_dot_alg_descriptions()
+        ui_utils.get_dot_alg_descriptions(
+            ui_config.DEFAULT_SCOPE_SETTINGS,
+            ui_config.DEFAULT_MODIFIER_SETTINGS,
+        )
     )
 
     # If there are multiple components, show a "Components" tab in the info
@@ -1740,6 +1743,7 @@ def run(
                                     ui_utils.get_layout_options_tab(
                                         ag.node_centric,
                                         ag.orientation_in_name,
+                                        ag.is_flye_dot,
                                         multiple_ccs,
                                         default_dot_alg_desc,
                                     ),
@@ -1838,14 +1842,11 @@ def run(
                 id="doneFlushing",
             ),
             # After successfully drawing the graph, we'll update this to
-            # include what was set in "doneFlushing". Keeping this info around
-            # is useful for searching, figuring out what paths are available,
-            # etc. (On that note, if the user selected drawing "around" certain
-            # node IDs, then this will also include the IDs of *all* nodes and
-            # edges that were drawn. This lets us avoid having to recompute
-            # this info a bunch of times.)
+            # include the IDs of all drawn nodes and edges. Makes life easier.
+            # Eventually we may want to use something besides a dcc.Store for
+            # this; see https://github.com/marbl/MetagenomeScope/issues/467
             dcc.Store(
-                id="currDrawnInfo",
+                id="currDrawnIDs",
             ),
             # Similarly, we'll update this during the process of searching
             # for nodes. There is some jank where (1) Dash Cytoscape doesn't
@@ -2665,21 +2666,23 @@ def run(
         prevent_initial_call=True,
     )
     def update_recursive_layout_plans(scope_settings, modifier_settings):
-        show_patts = ui_utils.show_patterns(scope_settings)
-        do_rec_layout = ui_utils.do_recursive_layout(modifier_settings)
-
-        if show_patts and do_rec_layout:
+        # Are we actually gonna *do* recursive layout, if we were to draw
+        # the graph right now?
+        if ui_utils.do_recursive_layout(scope_settings, modifier_settings):
             desc = DOT_ALG_DESC_PATTS
         else:
             desc = DOT_ALG_DESC
 
-        if not show_patts:
-            opts = copy.deepcopy(ui_config.MODIFIER_SETTINGS_OPTIONS)
-            ui_utils.disable_dcc_checklist_option(
-                opts, ui_config.DO_RECURSIVE_LAYOUT
-            )
-        else:
+        # Should we disable the checkbox for recursive layout? This could
+        # be needed if the scope settings make doing recursive layout
+        # impossible (e.g. "show patterns" is turned off)
+        if ui_utils.recursive_layout_enabled(scope_settings):
+            # enable the checkbox (or leave it enabled, at least)
             opts = ui_config.MODIFIER_SETTINGS_OPTIONS
+        else:
+            # disable the checkbox (or leave it disabled, at least)
+            opts = copy.deepcopy(ui_config.MODIFIER_SETTINGS_OPTIONS)
+            ui_utils.disable_dcc_checklist_option(opts, ui_config.RECURSIVE)
 
         return desc, opts
 
@@ -2923,7 +2926,7 @@ def run(
         Output("cyElementsHolder", "data", allow_duplicate=True),
         Output("currDrawnText", "children"),
         Output("currDrawnCounts", "children"),
-        Output("currDrawnInfo", "data"),
+        Output("currDrawnIDs", "data"),
         Input("doneFlushing", "data"),
         running=DRAW_RUNNING,
         prevent_initial_call=True,
@@ -2943,11 +2946,11 @@ def run(
             eles = dr.pack()
             asum = dr.get_fancy_count_text()
             logging.debug("...Done creating JSON.")
-            curr_drawn_info = curr_done_flushing.copy()
-            if curr_done_flushing["draw_type"] == config.DRAW_AROUND:
-                nodeids, edgeids = dr.get_node_and_edge_ids()
-                curr_drawn_info[config.CDI_DRAWN_NODE_IDS] = nodeids
-                curr_drawn_info[config.CDI_DRAWN_EDGE_IDS] = edgeids
+            nodeids, edgeids = dr.get_node_and_edge_ids()
+            curr_drawn_ids = {
+                config.CDI_DRAWN_NODE_IDS: nodeids,
+                config.CDI_DRAWN_EDGE_IDS: edgeids,
+            }
             return (
                 eles,
                 html.Span(
@@ -2961,7 +2964,7 @@ def run(
                     ]
                 ),
                 f"({asum})",
-                curr_drawn_info,
+                curr_drawn_ids,
             )
         else:
             logging.debug("Caught a bad drawing request. Not redrawing.")
@@ -3053,37 +3056,36 @@ def run(
             Output("pathCount", "children"),
             Output("pathList", "rowData"),
             Output("pathCount", "color"),
-            Input("currDrawnInfo", "data"),
+            Input("currDrawnIDs", "data"),
             prevent_initial_call=True,
         )
-        def update_curr_available_paths(curr_drawn_info):
+        def update_curr_available_paths(curr_drawn_ids):
             logging.debug(
                 "Updating info about available paths based on what was drawn..."
             )
             # update the table of available paths, based on what's drawn
             rows = []
             ct = 0
-            if curr_drawn_info is not None:
-                avail_paths = ag.get_avail_paths(curr_drawn_info)
-                for p in avail_paths:
-                    rows.append(
-                        {
-                            ui_config.PATH_TBL_NAME_COL: p,
-                            # this ignores gaps, and ignores if a node has been
-                            # split or not. this is what we want for just
-                            # counting the number of full/real nodes/edges on
-                            # this path
-                            ui_config.PATH_TBL_COUNT_COL: len(
-                                ag.pathname2objnames[p]
-                            ),
-                            # TODO this is ugly pls move to AssemblyGraph so
-                            # it can be tested...
-                            ui_config.PATH_TBL_CC_COL: ", ".join(
-                                str(ccn) for ccn in ag.pathname2ccnums[p]
-                            ),
-                        }
-                    )
-                    ct += 1
+            avail_paths = ag.get_avail_paths(curr_drawn_ids)
+            for p in avail_paths:
+                rows.append(
+                    {
+                        ui_config.PATH_TBL_NAME_COL: p,
+                        # this ignores gaps, and ignores if a node has been
+                        # split or not. this is what we want for just
+                        # counting the number of full/real nodes/edges on
+                        # this path
+                        ui_config.PATH_TBL_COUNT_COL: len(
+                            ag.pathname2objnames[p]
+                        ),
+                        # TODO this is ugly pls move to AssemblyGraph so
+                        # it can be tested...
+                        ui_config.PATH_TBL_CC_COL: ", ".join(
+                            str(ccn) for ccn in ag.pathname2ccnums[p]
+                        ),
+                    }
+                )
+                ct += 1
             # also show a summary
             count_text = path_utils.get_available_count_badge_text(
                 ct, len(ag.pathname2objnames)
@@ -3258,6 +3260,17 @@ def run(
             # Although node IDs have to be strings in Cytoscape.js, "edgeID"
             # (not a real field) can be whatever. So we've left it as an int,
             # avoiding the need to do any conversion.
+            #
+            # NOTE: InvalidatedEdge objects are set to have the same .unique_id
+            # (and "uid" in Cytoscape.js JSON form) as the Edge object from
+            # which they originate. This is Okay, since we should never draw
+            # an InvalidatedEdge and its corresponding original Edge at the
+            # same time.
+            #
+            # Anyway! We do not store InvalidatedEdges in ag.edgeid2obj -- they
+            # "live" at the Subgraph level. So, when we look up the edge ID
+            # here, we will look up the original edge's data, which actually
+            # works out perfectly -- this is exactly what we want. Yay!
             obj = ag.edgeid2obj[e["uid"]]
             row = {
                 ui_config.EDGE_TBL_SRC_COL: ag.nodeid2obj[obj.new_src_id].name,
@@ -3274,14 +3287,12 @@ def run(
         Output("nodeSelectionInfo", "data"),
         State("toastHolder", "children"),
         State("searchInput", "value"),
-        State("currDrawnInfo", "data"),
+        State("currDrawnIDs", "data"),
         Input("searchButton", "n_clicks"),
         Input("searchInput", "n_submit"),
         prevent_initial_call=True,
     )
-    def check_nodes_for_search(
-        curr_toasts, node_names, curr_drawn_info, n_clicks, n_submit
-    ):
+    def search(curr_toasts, node_names, curr_drawn_ids, n_clicks, n_submit):
         try:
             # NOTE: this will "expand" split nodes' basenames into their
             # splits (for example, "40" will be represented in nn2ccnum with
@@ -3297,45 +3308,45 @@ def run(
                 ),
                 {"requestGood": False},
             )
-        # At this point, we know that all of these nodes are in the graph.
-        # Figure out which if any of them are currently drawn.
+
+        # At this point, we know that all of the searched-for nodes are in the
+        # graph. Figure out which if any of them are currently drawn.
         drawn_nodes = []
         undrawn_nodes = []
 
-        if curr_drawn_info is None:
-            # nothing has been drawn yet
+        def drawn(ni):
+            return ni in curr_drawn_ids[config.CDI_DRAWN_NODE_IDS]
+
+        if curr_drawn_ids is None:
+            # nothing has been drawn yet, but let's still allow searching (this
+            # will show the user the component size ranks of these nodes)
             undrawn_nodes = list(nn2ccnum.keys())
-
-        elif curr_drawn_info["draw_type"] == config.DRAW_ALL:
-            # everything is drawn
-            drawn_nodes = list(nn2ccnum.keys())
-
-        elif curr_drawn_info["draw_type"] == config.DRAW_AROUND:
-            # some weird subregion of the graph is drawn, as specified in
-            # currDrawnInfo
-            if config.CDI_DRAWN_NODE_IDS in curr_drawn_info:
-                for ni in nodeids:
-                    name = ag.nodeid2obj[ni].name
-                    if ni in curr_drawn_info[config.CDI_DRAWN_NODE_IDS]:
-                        drawn_nodes.append(name)
-                    else:
-                        undrawn_nodes.append(name)
-            else:
-                raise WeirdError(f"No node IDs available in {curr_drawn_info}")
-
         else:
-            # only certain component(s) are drawn
-            if curr_drawn_info["draw_type"] == config.DRAW_CCS:
-                curr_drawn_cc_nums = set(curr_drawn_info["cc_nums"])
-            elif curr_drawn_info["draw_type"] == config.DRAW_NR:
-                curr_drawn_cc_nums = set(ag.get_nr_cc_nums())
-            else:
-                raise WeirdError(f"Unrecognized draw type: {curr_drawn_info}")
-            for n, c in nn2ccnum.items():
-                if c in curr_drawn_cc_nums:
-                    drawn_nodes.append(n)
+            for ni in nodeids:
+                name = ag.nodeid2obj[ni].name
+                if drawn(ni):
+                    drawn_nodes.append(name)
                 else:
-                    undrawn_nodes.append(n)
+                    # If the node with ID "ni" wasn't drawn, see if its RC
+                    # node(s) are drawn -- we could just show that.
+                    # See https://github.com/marbl/MetagenomeScope/issues/407.
+                    #
+                    # NOTE: in the default searching, if the user searches for
+                    # 40-L, then JUST 40-L will be selected. However, if the
+                    # user searches for 40-L and only -40-L --> -40-R is drawn,
+                    # then we will select both -40 nodes. I think this makes
+                    # sense, since it is not immediately clear which RC split
+                    # node to map a split node to. (But like also realistically
+                    # nobody but me is gonna be searching for "40-L" ...)
+                    rc_not_drawn = True
+                    for rn in ag.get_rc_nodes(ni):
+                        if drawn(rn.unique_id):
+                            drawn_nodes.append(rn.name)
+                            rc_not_drawn = False
+                    if rc_not_drawn:
+                        # this node wasn't drawn, and neither were its reverse-
+                        # complementary node(s) (if any exist).
+                        undrawn_nodes.append(name)
 
         # If none of these nodes are currently drawn, show an error.
         if len(drawn_nodes) == 0:

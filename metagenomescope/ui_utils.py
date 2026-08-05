@@ -941,13 +941,13 @@ def get_fancy_node_name_list(node_names, quote=True, bracket=False):
         return out
 
 
-def fail_if_unfound_nodes(unfound_nodes):
-    if len(unfound_nodes) == 1:
-        n = unfound_nodes.pop()
+def fail_if_unfound_nodes(unfound_node_names):
+    if len(unfound_node_names) == 1:
+        n = unfound_node_names.pop()
         raise UIError(f'Can\'t find a node with name "{n}" in the graph.')
 
-    elif len(unfound_nodes) > 1:
-        ns = get_fancy_node_name_list(unfound_nodes)
+    elif len(unfound_node_names) > 1:
+        ns = get_fancy_node_name_list(unfound_node_names)
         raise UIError(f"Can't find nodes with names {ns} in the graph.")
 
 
@@ -1193,16 +1193,41 @@ def nr_ccs(scope_settings):
     return ui_config.NR_CCS in scope_settings
 
 
+def decouple(scope_settings):
+    return ui_config.DECOUPLE in scope_settings
+
+
 def show_patterns(scope_settings):
     return ui_config.SHOW_PATTERNS in scope_settings
 
 
-def do_recursive_layout(modifier_settings):
-    return ui_config.DO_RECURSIVE_LAYOUT in modifier_settings
+def recursive(modifier_settings):
+    return ui_config.RECURSIVE in modifier_settings
 
 
 def use_gv_ports(modifier_settings):
     return ui_config.USE_GV_PORTS in modifier_settings
+
+
+def hcenter(modifier_settings):
+    return ui_config.HCENTER in modifier_settings
+
+
+def recursive_layout_enabled(scope_settings):
+    # In order for recursive layout to even be an option, we need to have "show
+    # patterns" selected (because otherwise recursive layout doesn't make
+    # sense).
+    #
+    # Also, we require -- at least for now -- that decoupling is not selected.
+    # You COULD do recursive layout on a decoupled graph but it gets tricky,
+    # plus then stuff like edge routings get weird. Maybe we'll add it later
+    return show_patterns(scope_settings) and not decouple(scope_settings)
+
+
+def do_recursive_layout(scope_settings, modifier_settings):
+    return recursive_layout_enabled(scope_settings) and recursive(
+        modifier_settings
+    )
 
 
 def nrfilter_draw_request(scope_settings, draw_type, cc_nums, ag):
@@ -1326,7 +1351,7 @@ def nrfilter_draw_request(scope_settings, draw_type, cc_nums, ag):
     return draw_type, cc_nums, orig_cc_nums
 
 
-def get_dot_alg_descriptions():
+def get_dot_alg_descriptions(scope_settings, modifier_settings):
     etal_text = html.Span(
         [html.Span("et al", style={"font-style": "italic"}), ".,"]
     )
@@ -1363,11 +1388,7 @@ def get_dot_alg_descriptions():
             id="dotAlgPatternDesc",
         ),
     ]
-    if (
-        ui_config.SHOW_PATTERNS in ui_config.DEFAULT_SCOPE_SETTINGS
-        and ui_config.DO_RECURSIVE_LAYOUT
-        in ui_config.DEFAULT_MODIFIER_SETTINGS
-    ):
+    if do_recursive_layout(scope_settings, modifier_settings):
         dot_alg_desc_used = DOT_ALG_DESC_PATTS
     else:
         dot_alg_desc_used = DOT_ALG_DESC
@@ -1375,7 +1396,11 @@ def get_dot_alg_descriptions():
 
 
 def get_layout_options_tab(
-    node_centric, orientation_in_name, multiple_ccs, default_dot_alg_desc
+    node_centric,
+    orientation_in_name,
+    is_flye_dot,
+    multiple_ccs,
+    default_dot_alg_desc,
 ):
 
     JS_ALG_WARNING = html.P(
@@ -1419,6 +1444,12 @@ def get_layout_options_tab(
 
     scope_options = copy.deepcopy(ui_config.SCOPE_SETTINGS_OPTIONS)
     default_scope_settings = copy.deepcopy(ui_config.DEFAULT_SCOPE_SETTINGS)
+
+    modifier_options = copy.deepcopy(ui_config.MODIFIER_SETTINGS_OPTIONS)
+    default_modifier_settings = copy.deepcopy(
+        ui_config.DEFAULT_MODIFIER_SETTINGS
+    )
+
     # Drawing only the nonredundant parts of the graph only makes sense if
     # (1) there are pairs of nodes/edges X and -X in the graph (i.e.
     # ag.orientation_in_name is True) and (2) there are multiple components.
@@ -1429,8 +1460,25 @@ def get_layout_options_tab(
     if not (orientation_in_name and multiple_ccs):
         disable_dcc_checklist_option(scope_options, ui_config.NR_CCS)
         # Go a step further: ensure that this option is turned off entirely for
-        # theses kinds of graphs.
+        # these kinds of graphs.
         misc_utils.safe_list_discard(default_scope_settings, ui_config.NR_CCS)
+
+    # Similar deal for decoupling. It makes no sense for graphs where
+    # orientation_in_name is false, and -- furthermore -- Flye DOT files where
+    # the nodes do not have orientations mean the algorithm gets funky.
+    if not (orientation_in_name and not is_flye_dot):
+        disable_dcc_checklist_option(scope_options, ui_config.DECOUPLE)
+        misc_utils.safe_list_discard(
+            default_scope_settings, ui_config.DECOUPLE
+        )
+
+    # Finally, we don't support recursive layout when patterns are not drawn
+    # and/or when decoupling is selected.
+    if not recursive_layout_enabled(default_scope_settings):
+        disable_dcc_checklist_option(modifier_options, ui_config.RECURSIVE)
+        misc_utils.safe_list_discard(
+            default_modifier_settings, ui_config.RECURSIVE
+        )
 
     return html.Div(
         [
@@ -1464,8 +1512,8 @@ def get_layout_options_tab(
             html.H5("How should we draw it?"),
             html.Div(
                 dcc.Checklist(
-                    options=ui_config.MODIFIER_SETTINGS_OPTIONS,
-                    value=ui_config.DEFAULT_MODIFIER_SETTINGS,
+                    options=modifier_options,
+                    value=default_modifier_settings,
                     id="modifierSettingsChecklist",
                 ),
                 className="form-check fancyChecklistInDialog",

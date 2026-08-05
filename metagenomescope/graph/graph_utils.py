@@ -1,3 +1,4 @@
+import logging
 from collections import Counter
 from .. import ui_utils, name_utils, config
 from metagenomescope.errors import WeirdError, GraphParsingError
@@ -28,6 +29,34 @@ def is_isolated_circle(g, n):
         and len(nadj[n]) == 1
         and len(g.pred[n]) == 1
     )
+
+
+def get_max_degree_node(g, node_ids):
+    """Given a collection of nodes, finds the one with the biggest degree.
+
+    Parameters
+    ----------
+    g: nx.MultiDiGraph
+    node_ids: list of int
+
+    Returns
+    -------
+    int
+        The ID of the node in node_ids with the biggest degree. Ties are broken
+        arbitrarily (currently, earlier entries in node_ids have priority, but
+        for the love of god don't rely on that).
+    """
+    if len(node_ids) < 1:
+        raise WeirdError("Not enough nodes given")
+    arbnid = node_ids[0]
+    max_degree = (arbnid, g.degree[arbnid])
+    for nid in node_ids[1:]:
+        degree = g.degree[nid]
+        if degree > max_degree[1]:
+            # Max Degree would be a really cool name for like a dog
+            # who solves crimes
+            max_degree = (nid, degree)
+    return max_degree[0]
 
 
 def get_only_connecting_edge_uid(g, src_id, tgt_id):
@@ -179,6 +208,42 @@ def check_and_get_fake_edge_id(g, left, right, edgeid2obj):
 def check_node_split_properly(g, basename, nodename2obj, edgeid2obj):
     left, right = get_split_halves(basename, nodename2obj)
     return left, right, check_and_get_fake_edge_id(g, left, right, edgeid2obj)
+
+
+def add_node_and_counterpart_ids(addto, n, nodeid2obj):
+    """Adds IDs of a Node n and its counterpart node (if applicable) to a set.
+
+    Parameters
+    ----------
+    addto: set of int
+        The set to add these ID(s) to.
+
+    n: Node
+
+    nodeid2obj: dict of int -> Node
+        We will only add a node ID to "addto" if it is present as a key in this
+        dict. If it is not present, then we will not add it.
+
+    Returns
+    -------
+    None
+        (This modifies "addto" in place.)
+
+    Notes
+    -----
+    - We only add a node ID to "addto" if it is in nodeid2obj. This check
+      applies to both the ID of n and the ID of its counterpart node (and
+      these checks are independent of each other, so it is possible for only
+      one of them to be added to addto).
+    """
+
+    def add_if_in(nid):
+        if nid in nodeid2obj:
+            addto.add(nid)
+
+    add_if_in(n.unique_id)
+    if n.is_split():
+        add_if_in(n.counterpart_node_id)
 
 
 def get_one_side_of_edge_ids(g, node_id, in_edges=True):
@@ -401,6 +466,16 @@ def validate_split_type(split):
 
 
 def get_sorted_subgraphs(sgs):
+    """Sorts a set of Subgraphs from "biggest" to "smallest."
+
+    Parameters
+    ----------
+    sgs: collection of Subgraph
+
+    Returns
+    -------
+    list of Subgraph
+    """
     # The number of "full" nodes (i.e. ignoring node splitting) MUST be the
     # highest-priority sorting criterion. Otherwise, we will be unable to
     # say that an aggregated group of components with the exact same
@@ -431,6 +506,33 @@ def get_sorted_subgraphs(sgs):
         ),
         reverse=True,
     )
+
+
+def get_sorted_nodes(nodes):
+    """Sorts nodes by their names, just for the sake of consistency.
+
+    This sorts by basename first, breaking ties with full name. The reason for
+    including full name is to add consistency for which of {X-L, X-R} comes
+    first. And, um, the reason we don't ONLY sort by name (ignoring basename)
+    is that I guess -- if splitting is inconsistent, and sometimes node X is
+    split but sometimes it isn't -- then maybe you could have weird node names
+    of the form X-asdf or something whose order in the sorting would change?
+    Ugh.
+
+    Anyway, this is kind of lazy and inefficient, but sorting is relatively
+    cheap so I think this is fine for now.
+    """
+    # uses reverse=True so that -- if "nodes" includes both X and -X -- the
+    # positive node (X) comes first
+    return sorted(nodes, key=lambda n: (n.basename, n.name), reverse=True)
+
+
+def edge2tuple(e, nodeid2obj):
+    return (nodeid2obj[e.new_src_id].name, nodeid2obj[e.new_tgt_id].name)
+
+
+def get_sorted_edges(edges, nodeid2obj):
+    return sorted(edges, key=lambda e: edge2tuple(e, nodeid2obj), reverse=True)
 
 
 def get_candidate_twin_cc_num_from_nodes(cc, nodename2objs):
@@ -579,14 +681,12 @@ def get_candidate_twin_cc_num_from_edges(cc, userspecifiededgeid2obj):
     return candidate_twin_cc_num
 
 
-def count_real_edge_info(cc, nodeid2obj, index_by_namepair=True):
+def count_real_edge_info(cc, index_by_namepair=True):
     """Returns a Counter of some kind of edge info in a component.
 
     Parameters
     ----------
     cc: Component
-
-    nodeid2obj: dict of int -> Node
 
     index_by_namepair: bool
         If True, the output Counter's keys will be pairs of node names.
@@ -602,8 +702,8 @@ def count_real_edge_info(cc, nodeid2obj, index_by_namepair=True):
         if not e.is_fake:
             if index_by_namepair:
                 info = (
-                    nodeid2obj[e.new_src_id].basename,
-                    nodeid2obj[e.new_tgt_id].basename,
+                    cc.nodeid2obj[e.new_src_id].basename,
+                    cc.nodeid2obj[e.new_tgt_id].basename,
                 )
             else:
                 # don't worry, this will throw an error if no such ID is set
@@ -612,7 +712,7 @@ def count_real_edge_info(cc, nodeid2obj, index_by_namepair=True):
     return ctr
 
 
-def components_are_twins(cc, cc2, nodeid2obj, define_edges_by_nodenames=True):
+def components_are_twins(cc, cc2, define_edges_by_nodenames=True):
     """Determines if two Components are "twins" of each other.
 
     Specifically, this checks (given components C1 and C2):
@@ -627,8 +727,6 @@ def components_are_twins(cc, cc2, nodeid2obj, define_edges_by_nodenames=True):
     cc: Component
 
     cc2: Component
-
-    nodeid2obj: dict of int -> Node
 
     define_edges_by_nodenames: bool
         If True, we count edges in the component (and determine reverse-
@@ -648,7 +746,7 @@ def components_are_twins(cc, cc2, nodeid2obj, define_edges_by_nodenames=True):
     -----
     - This does not explicitly check that node names match up between these
       components (although tbh I think leaving define_edges_by_nodenames set to
-      True basically has the same effect indicentally). In Flye DOT files, node
+      True basically has the same effect incidentally). In Flye DOT files, node
       names do not have orientation (see
       https://github.com/marbl/MetagenomeScope/issues/401); and in other types
       of graphs, you should have called get_candidate_twin_component_num()
@@ -666,10 +764,10 @@ def components_are_twins(cc, cc2, nodeid2obj, define_edges_by_nodenames=True):
     ):
         # Counts match up; now check that edge details match up
         ectr1 = count_real_edge_info(
-            cc, nodeid2obj, index_by_namepair=define_edges_by_nodenames
+            cc, index_by_namepair=define_edges_by_nodenames
         )
         ectr2 = count_real_edge_info(
-            cc2, nodeid2obj, index_by_namepair=define_edges_by_nodenames
+            cc2, index_by_namepair=define_edges_by_nodenames
         )
 
         if len(ectr1) == len(ectr2):
@@ -677,10 +775,7 @@ def components_are_twins(cc, cc2, nodeid2obj, define_edges_by_nodenames=True):
 
                 if define_edges_by_nodenames:
                     # info is a tuple (src name, tgt name)
-                    rcinfo = (
-                        name_utils.negate(info[1]),
-                        name_utils.negate(info[0]),
-                    )
+                    rcinfo = name_utils.negate_edge_tuple(*info)
                 else:
                     # info is a string user-specified edge ID
                     rcinfo = name_utils.negate(info)
@@ -700,3 +795,95 @@ def components_are_twins(cc, cc2, nodeid2obj, define_edges_by_nodenames=True):
         # complementary version of cc AND some other junk. Um, but probably I
         # doubt this will happen in practice much if at all lol
         return False
+
+
+def warn_if_cc_edge_cts_asymmetric(cc):
+    """Logs a warning if s -> t and -t -> -s have different real edge counts.
+
+    Parameters
+    ----------
+    cc: metagenomescope.graph.Component
+        Component to check. We assume that this component is strand-tangled;
+        otherwise, this will make a false-positive warning (since we will see
+        an edge
+
+    Returns
+    -------
+    None
+
+    Notes
+    -----
+    Because this uses count_real_edge_info(), which only considers real edges,
+    this will ignore fake edges. Thus, even if some node X is split but node
+    -X is not split, this should not trigger a warning here (so long as the
+    real edges in the component are symmetric).
+
+    ... Um, the pattern decomposition should usually produce symmetric results
+    (so X and -X having different "split statuses" shouldn't really happen
+    anyway), but maybe that will change in the future. (probs not tho)
+    """
+    st2ct = count_real_edge_info(cc, index_by_namepair=True)
+    for (s, t), edgect in st2ct.items():
+        revtup = name_utils.negate_edge_tuple(s, t)
+        if revtup not in st2ct or st2ct[revtup] != edgect:
+            logging.warning(
+                f"WARNING: Component #{cc.cc_num} has asymmetric edge counts: "
+                f"e.g. {s} -> {t} has {ui_utils.pluralize(edgect, 'edge')}, "
+                f"but {revtup[0]} -> {revtup[1]} has "
+                f"{ui_utils.pluralize(st2ct[revtup], 'edge')}. Drawing this "
+                "component with decoupling may not show some edges."
+            )
+            break
+
+
+def get_avail_pattern_ids(poss_patterns, node_ids, edge_ids):
+    """Returns IDs of all patterns whose descendant nodes/edges are all given.
+
+    Parameters
+    ----------
+    poss_patterns: collection of metagenomescope.graph.Pattern
+
+    node_ids: set of int
+
+    edge_ids: set of int
+
+    Returns
+    -------
+    set of int
+        IDs of all patterns in poss_patterns that are "available," given the
+        specified node and edge IDs.
+    """
+    avail_patt_ids = set()
+    # include a pattern only if all its descendant nodes and edges are included
+    for p in poss_patterns:
+        available = True
+        desc_nodes, desc_edges, desc_patts, _ = p.get_descendant_info()
+        for dn in desc_nodes:
+            if dn.unique_id not in node_ids:
+                available = False
+                break
+        # NOTE: If all of the descendant nodes of a pattern are drawn, then all
+        # of the descendant edges of this pattern should also have been drawn.
+        # Probably??? At least for the types of patterns we currently identify
+        # and the current way we draw things, I think. (Even for decoupling!)
+        #
+        # But anyway, just for the sake of safety, we also check the edges
+        # (since set lookups are fastish anyway right) out of paranoia.
+        for de in desc_edges:
+            if de.unique_id not in edge_ids:
+                available = False
+                break
+        if available:
+            avail_patt_ids.add(p.unique_id)
+    return avail_patt_ids
+
+
+def filter_objs_by_ids(objs, ids):
+    return [o for o in objs if o.unique_id in ids]
+
+
+def find_full_or_certain_split_node(nodename2objs, name, desired_split):
+    for n in nodename2objs[name]:
+        if n.is_not_split() or n.split == desired_split:
+            return n
+    return None

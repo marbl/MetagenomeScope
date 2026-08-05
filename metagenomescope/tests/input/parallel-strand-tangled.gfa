@@ -1,0 +1,8 @@
+H	VN:Z:1.0
+S	1	CGATGCAAAG
+S	2	TGCAAAGTAC
+S	3	CGATGCAAAG
+L	3	-	1	+	5M
+L	1	+	2	+	5M
+L	1	+	2	+	6M
+L	1	+	2	-	5M

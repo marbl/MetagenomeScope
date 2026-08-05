@@ -33,6 +33,10 @@ if SPLIT_LEFT_SUFFIX != "-L" or SPLIT_RIGHT_SUFFIX != "-R":
         "Hey, you can't change that without updating the JS searching code."
     )
 
+# Used for passing stuff around internally re: invalidated edges.
+INVAL_SRC = "s"
+INVAL_TGT = "t"
+
 # Pattern types -- used internally.
 PT_BUBBLE = 0
 PT_CHAIN = 1
@@ -115,8 +119,7 @@ DRAW_CCS = "ccs"
 DRAW_NR = "nr"
 DRAW_AROUND = "around"
 
-# Optional ID fields, used sometimes in the JSON output of draw() (aka
-# "currDrawnInfo")
+# Optional ID fields, used sometimes in the JSON output of draw()
 CDI_DRAWN_NODE_IDS = "drawn_node_ids"
 CDI_DRAWN_EDGE_IDS = "drawn_edge_ids"
 

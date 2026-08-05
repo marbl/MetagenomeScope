@@ -395,11 +395,14 @@ class AssemblyGraph(object):
         logger.debug("  ...Done.")
 
         # If this is the kind of graph where we expect to see node A and -A,
-        # then detect redundant components
-        # (https://github.com/marbl/MetagenomeScope/issues/67).
+        # then detect pairs of redundant components
+        # (https://github.com/marbl/MetagenomeScope/issues/67) as well as
+        # strand-tangled components
+        # (https://github.com/marbl/MetagenomeScope/issues/449).
         # For things like MetaCarvel GML files, though, don't bother (leave
-        # self.nr_cc_nums as None)
+        # these as None)
         self.nr_cc_nums = None
+        self.st_cc_nums = None
         # If we detect nonredundant components, then update this dict: maps
         # component size rank to the size rank of the twin component.
         self.ccnum2twinccnum = {}
@@ -413,6 +416,23 @@ class AssemblyGraph(object):
                 "  ...Done. The graph has "
                 f"{ui_utils.pluralize(len(self.nr_cc_nums), 'nonredundant component')}."
             )
+            # Because node names in Flye DOT files do not have orientations,
+            # decoupling these components becomes tricky. You could still do it
+            # but I don't think it's worth the trouble (yet)
+            if self.is_flye_dot:
+                logger.debug(
+                    "  Skipping decoupling step, since the input graph is a "
+                    "Flye DOT file."
+                )
+            else:
+                logger.debug(
+                    "  Detecting and decoupling strand-tangled components..."
+                )
+                self._decouple_components()
+                logger.debug(
+                    "  ...Done. Decoupled "
+                    f"{ui_utils.pluralize(len(self.st_cc_nums), 'strand-tangled component')}."
+                )
 
         # Process paths, if given.
         #
@@ -718,10 +738,7 @@ class AssemblyGraph(object):
                 # Flye edge IDs. It is possible to associate pairs of RC edges
                 # in a LJA DOT file but it is probably not worth the work atm.)
                 edgeinfo = (src.name, tgt.name)
-                rcinfo = (
-                    name_utils.negate(tgt.name),
-                    name_utils.negate(src.name),
-                )
+                rcinfo = name_utils.negate_edge_tuple(src.name, tgt.name)
 
             # If we have already seen the RC of this edge, or -- for node-
             # centric graphs, if we have already seen a parallel edge to this
@@ -2090,7 +2107,6 @@ class AssemblyGraph(object):
                 if graph_utils.components_are_twins(
                     cc,
                     cc2,
-                    self.nodeid2obj,
                     define_edges_by_nodenames=not self.is_flye_dot,
                 ):
                     # These components really are twins! Choose one of them
@@ -2119,6 +2135,39 @@ class AssemblyGraph(object):
             if cc2_num is not None:
                 self.nr_cc_nums.add(cc2_num)
                 self.ccnum2twinccnum[cc2_num] = None
+
+    def _decouple_components(self):
+        """Figures out how to split up strand-tangled components.
+
+        This way, we only need to draw each node and edge once in these
+        components -- no need to draw both the + and - versions of each node
+        and edge.
+
+        This assumes that we've already called _record_redundant_components(),
+        and that self.orientation_in_name is True and self.is_flye_dot is
+        False.
+
+        Notes
+        -----
+        - Here, we consider all components that do not have a twin as possible
+          strand-tangled components. In theory, a component could have no twin
+          but still NOT be strand-tangled (if for some reason you like, already
+          removed twin components from an "explicit" graph file like FASTG/DOT)
+          ... but the odds of that happening in real graphs seem low, and even
+          if we try to decouple such a component we just wouldn't do anything.
+
+        - It should be POSSIBLE to generalize this to Flye DOT files by
+          removing the reliance on node orientations (or, like, inferring
+          node names or something) but I really don't think that is worth it rn
+        """
+        self.st_cc_nums = set()
+        for cc in self.components:
+            # Only consider components that do not have a twin (and that have
+            # multiple nodes)
+            if self.ccnum2twinccnum[cc.cc_num] is None and len(cc.nodes) > 1:
+                dc_results = cc.decouple(self.graph, self.nodename2objs)
+                if dc_results:
+                    self.st_cc_nums.add(cc.cc_num)
 
     def get_nr_cc_nums(self):
         """Returns the size ranks of all nonredundant components."""
@@ -2169,39 +2218,102 @@ class AssemblyGraph(object):
             with open(output_fp, "w") as fh:
                 fh.write(output_stats)
 
-    def _search(self, node_name_text, get_cc_map=False, get_ids=False):
-        """Searches through the graph and accumulates info about nodes."""
+    def find_nodes(self, names_to_search):
+        """Generates information about Nodes matching a collection of names.
 
+        Parameters
+        ----------
+        names_to_search: set of str
+            Node names to search through self.nodename2objs for.
+
+        Yields
+        ------
+        (bool, Node or str)
+            If a node name was in self.nodename2objs, then we will yield a
+            (True, Node) for each of the Node objects to which this name maps.
+            (A node can map to multiple names if it is split.)
+
+            If a node name was NOT in self.nodename2objs, then we will yield
+            (False, str), where the str is the missing node name. This way,
+            the caller can raise an error if desired.
+        """
+        for name in names_to_search:
+            if name in self.nodename2objs:
+                for obj in self.nodename2objs[name]:
+                    yield (True, obj)
+            else:
+                yield (False, name)
+
+    def _search(self, node_name_text, get_cc_map=False, get_ids=False):
+        """Searches through the graph and accumulates info about certain nodes.
+
+        Parameters
+        ----------
+        node_name_text: str
+            User-specified comma-separated list of node names (or, like, just a
+            single node name I guess) for which we will search the graph. See
+            ui_utils.get_node_names(), which handles parsing this stuff.
+
+        get_cc_map: bool
+            If True, include the key "cc_map" in the output dict. This will
+            point to a dict that maps node name -> component size rank.
+
+        get_ids: bool
+            If True, include the key "ids" in the output dict. This will point
+            to a list of node IDs.
+
+        Returns
+        -------
+        dict of str -> dict | list
+            Includes some combination of the outputs specified above, for the
+            node(s) that were searched for.
+
+            IDK, is this too confusing? Should I just make a SearchResults
+            class or something to store this stuff? Probably not worth it.
+            Let me know if you're reading this and you have an opinion.
+
+        Raises
+        ------
+        WeirdError
+            If none of the get_* parameters were set to True (because then
+            why are you calling this?)
+
+        UIError
+            If any of the node names described in node_name_text are not
+            present in the graph at all.
+
+        Notes
+        -----
+        - This will "expand" split nodes' basenames -- searching for a split
+          node X will result in two entries (for X-L and X-R) in the cc map and
+          ID lists.
+        """
         if not get_cc_map and not get_ids:
-            # yeah yeah yeah you could write out the bitwise XNOR or whatever
-            # but this is clearer imo
-            raise WeirdError("Only one of these should be specified.")
+            raise WeirdError("just running a search for the love of the game?")
 
         nodename2ccnum = {}
         ids = set()
         node_names_to_search = ui_utils.get_node_names(node_name_text)
-        unfound_nodes = set()
-        for name in node_names_to_search:
-            if name in self.nodename2objs:
-                for obj in self.nodename2objs[name]:
-                    if get_ids:
-                        ids.add(obj.unique_id)
-                    if get_cc_map:
-                        nodename2ccnum[obj.name] = obj.cc_num
+
+        unfound_node_names = set()
+        for found, n in self.find_nodes(node_names_to_search):
+            if found:
+                if get_ids:
+                    ids.add(n.unique_id)
+                if get_cc_map:
+                    nodename2ccnum[n.name] = n.cc_num
             else:
-                # Okay this node just straight up isn't in the graph
-                unfound_nodes.add(name)
-        ui_utils.fail_if_unfound_nodes(unfound_nodes)
+                # Okay, this node just straight up isn't in the graph.
+                # This means that "n" is actually a str, not a Node
+                unfound_node_names.add(n)
+        ui_utils.fail_if_unfound_nodes(unfound_node_names)
+
+        out = {}
+        if nodename2ccnum:
+            out["cc_map"] = nodename2ccnum
         if get_ids:
-            if get_cc_map:
-                return (list(ids), nodename2ccnum)
-            else:
-                return list(ids)
-        else:
-            if get_cc_map:
-                return nodename2ccnum
-            else:
-                raise WeirdError("bruh")
+            out["ids"] = list(ids)
+        return out
 
     def get_nodename2ccnum(self, node_name_text):
         """Returns a mapping of node names -> cc nums, given user-input text.
@@ -2240,7 +2352,7 @@ class AssemblyGraph(object):
           Bootstrap (?)'s formatting is collapsing spaces... but also, node
           names really shouldn't have spaces anyway, so probably nbd.
         """
-        return self._search(node_name_text, get_cc_map=True)
+        return self._search(node_name_text, get_cc_map=True)["cc_map"]
 
     def get_node_ids(self, node_name_text):
         """Returns a list of node IDs, given user-input text.
@@ -2264,10 +2376,11 @@ class AssemblyGraph(object):
         UIError
             For the same reasons as get_nodename2ccnum().
         """
-        return self._search(node_name_text, get_ids=True)
+        return self._search(node_name_text, get_ids=True)["ids"]
 
     def get_node_ids_and_cc_map(self, node_name_text):
-        return self._search(node_name_text, get_ids=True, get_cc_map=True)
+        s = self._search(node_name_text, get_ids=True, get_cc_map=True)
+        return s["ids"], s["cc_map"]
 
     def get_node_names_from_ids(self, node_ids):
         # include both A-L and A-R, if both IDs are in the input
@@ -2276,59 +2389,39 @@ class AssemblyGraph(object):
             names.append(self.nodeid2obj[i].name)
         return names
 
-    def get_avail_paths(self, curr_drawn_info):
-        """Returns a list of names of available paths based on what is drawn.
+    def get_rc_nodes(self, node_id):
+        """Generates Node(s) with reverse-complementary basenames.
 
         Parameters
         ----------
-        curr_drawn_info: dict
-            Describes what is currently drawn. The output of draw() in main.py.
-            See that function for details.
+        node_id: int
+            The unique ID of a Node in the graph.
 
-        Returns
-        -------
-        list
-            Contains the names of all available paths.
-
-        Raises
+        Yields
         ------
-        WeirdError
-            If we don't recognize the draw_type attribute of curr_drawn_info.
+        Node
+            Each yielded Node object will have a basename that is reverse-
+            complementary to (the basename of the node with ID node_id).
         """
-        draw_type = curr_drawn_info["draw_type"]
-        if draw_type == config.DRAW_ALL:
-            return self.pathname2objnames.keys()
+        rcname = name_utils.negate(self.nodeid2obj[node_id].basename)
+        for found, rn in self.find_nodes({rcname}):
+            if found:
+                yield rn
 
-        elif draw_type == config.DRAW_CCS:
-            return path_utils.get_avail_paths_from_cc_nums(
-                self.pathname2ccnums, curr_drawn_info["cc_nums"]
-            )
-
-        elif draw_type == config.DRAW_NR:
-            return path_utils.get_avail_paths_from_cc_nums(
-                self.pathname2ccnums, self.get_nr_cc_nums()
-            )
-
-        elif draw_type == config.DRAW_AROUND:
-            return self.get_region_avail_paths(curr_drawn_info)
-
-        else:
-            raise WeirdError(f"Unrecognized draw type: {curr_drawn_info}")
-
-    def get_region_avail_paths(self, curr_drawn_info):
-        """Returns available paths when drawing "around" nodes."""
+    def get_avail_paths(self, curr_drawn_ids):
+        """Returns a list of names of "available" paths."""
         id_field = (
             config.CDI_DRAWN_NODE_IDS
             if self.node_centric
             else config.CDI_DRAWN_EDGE_IDS
         )
-        if id_field not in curr_drawn_info:
-            raise WeirdError(f"{id_field} not in {curr_drawn_info}?")
+        if id_field not in curr_drawn_ids:
+            raise WeirdError(f"{id_field} not in {curr_drawn_ids}?")
 
         avail_paths = []
         touched_paths = set()
         drawn_names = set()
-        for i in curr_drawn_info[id_field]:
+        for i in curr_drawn_ids[id_field]:
             if self.node_centric:
                 name = self.nodeid2obj[i].basename
             else:
@@ -2344,7 +2437,7 @@ class AssemblyGraph(object):
 
         return avail_paths
 
-    def get_neighborhood(self, node_ids, dist):
+    def _get_neighborhood(self, node_ids, dist):
         """Returns the induced subgraph within a given distance of some nodes.
 
         Parameters
@@ -2361,9 +2454,8 @@ class AssemblyGraph(object):
 
         Returns
         -------
-        subgraph, subgraph_node_ids: nx.MultiDiGraph, set of int
-            The induced subgraph, computed as described above, and the set of
-            all its contained node IDs (just for the sake of convenience).
+        nx.MultiDiGraph
+            The induced subgraph, computed as described above.
         """
         # There may be more efficient ways to do this (avoiding creating an
         # an undirected view of the graph, and instead just operating directly
@@ -2379,53 +2471,78 @@ class AssemblyGraph(object):
                 break
             subgraph_node_ids.update(ids)
 
-        subgraph = nx.induced_subgraph(self.graph, subgraph_node_ids)
-        return subgraph, subgraph_node_ids
+        return nx.induced_subgraph(self.graph, subgraph_node_ids)
 
-    def get_ids_in_neighborhood(self, node_ids, dist, scope_settings):
-        """Returns the IDs of all nodes, edges, and patterns in a neighborhood.
+    def get_neighborhood_ccs(self, node_ids, dist, scope_settings):
+        """Returns Subgraph objects representing a neighborhood's components.
 
-        See get_neighborhood()'s documentation for details. The main "extra"
-        thing this function does is computing which patterns should be included
-        in the neighborhood; we say that a pattern is "available" for inclusion
-        in the neighborhood if all of this pattern's descendant nodes and edges
-        are also in the neighborhood.
+        Parameters
+        ----------
+        node_ids: collection of int
+            IDs of nodes around which to search.
 
-        Oh also the IDs are stored in sets. in case that's relevant.
+        dist: int
+            BFS distance; see _get_neighborhood() docs.
+
+        scope_settings: list of str
+            Settings controlling what to draw (e.g. to show patterns or not).
+
+        Returns
+        -------
+        list of Subgraph
+            Each entry is a MetagenomeScope Subgraph object representing a
+            weakly-connected component in the graph from _get_neighborhood().
         """
-        # Get nodes
-        subgraph, subgraph_node_ids = self.get_neighborhood(node_ids, dist)
+        # Get the induced subgraph. Because node_ids can describe multiple
+        # nodes, this subgraph is not necessarily connected.
+        subgraph = self._get_neighborhood(node_ids, dist)
 
-        # Get edges
-        subgraph_edge_ids = set()
-        for _, _, uid in subgraph.edges(data="uid"):
-            subgraph_edge_ids.add(uid)
+        incl_patterns = ui_utils.show_patterns(scope_settings)
 
-        # Get patterns, maybe
-        subgraph_patt_ids = set()
-        if ui_utils.show_patterns(scope_settings):
-            # include a pattern only if all its descendant nodes and edges are
-            # included
-            for pid, p in self.pattid2obj.items():
-                available = True
-                desc_nodes, desc_edges, desc_patts, _ = p.get_descendant_info()
-                for dn in desc_nodes:
-                    if dn.unique_id not in subgraph_node_ids:
-                        available = False
-                        break
-                # NOTE: If all of the descendant nodes of a pattern are drawn,
-                # then all of the descendant edges of this pattern should also
-                # have been drawn. Probably??? At least for the types of
-                # patterns we currently identify, I think. Just for the sake
-                # of safety, we also check the edges (set lookups are fastish
-                # anyway right) out of paranoia.
-                for de in desc_edges:
-                    if de.unique_id not in subgraph_edge_ids:
-                        available = False
-                        break
-                if available:
-                    subgraph_patt_ids.add(pid)
-        return subgraph_node_ids, subgraph_edge_ids, subgraph_patt_ids
+        sgs = []
+        for wcc_node_ids in nx.weakly_connected_components(subgraph):
+            # calling induced_subgraph() AGAIN is kind of inefficient but I
+            # really don't think this will be a bottleneck
+            wcc_subgraph = nx.induced_subgraph(subgraph, wcc_node_ids)
+
+            # get edges
+            wcc_edge_ids = set()
+            for _, _, uid in wcc_subgraph.edges(data="uid"):
+                wcc_edge_ids.add(uid)
+
+            # get patterns, maybe
+            if incl_patterns:
+                wcc_patt_ids = graph_utils.get_avail_pattern_ids(
+                    self.pattid2obj.values(),
+                    wcc_node_ids,
+                    wcc_edge_ids,
+                )
+            else:
+                wcc_patt_ids = set()
+
+            # Create a Subgraph object
+            #
+            # NOTE: in theory, if a user draws around nodes multiple times then
+            # we will just keep creating new IDs here. However, since diff
+            # versions versions of mgsc on diff workers may not share memory,
+            # we may reuse IDs here. I think this is fine, but if we really
+            # want to keep things 100% stateless we can just use a constant id
+            # here, or create a uuid, etc
+            sid = self._get_unique_id()
+            sgs.append(
+                Subgraph(
+                    sid,
+                    f"Subgraph{sid}",
+                    [self.nodeid2obj[i] for i in wcc_node_ids],
+                    [self.edgeid2obj[i] for i in wcc_edge_ids],
+                    [self.pattid2obj[i] for i in wcc_patt_ids],
+                    node_centric=self.node_centric,
+                    length_field=self.length_field,
+                    record_node_names=not self.is_flye_dot,
+                    count_positive_names=self.orientation_in_name,
+                )
+            )
+        return sgs
 
     def _to_cyjs_around_nodes(
         self,
@@ -2437,30 +2554,17 @@ class AssemblyGraph(object):
         layout_params,
     ):
         """Produces Cytoscape.js elements only "around" certain nodes."""
-        sel_node_ids, sel_edge_ids, sel_patt_ids = (
-            self.get_ids_in_neighborhood(node_ids, dist, scope_settings)
-        )
-        # NOTE: in theory, if a user draws around nodes multiple times then
-        # we will just keep creating new subgraph ids. however, since diff
-        # versions of mgsc on diff workers may not share memory, we may reuse
-        # IDs here. I think this is fine, but if we really want to keep things
-        # 100% stateless we can just use a constant id here, or create a uuid,
-        # etc
-        sid = self._get_unique_id()
-        sg = Subgraph(
-            sid,
-            f"Subgraph{sid}",
-            [self.nodeid2obj[i] for i in sel_node_ids],
-            [self.edgeid2obj[i] for i in sel_edge_ids],
-            [self.pattid2obj[i] for i in sel_patt_ids],
-            node_centric=self.node_centric,
-            length_field=self.length_field,
-            record_node_names=not self.is_flye_dot,
-            count_positive_names=self.orientation_in_name,
-        )
-        return sg.to_cyjs(
-            scope_settings, modifier_settings, layout_alg, layout_params
-        )
+        sgs = self.get_neighborhood_ccs(node_ids, dist, scope_settings)
+        dr = DrawResults({}, scope_settings, modifier_settings)
+        for sg in sgs:
+            # NOTE: For now, we do not perform decoupling on these subgraphs.
+            # See https://github.com/marbl/MetagenomeScope/issues/459.
+            # if ui_utils.decouple(scope_settings):
+            #     sg.decouple(self.graph, self.nodename2objs)
+            dr += sg.to_cyjs(
+                scope_settings, modifier_settings, layout_alg, layout_params
+            )
+        return dr
 
     def to_cyjs(self, done_flushing):
         """Converts the graph's elements to a Cytoscape.js-compatible format.
@@ -2500,7 +2604,7 @@ class AssemblyGraph(object):
 
         if draw_type == config.DRAW_ALL:
             # draw all component(s)
-            dr = DrawResults({}, scope_settings)
+            dr = DrawResults({}, scope_settings, modifier_settings)
             for cc in self.components:
                 dr += cc.to_cyjs(
                     scope_settings,
@@ -2511,7 +2615,7 @@ class AssemblyGraph(object):
 
         elif draw_type == config.DRAW_CCS:
             # draw certain component(s)
-            dr = DrawResults({}, scope_settings)
+            dr = DrawResults({}, scope_settings, modifier_settings)
             for ccn in done_flushing["cc_nums"]:
                 cc = self.get_cc_by_num(ccn)
                 dr += cc.to_cyjs(
@@ -2525,7 +2629,7 @@ class AssemblyGraph(object):
             # draw all component(s), but only the nonredundant ones (so for
             # each pair of perfectly reverse-complementary components, we'll
             # just draw one of these)
-            dr = DrawResults({}, scope_settings)
+            dr = DrawResults({}, scope_settings, modifier_settings)
             for ccn in self.get_nr_cc_nums():
                 cc = self.get_cc_by_num(ccn)
                 dr += cc.to_cyjs(

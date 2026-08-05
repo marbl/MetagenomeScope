@@ -5,6 +5,7 @@ from .pattern import Pattern
 from .pattern_stats import PatternStats
 from .draw_results import DrawResults
 from .node_layout import NodeLayout
+from .invalidated_edge import InvalidatedEdge
 from .subgraph import Subgraph
 from .component import Component
 from . import validators
@@ -17,6 +18,7 @@ __all__ = [
     "PatternStats",
     "DrawResults",
     "NodeLayout",
+    "InvalidatedEdge",
     "Subgraph",
     "Component",
     "validators",

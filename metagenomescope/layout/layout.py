@@ -31,7 +31,13 @@ class Layout(object):
         self.scope_settings = scope_settings
         self.modifier_settings = modifier_settings
         self.incl_patterns = ui_utils.show_patterns(scope_settings)
-        self.recursive = ui_utils.do_recursive_layout(modifier_settings)
+        # Figures out whether or not we should do recursive layout at all.
+        # This takes into account the other settings, so that if e.g. patterns
+        # are not shown then we don't do recursive layout (even if the option
+        # is selected but disabled).
+        self.recursive = ui_utils.do_recursive_layout(
+            scope_settings, modifier_settings
+        )
         self.use_gv_ports = ui_utils.use_gv_ports(modifier_settings)
         self.params = params
 
@@ -59,7 +65,7 @@ class Layout(object):
         self.region_is_pattern = hasattr(self.region, "pattern_type")
 
         if not self.region_is_pattern:
-            self.pattern_ids = [p.unique_id for p in self.region.patterns]
+            self.pattern_ids = self.region.pattid2obj.keys()
 
         # when laid out as a "solid object," this region will be represented
         # as just a rectangle. ofc in the fancy viz we may use a diff shape
@@ -121,13 +127,12 @@ class Layout(object):
     def _to_dot(self):
         """Creates a DOT string describing the top level of this region.
 
-        This will lay out descendant patterns as needed recursively,
-        assuming that self.incl_patterns and self.recursive are True.
+        Will lay out descendant patterns as needed, if self.recursive is True.
         """
         dot = layout_utils.get_gv_header(
             self.prog, self.region.name, self.use_gv_ports, self.params
         )
-        if self.incl_patterns and self.recursive:
+        if self.recursive:
             for node in self.region.nodes:
                 if self.at_top_level_of_region(node):
                     if node.compound:
@@ -182,7 +187,7 @@ class Layout(object):
             if self.region_is_pattern:
                 raise WeirdError(f"Yeah this doesn't make sense chief {self}")
 
-            if self.incl_patterns and not self.recursive:
+            if self.incl_patterns:
                 # layout_utils.get_pattern_cluster_dot() works recursively
                 # on all descendants of a pattern, so we can just consider
                 # the top-level patterns/nodes/edges and leave the rest to
@@ -201,7 +206,8 @@ class Layout(object):
                 for node in self.region.nodes:
                     dot += node.to_dot()
                 for edge in self.region.edges:
-                    dot += edge.to_dot()
+                    dot += edge.to_dot(level="new")
+
         dot += "}"
         return dot
 
@@ -255,20 +261,13 @@ class Layout(object):
         # Extract (relative) edge control points
         for edge in self.region.edges:
             if edge.unique_id not in self.edgeid2rel:
-                # If this is a parallel edge, then get_edge() should give us an
-                # arbitrary one of these edges. At the end of this block, we
-                # call cg.remove_edge() to ensure that the next time -- if any
-                # -- that we call cg.get_edge() with these node IDs, we get a
-                # different edge position.
-                #
-                # THAT BEING SAID if these are parallel edges proobs they don't
-                # need to be laid out with fancy control pt stuff
-                src, tgt = edge.dec_src_id, edge.dec_tgt_id
-                pgv_edge = cg.get_edge(src, tgt)
-                self.edgeid2rel[edge.unique_id] = (
-                    layout_utils.get_control_points(pgv_edge)
+                layout_utils.save_control_points(
+                    cg,
+                    self.edgeid2rel,
+                    edge.unique_id,
+                    edge.dec_src_id,
+                    edge.dec_tgt_id,
                 )
-                cg.remove_edge(pgv_edge)
 
         # If this is a Subgraph/Component, extract top-level child pattern
         # relative coordinates
@@ -355,7 +354,7 @@ class Layout(object):
                 cg.graph_attr["bb"]
             )
 
-            if self.incl_patterns and self.recursive:
+            if self.recursive:
                 self._save_rel_coords(cg)
             else:
                 for node in self.region.nodes:
@@ -365,20 +364,20 @@ class Layout(object):
                     )
 
                 for edge in self.region.edges:
-                    src, tgt = edge.new_src_id, edge.new_tgt_id
-                    pgv_edge = cg.get_edge(src, tgt)
-                    self.edgeid2rel[edge.unique_id] = (
-                        layout_utils.get_control_points(pgv_edge)
+                    layout_utils.save_control_points(
+                        cg,
+                        self.edgeid2rel,
+                        edge.unique_id,
+                        edge.new_src_id,
+                        edge.new_tgt_id,
                     )
-                    # account for parallel edges -- see _save_rel_coords() comment
-                    cg.remove_edge(pgv_edge)
 
     def to_abs_coords(self, dx=0, dy=0):
         """Returns the absolute coordinates of descendant nodes and edges.
 
-        Basically, if you used patterns + did recursive layout, then this will
-        go through and convert coordinates to be absolute (instead of relative
-        to whatever parent pattern a node/edge has).
+        Basically, if we did recursive layout, then this will go through and
+        convert coordinates to be absolute (instead of relative to whatever
+        parent pattern a node/edge has).
 
         And if you did something else, then we don't really need to *convert*
         anything, but we still return the results in the same format to make
@@ -417,7 +416,7 @@ class Layout(object):
         nodeid2xy = {}
         edgeid2ctrlpts = {}
         pattid2bb = {}
-        if self.incl_patterns and self.recursive:
+        if self.recursive:
             for pattern in self.region.patterns:
                 if self.at_top_level_of_region(pattern):
                     pid = pattern.unique_id

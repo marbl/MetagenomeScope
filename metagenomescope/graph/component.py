@@ -59,6 +59,7 @@ class Component(Subgraph):
         # the most nodes has size rank 1, the next biggest one has size rank 2,
         # etc). We store this to make searching through the graph easier.
         self.cc_num = None
+
         super().__init__(
             unique_id,
             f"TempComponentID{unique_id}",

@@ -6,6 +6,15 @@ def is_rev(n):
     return n[0] == config.REV
 
 
+def is_fwd(n):
+    # i will make no apologies for writing the code this way
+    return not is_rev(n)
+
+
+def get_orientation(n):
+    return config.REV if is_rev(n) else config.FWD
+
+
 def _briefly_check_name(n):
     """Checks a node/edge name before negating it or something.
 
@@ -37,6 +46,11 @@ def negate(n):
         return n[1:]
     else:
         return config.REV + n
+
+
+def negate_edge_tuple(s, t):
+    """Converts a 2-tuple of node names (s, t) to (-t, -s)."""
+    return negate(t), negate(s)
 
 
 def get_orientationless_name(n):
