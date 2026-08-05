@@ -2557,8 +2557,10 @@ class AssemblyGraph(object):
         sgs = self.get_neighborhood_ccs(node_ids, dist, scope_settings)
         dr = DrawResults({}, scope_settings, modifier_settings)
         for sg in sgs:
-            if ui_utils.decouple(scope_settings):
-                sg.decouple(self.graph, self.nodename2objs)
+            # NOTE: For now, we do not perform decoupling on these subgraphs.
+            # See https://github.com/marbl/MetagenomeScope/issues/459.
+            # if ui_utils.decouple(scope_settings):
+            #     sg.decouple(self.graph, self.nodename2objs)
             dr += sg.to_cyjs(
                 scope_settings, modifier_settings, layout_alg, layout_params
             )

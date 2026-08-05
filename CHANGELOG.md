@@ -15,10 +15,13 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   - `Decouple strand-tangled components`
     ([#449](https://github.com/marbl/MetagenomeScope/issues/449))
 
-    - If this option is selected, then -- when we draw a "strand-tangled"
-      component or region in the graph -- we will only show one copy of each
-      node and edge (rather than drawing both node `X` and `-X` at once).
-      This is similar to
+    - If this option is selected, then -- for the `Component(s), by size rank`,
+      `Component(s), by node name`, and `Entire graph (all components)` drawing
+      methods -- all "strand-tangled" components (containing both node `X` and
+      `-X` at once) will be decoupled, so that just one copy of each node is
+      shown.
+
+    - This is similar to
       ["single" mode](https://github.com/rrwick/Bandage/wiki/Single-vs-double-node-style)
       in Bandage.
 
