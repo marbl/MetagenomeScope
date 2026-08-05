@@ -116,8 +116,9 @@ class DrawResults(object):
 
         As of writing, self.region2layout should contain either:
 
-        - ONLY Components or Subgraphs representing decoupled components, or
-        - JUST a single non-Component Subgraph
+        - ONLY Components or (Subgraphs representing decoupled components), or
+        - ONLY non-Component Subgraphs representing the connected components of
+          the induced subgraph from drawing around nodes.
 
         It shouldn't contain both non-Component Subgraphs and Components, etc.
         But just to future-proof this, we allow that.

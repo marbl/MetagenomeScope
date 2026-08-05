@@ -475,13 +475,6 @@ def get_sorted_subgraphs(sgs):
     Returns
     -------
     list of Subgraph
-
-    Notes
-    -----
-    At least as of July 2026, the main purpose of this function is assigning
-    "size ranks" to all Components in the graph. It is also used for sorting
-    Subgraphs later on, although I don't know if that will ever happens in
-    practice ...
     """
     # The number of "full" nodes (i.e. ignoring node splitting) MUST be the
     # highest-priority sorting criterion. Otherwise, we will be unable to
