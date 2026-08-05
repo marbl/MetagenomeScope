@@ -431,7 +431,12 @@ class Subgraph(object):
         # cannot be shown as-is.
         inval_edgetups = set()
         inval_edges = []
-        for e in self.edges:
+        # The order in which we consider edges here determines whether
+        # (s, t) or (-t, -s) wins and is drawn as an invalidated edge. (For
+        # example, for the test simple-strand-tangled.gfa file, we could either
+        # draw the green edge as being from 1 -> [-2] or from 2 -> [-1].)
+        # I guesss we can use sorting to make this consistent.
+        for e in graph_utils.get_sorted_edges(self.edges, self.nodeid2obj):
             src_shown = e.new_src_id in shown_nids
             tgt_shown = e.new_tgt_id in shown_nids
             inval_type = None

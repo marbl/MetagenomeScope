@@ -527,6 +527,14 @@ def get_sorted_nodes(nodes):
     return sorted(nodes, key=lambda n: (n.basename, n.name), reverse=True)
 
 
+def edge2tuple(e, nodeid2obj):
+    return (nodeid2obj[e.new_src_id].name, nodeid2obj[e.new_tgt_id].name)
+
+
+def get_sorted_edges(edges, nodeid2obj):
+    return sorted(edges, key=lambda e: edge2tuple(e, nodeid2obj), reverse=True)
+
+
 def get_candidate_twin_cc_num_from_nodes(cc, nodename2objs):
     """Looks at the nodes in a Component to determine a possible twin.
 
