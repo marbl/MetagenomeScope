@@ -29,7 +29,9 @@ def edgeids2tuplectr(ag, ids):
     return Counter(edgeid2tuple(ag, i) for i in ids)
 
 
-def test_decouple_components():
+def test_decouple_simple():
+    # This is the example graph shown in
+    # https://github.com/marbl/MetagenomeScope/issues/449
     ag = AssemblyGraph("metagenomescope/tests/input/simple-strand-tangled.gfa")
     assert len(ag.components) == 1
     cc = ag.components[0]
@@ -66,3 +68,71 @@ def test_decouple_components():
     # have a parent since one of their nodes isn't drawn. but let's be super
     # careful i guess
     assert ie.parent_id == ie.e.parent_id
+
+
+def test_decouple_parallel_inval_edges():
+    # Make sure to set rmdup to RMDUP_NO to ensure that, even though this is
+    # a GFA file, its parallel edges are kept.
+    ag = AssemblyGraph(
+        "metagenomescope/tests/input/parallel-strand-tangled.gfa",
+        rmdup=config.RMDUP_NO,
+    )
+    assert len(ag.components) == 1
+    cc = ag.components[0]
+    assert cc.decoupling_done
+
+    # Again, 1 and -1 are the highest-degree nodes. We should first set 1 as
+    # "shown," then radiate out from there and set the orientations of other
+    # shown nodes.
+    assert nodeids2names(ag, cc.dc_shown_node_ids) == ["-3", "1", "2"]
+
+    assert edgeids2tuplectr(ag, cc.dc_shown_edge_ids) == {
+        ("-3", "1"): 1,
+        ("1", "2"): 1,
+    }
+
+    assert len(cc.dc_inval_edges) == 2
+    e0 = cc.dc_inval_edges[0]
+    e1 = cc.dc_inval_edges[1]
+    assert e0.inval_type == e1.inval_type == config.INVAL_TGT
+    assert e0.ports == e1.ports == ("e", "e")
+    assert id2name(ag, e0.rc_node_id) == id2name(ag, e1.rc_node_id) == "1"
+
+    # as before, both of these edges should look like they're from 2 -> 1,
+    # but they're actually representing 2 -> -1
+    assert edge2tuple(ag, e0) == edge2tuple(ag, e1) == ("2", "1")
+    assert edge2tuple(ag, e0.e) == edge2tuple(ag, e1.e) == ("2", "-1")
+    # just clumsily testing that these edges and the edges that they are
+    # representing look ok
+    assert e0.rand_idx == e0.e.rand_idx
+    assert e1.rand_idx == e1.e.rand_idx
+    assert e0.cc_num == e0.e.cc_num
+    assert e1.cc_num == e1.e.cc_num
+    assert e0.parent_id == e0.e.parent_id
+    assert e1.parent_id == e1.e.parent_id
+
+    # AND that these edges' other stuff matches up
+    assert e0.rand_idx == e1.rand_idx
+    assert e0.cc_num == e1.cc_num
+    assert e0.parent_id == e1.parent_id
+
+
+def test_decouple_all_negative_node_cc_dont_decouple():
+    # FASTG and DOT files are unique in that they (1) have node orientations,
+    # but (2) are "explicit" -- they typically have both copies of a node
+    # given. We (currently) allow such graphs to not be symmetric.
+    #
+    # This means that this FASTG file, which ONLY includes negative nodes,
+    # is allowed.
+    #
+    # However! There was previously a silly bug here where we would try to
+    # decouple this graph's only component, and then crash when we'd try to
+    # figure out the starting node to set as + for the BFS. Since none of the
+    # nodes in the component are +, we would be calling get_max_degree_node()
+    # on an empty list of node IDs.
+    #
+    # ... So, the solution to this is just detecting this case and not
+    # decoupling this component.
+    ag = AssemblyGraph("metagenomescope/tests/input/all-negative.fastg")
+    assert len(ag.components) == 1
+    assert not ag.components[0].decoupling_done

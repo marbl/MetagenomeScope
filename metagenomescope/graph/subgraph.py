@@ -360,6 +360,17 @@ class Subgraph(object):
         # (Node IDs should be assigned consistently, so sorting using IDs
         # should be kosher, but let's be paranoid.)
         fwd_nodes = [n for n in self.nodes if name_utils.is_fwd(n.basename)]
+
+        # In the pathological case where we try to decouple a component that
+        # ONLY consists of negative-strand nodes, we can just bail out without
+        # doing anything. Currently (circa August 2026), decoupling should only
+        # be done on components that (1) do not have a twin and (2) have
+        # multiple nodes. So, this case should only happen for FASTG / DOT
+        # files where you have some messed-up component with no twin. See
+        # all-negative.fastg in the tests. idk just dont make graphs like this
+        if len(fwd_nodes) == 0:
+            return False
+
         sorted_fwd_nodes = graph_utils.get_sorted_nodes(fwd_nodes)
         sorted_fwd_nids = [n.unique_id for n in sorted_fwd_nodes]
         mid = graph_utils.get_max_degree_node(g, sorted_fwd_nids)
@@ -435,7 +446,9 @@ class Subgraph(object):
         # (s, t) or (-t, -s) wins and is drawn as an invalidated edge. (For
         # example, for the test simple-strand-tangled.gfa file, we could either
         # draw the green edge as being from 1 -> [-2] or from 2 -> [-1].)
-        # I guesss we can use sorting to make this consistent.
+        # I guesss we can use sorting to make this consistent. Because
+        # graph_utils.get_sorted_edges() uses reverse=True, this SHOULD
+        # prioritize drawing invalidated edges where src is +.
         for e in graph_utils.get_sorted_edges(self.edges, self.nodeid2obj):
             src_shown = e.new_src_id in shown_nids
             tgt_shown = e.new_tgt_id in shown_nids

@@ -528,7 +528,15 @@ def get_sorted_nodes(nodes):
 
 
 def edge2tuple(e, nodeid2obj):
-    return (nodeid2obj[e.new_src_id].name, nodeid2obj[e.new_tgt_id].name)
+    """Returns a 4-tuple (src basename, tgt basename, src name, tgt name).
+
+    I guess the use of basename AND name here is to make sure sorting remains
+    consistent even if splitting isn't -- as with get_sorted_nodes(). BUT LIKE
+    SERIOUSLY this shouldn't matter for 99% of cases so whatever
+    """
+    src = nodeid2obj[e.new_src_id]
+    tgt = nodeid2obj[e.new_tgt_id]
+    return (src.basename, tgt.basename, src.name, tgt.name)
 
 
 def get_sorted_edges(edges, nodeid2obj):
