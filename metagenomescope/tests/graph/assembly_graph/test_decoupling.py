@@ -115,3 +115,24 @@ def test_decouple_parallel_inval_edges():
     assert e0.rand_idx == e1.rand_idx
     assert e0.cc_num == e1.cc_num
     assert e0.parent_id == e1.parent_id
+
+
+def test_decouple_all_negative_node_cc_dont_decouple():
+    # FASTG and DOT files are unique in that they (1) have node orientations,
+    # but (2) are "explicit" -- they typically have both copies of a node
+    # given. We (currently) allow such graphs to not be symmetric.
+    #
+    # This means that this FASTG file, which ONLY includes negative nodes,
+    # is allowed.
+    #
+    # However! There was previously a silly bug here where we would try to
+    # decouple this graph's only component, and then crash when we'd try to
+    # figure out the starting node to set as + for the BFS. Since none of the
+    # nodes in the component are +, we would be calling get_max_degree_node()
+    # on an empty list of node IDs.
+    #
+    # ... So, the solution to this is just detecting this case and not
+    # decoupling this component.
+    ag = AssemblyGraph("metagenomescope/tests/input/all-negative.fastg")
+    assert len(ag.components) == 1
+    assert not ag.components[0].decoupling_done
