@@ -435,7 +435,9 @@ class Subgraph(object):
         # (s, t) or (-t, -s) wins and is drawn as an invalidated edge. (For
         # example, for the test simple-strand-tangled.gfa file, we could either
         # draw the green edge as being from 1 -> [-2] or from 2 -> [-1].)
-        # I guesss we can use sorting to make this consistent.
+        # I guesss we can use sorting to make this consistent. Because
+        # graph_utils.get_sorted_edges() uses reverse=True, this SHOULD
+        # prioritize drawing invalidated edges where src is +.
         for e in graph_utils.get_sorted_edges(self.edges, self.nodeid2obj):
             src_shown = e.new_src_id in shown_nids
             tgt_shown = e.new_tgt_id in shown_nids
