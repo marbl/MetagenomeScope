@@ -71,6 +71,8 @@ def test_decouple_simple():
 
 
 def test_decouple_parallel_inval_edges():
+    # Make sure to set rmdup to RMDUP_NO to ensure that, even though this is
+    # a GFA file, its parallel edges are kept.
     ag = AssemblyGraph(
         "metagenomescope/tests/input/parallel-strand-tangled.gfa",
         rmdup=config.RMDUP_NO,
