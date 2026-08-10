@@ -136,3 +136,9 @@ def test_decouple_all_negative_node_cc_dont_decouple():
     ag = AssemblyGraph("metagenomescope/tests/input/all-negative.fastg")
     assert len(ag.components) == 1
     assert not ag.components[0].decoupling_done
+
+
+def test_decouple_skips_nonstrandtangled_and_one_node_ccs():
+    ag = AssemblyGraph("metagenomescope/tests/input/sample1.gfa")
+    for cc in ag.components:
+        assert not cc.decoupling_done

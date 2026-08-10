@@ -227,3 +227,27 @@ def test_to_cyjs_gv_layout():
     lay = dr.region2layout[cc]
     assert lay is not None
     layout_test_utils.check_layout_cycle_with_tip(ag, lay, n1, n2, n3)
+
+
+def test_decouple_already_done():
+    # On initialization, the AssemblyGraph should already have called
+    # decouple() where applicable
+    ag = AssemblyGraph("metagenomescope/tests/input/simple-strand-tangled.gfa")
+    assert len(ag.components) == 1
+    with pytest.raises(WeirdError) as ei:
+        ag.components[0].decouple(ag.graph, ag.nodename2objs)
+    assert "is already decoupled" in str(ei.value)
+
+
+def test_decouple_one_node_cc():
+    # We already test this in tests/graph/assembly_graph/test_decoupling.py,
+    # but we DON'T test what happens if you skip the AssemblyGraph validation
+    # and force-call .decouple() on a one-node component. (The answer is that
+    # it checks there that the component has <= 1 node and quits.)
+    # Maybe checking this twice is overkill but whatever let's be safe
+    ag = AssemblyGraph("metagenomescope/tests/input/sample1.gfa")
+    # the smallest two components in sample1.gfa are one node each
+    cc = ag.components[-1]
+    assert len(cc.nodes) == 1
+    assert not cc.decouple(ag.graph, ag.nodename2objs)
+    assert not cc.decoupling_done
