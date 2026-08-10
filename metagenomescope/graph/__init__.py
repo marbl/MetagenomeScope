@@ -6,7 +6,7 @@ from .pattern_stats import PatternStats
 from .draw_results import DrawResults
 from .node_layout import NodeLayout
 from .invalidated_edge import InvalidatedEdge
-from .subgraph import Subgraph
+from .subgraph import Subgraph, DecoupledSubgraph
 from .component import Component
 from . import validators
 
@@ -20,6 +20,7 @@ __all__ = [
     "NodeLayout",
     "InvalidatedEdge",
     "Subgraph",
+    "DecoupledSubgraph",
     "Component",
     "validators",
 ]

@@ -1,6 +1,11 @@
 import pytest
-from metagenomescope import ui_config
-from metagenomescope.graph import AssemblyGraph, Subgraph, PatternStats
+from metagenomescope import ui_config, cy_config
+from metagenomescope.graph import (
+    AssemblyGraph,
+    Subgraph,
+    DecoupledSubgraph,
+    PatternStats,
+)
 from metagenomescope.errors import WeirdError
 from metagenomescope.tests.layout import utils as layout_test_utils
 
@@ -251,3 +256,122 @@ def test_decouple_one_node_cc():
     assert len(cc.nodes) == 1
     assert not cc.decouple(ag.graph, ag.nodename2objs)
     assert not cc.decoupling_done
+
+
+def test_to_cyjs_decoupled_but_not_in_scope_settings():
+    # Although the only cc in this graph is strand-tangled, if the scope
+    # settings don't call for decoupling then we should still draw the
+    # full "doubled" graph
+    ag = AssemblyGraph("metagenomescope/tests/input/simple-strand-tangled.gfa")
+    assert len(ag.components) == 1
+    cc = ag.components[0]
+    dr = cc.to_cyjs(
+        [ui_config.SHOW_PATTERNS],
+        [],
+        ui_config.LAYOUT_DAGRE,
+        {},
+    )
+    assert len(dr.region2layout) == 1
+    # because we specified layout with dagre, layout will be done in the JS.
+    # There won't be an actual python Layout object, then.
+    assert dr.region2layout[cc] is None
+
+    cyjs = dr.pack()
+    drawn_ids = []
+    node_ct = 0
+    edge_ct = 0
+    patt_ct = 0
+    # without decoupling, should be 6 nodes, 6 edges, and 2 patts (bub & chain)
+    assert len(cyjs) == 14
+    for ele in cyjs:
+        assert "data" in ele
+        # due to historical reasons and/or me from 10 months ago being silly,
+        # nodes/patterns have "id"s while edges have "uid"s
+        has_id = "id" in ele["data"]
+        has_uid = "uid" in ele["data"]
+        assert has_id or has_uid
+        # Use XOR - only one should be true
+        assert has_id ^ has_uid
+        if has_id:
+            # this is a node / pattern
+            drawn_ids.append(ele["data"]["id"])
+            assert "ntype" in ele["data"]
+            if ele["data"]["ntype"] == cy_config.NODE_DATA_TYPE:
+                node_ct += 1
+            else:
+                patt_ct += 1
+        else:
+            # this is an edge
+            assert "source" in ele["data"]
+            assert "target" in ele["data"]
+            drawn_ids.append(ele["data"]["uid"])
+            edge_ct += 1
+
+    # IDs should be unique ...
+    assert len(drawn_ids) == len(set(drawn_ids))
+    assert len(drawn_ids) == 14
+    assert node_ct == 6
+    assert edge_ct == 6
+    assert patt_ct == 2
+
+
+def test_to_cyjs_decoupled():
+    # okay, NOW we can see what happens in the decoupled drawing
+    ag = AssemblyGraph("metagenomescope/tests/input/simple-strand-tangled.gfa")
+    assert len(ag.components) == 1
+    cc = ag.components[0]
+    dr = cc.to_cyjs(
+        [ui_config.SHOW_PATTERNS, ui_config.DECOUPLE],
+        [],
+        ui_config.LAYOUT_DAGRE,
+        {},
+    )
+    assert len(dr.region2layout) == 1
+    decoupled_subgraph = list(dr.region2layout.keys())[0]
+    assert type(decoupled_subgraph) is DecoupledSubgraph
+    assert dr.region2layout[decoupled_subgraph] is None
+    assert decoupled_subgraph.cc_num == 1
+    assert len(decoupled_subgraph.nodes) == 3
+    assert len(decoupled_subgraph.edges) == 3
+    assert len(decoupled_subgraph.patterns) == 0
+
+    # lazy way of ensuring that there is just a single invalidated edge
+    inval_edges = []
+    for e in decoupled_subgraph.edges:
+        if hasattr(e, "inval_type"):
+            inval_edges.append(e)
+    assert len(inval_edges) == 1
+
+    cyjs = dr.pack()
+    drawn_ids = []
+    node_ct = 0
+    edge_ct = 0
+    patt_ct = 0
+    # WITH decoupling, should be 3 nodes, 3 edges, and 0 patts.
+    # (no patterns are drawn because not all children of either of the patterns
+    # are shown in this scope)
+    assert len(cyjs) == 6
+    for ele in cyjs:
+        assert "data" in ele
+        has_id = "id" in ele["data"]
+        has_uid = "uid" in ele["data"]
+        assert has_id or has_uid
+        assert has_id ^ has_uid
+        if has_id:
+            drawn_ids.append(ele["data"]["id"])
+            assert "ntype" in ele["data"]
+            if ele["data"]["ntype"] == cy_config.NODE_DATA_TYPE:
+                node_ct += 1
+            else:
+                patt_ct += 1
+        else:
+            assert "source" in ele["data"]
+            assert "target" in ele["data"]
+            drawn_ids.append(ele["data"]["uid"])
+            edge_ct += 1
+
+    assert len(drawn_ids) == len(set(drawn_ids))
+    assert len(drawn_ids) == 6
+    assert node_ct == 3
+    assert edge_ct == 3
+    assert patt_ct == 0
