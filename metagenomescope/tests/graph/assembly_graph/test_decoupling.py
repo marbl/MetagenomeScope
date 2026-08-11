@@ -1,6 +1,6 @@
 from collections import Counter
 from metagenomescope import config, name_utils
-from metagenomescope.graph import AssemblyGraph, graph_utils
+from metagenomescope.graph import AssemblyGraph
 
 # This stuff MIGHT be overengineered
 
