@@ -16,7 +16,6 @@
 # You should have received a copy of the GNU General Public License
 # along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
 
-import logging
 import itertools
 import networkx as nx
 from .. import config, ui_config, ui_utils, name_utils
