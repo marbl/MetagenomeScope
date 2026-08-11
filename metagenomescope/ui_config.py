@@ -336,19 +336,19 @@ COVATTR2TITLE = {
 
 # some attributes are obvious and/or not worth showing in the selected element
 # tables, since there is not a lot of space. Record these here.
-NODEATTRS_SKIP = (
+NODEATTRS_SKIP = [
     # Flye (... at least in my opinion. like you're already looking at the
     # graph right?)
     "circ.",
-)
-EDGEATTRS_SKIP = (
+]
+EDGEATTRS_SKIP = [
     # Flye
     "color",
     "dir",
     # LJA
     "label",
     "labeltooltip",
-)
+]
 
 # Showing unformatted numbers to the user looks a bit gross -- e.g.
 # "12345.123213" might be better shown as "12,345.12" or something. we can use

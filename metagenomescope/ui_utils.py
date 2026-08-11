@@ -1064,7 +1064,8 @@ def disable_dcc_checklist_option(options, value_to_disable):
         raise WeirdError(f"Opts {options} has no val {value_to_disable}?")
 
 
-def get_selected_ele_html(eleType, columnDefs, extra_attrs=[]):
+
+def _get_selected_ele_html(eleType, columnDefs, extra_attrs=[]):
     for a in extra_attrs:
         # Do we know in advance a human-readable name and a good type for
         # this field? If so, get this info from ui_config.
@@ -1139,6 +1140,75 @@ def get_selected_ele_html(eleType, columnDefs, extra_attrs=[]):
             dangerously_allow_code=True,
         ),
     ]
+
+
+def get_selected_node_html(extra_attrs):
+    return _get_selected_ele_html(
+        "Node",
+        [
+            {
+                "field": ui_config.NODE_TBL_NAME_COL,
+                "headerName": "Name",
+                "cellDataType": "text",
+                "cellClass": "fancytable-cells",
+            },
+        ],
+        extra_attrs,
+    )
+
+
+def get_selected_edge_html(extra_attrs):
+    return _get_selected_ele_html(
+        "Edge",
+        [
+            {
+                "field": ui_config.EDGE_TBL_SRC_COL,
+                "headerName": "From",
+                "cellDataType": "text",
+                "cellClass": "fancytable-cells",
+            },
+            {
+                "field": ui_config.EDGE_TBL_TGT_COL,
+                "headerName": "To",
+                "cellDataType": "text",
+                "cellClass": "fancytable-cells",
+            },
+        ],
+        extra_attrs,
+    )
+
+
+def get_selected_patt_html():
+    return _get_selected_ele_html(
+        "Pattern",
+        [
+            {
+                "field": ui_config.PATT_TBL_TYPE_COL,
+                "headerName": "Type",
+                "cellDataType": "text",
+                "cellClass": "fancytable-cells",
+            },
+            {
+                "field": ui_config.PATT_TBL_NCT_COL,
+                "headerName": "# nodes",
+                "cellDataType": "number",
+                "cellClass": "fancytable-cells",
+            },
+            {
+                "field": ui_config.PATT_TBL_ECT_COL,
+                "headerName": "# edges",
+                "cellDataType": "number",
+                "cellClass": "fancytable-cells",
+            },
+            {
+                "field": ui_config.PATT_TBL_PCT_COL,
+                "headerName": "# patts",
+                "cellDataType": "number",
+                "cellClass": "fancytable-cells",
+            },
+        ],
+    )
+
 
 
 def get_badge_color(ct, selection_only=True):

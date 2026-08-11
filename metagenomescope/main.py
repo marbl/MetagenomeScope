@@ -691,65 +691,13 @@ def run(
                         ctrl_sep,
                         html.H4("Selected"),
                         html.Div(
-                            ui_utils.get_selected_ele_html(
-                                "Node",
-                                [
-                                    {
-                                        "field": ui_config.NODE_TBL_NAME_COL,
-                                        "headerName": "Name",
-                                        "cellDataType": "text",
-                                        "cellClass": "fancytable-cells",
-                                    },
-                                ],
-                                ag.extra_node_attrs,
+                            ui_utils.get_selected_node_html(
+                                ag.extra_node_attrs
                             )
-                            + ui_utils.get_selected_ele_html(
-                                "Edge",
-                                [
-                                    {
-                                        "field": ui_config.EDGE_TBL_SRC_COL,
-                                        "headerName": "From",
-                                        "cellDataType": "text",
-                                        "cellClass": "fancytable-cells",
-                                    },
-                                    {
-                                        "field": ui_config.EDGE_TBL_TGT_COL,
-                                        "headerName": "To",
-                                        "cellDataType": "text",
-                                        "cellClass": "fancytable-cells",
-                                    },
-                                ],
-                                ag.extra_edge_attrs,
+                            + ui_utils.get_selected_edge_html(
+                                ag.extra_edge_attrs
                             )
-                            + ui_utils.get_selected_ele_html(
-                                "Pattern",
-                                [
-                                    {
-                                        "field": ui_config.PATT_TBL_TYPE_COL,
-                                        "headerName": "Type",
-                                        "cellDataType": "text",
-                                        "cellClass": "fancytable-cells",
-                                    },
-                                    {
-                                        "field": ui_config.PATT_TBL_NCT_COL,
-                                        "headerName": "# nodes",
-                                        "cellDataType": "number",
-                                        "cellClass": "fancytable-cells",
-                                    },
-                                    {
-                                        "field": ui_config.PATT_TBL_ECT_COL,
-                                        "headerName": "# edges",
-                                        "cellDataType": "number",
-                                        "cellClass": "fancytable-cells",
-                                    },
-                                    {
-                                        "field": ui_config.PATT_TBL_PCT_COL,
-                                        "headerName": "# patts",
-                                        "cellDataType": "number",
-                                        "cellClass": "fancytable-cells",
-                                    },
-                                ],
-                            ),
+                            + ui_utils.get_selected_patt_html(),
                             className="noPadding",
                         ),
                         *path_html,
