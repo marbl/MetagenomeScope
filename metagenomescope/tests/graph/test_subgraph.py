@@ -383,3 +383,18 @@ def test_decoupled_subgraph_from_nondecoupled():
     with pytest.raises(WeirdError) as ei:
         DecoupledSubgraph(cc)
     assert "not decoupled?" in str(ei.value)
+
+
+def test_decouple_non_cc_subgraph_currently_fails():
+    # MAYBE we'll support it eventually. for now no way is it worth da trouble
+    ag = AssemblyGraph("metagenomescope/tests/input/sample1.gfa")
+    sg = Subgraph(
+        123,
+        "subgraph123",
+        ag.nodeid2obj.values(),
+        ag.edgeid2obj.values(),
+        ag.pattid2obj.values(),
+    )
+    with pytest.raises(WeirdError) as ei:
+        sg.decouple(ag.graph, ag.nodename2objs)
+    assert str(ei.value) == "Decoupling not currently supported for non-CCs"
