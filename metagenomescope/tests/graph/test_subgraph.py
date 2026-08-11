@@ -375,3 +375,11 @@ def test_to_cyjs_decoupled():
     assert node_ct == 3
     assert edge_ct == 3
     assert patt_ct == 0
+
+
+def test_decoupled_subgraph_from_nondecoupled():
+    ag = AssemblyGraph("metagenomescope/tests/input/sample1.gfa")
+    cc = ag.components[0]
+    with pytest.raises(WeirdError) as ei:
+        DecoupledSubgraph(cc)
+    assert "not decoupled?" in str(ei.value)
