@@ -432,6 +432,9 @@ class Subgraph(object):
         # In theory this warning could also be applicable to certain Subgraphs
         # that actually include s, t, -s, and -t, but adapting that may be
         # kind of messy.
+        #
+        # TODO: Maybe disable decoupling for asymmetric components? That might
+        # be overkill, but it would at least be safe.
         if hasattr(self, "cc_num"):
             graph_utils.warn_if_cc_edge_cts_asymmetric(self)
 
@@ -473,9 +476,9 @@ class Subgraph(object):
                 # (multiple from s -> t and multiple from -t -> -s). We could
                 # show (with the funky port stuff) either all edges from
                 # s -> t, or all edges from -t -> -s, but it would be confusing
-                # to show a mix of edges. Thus, we arbitrarily say that we will
-                # only show invalidated edges from one of the two (whichever we
-                # see first and record in inval_edgetups).
+                # to show a mix of s -> t and -t -> -s. Thus, we arbitrarily
+                # say that we will only show invalidated edges from one of the
+                # two (whichever we see first and record in inval_edgetups).
                 #
                 # Note that we use basenames here. Let's say node "1" is split
                 # into "1-L --> 1-R", but node "-1" is not split. Using
@@ -504,14 +507,21 @@ class Subgraph(object):
                     rn = graph_utils.find_full_or_certain_split_node(
                         nodename2objs, rname, rsplit
                     )
-                    if rn is None:
-                        # this might be redundant with the warning from above
+                    if rn is None or rn.unique_id not in shown_nids:
+                        # This should only be reached if the "asymmetric cc"
+                        # warning above was hit. This indicates that only one
+                        # of this edge's {src, tgt} nodes was shown, but also
+                        # that the RC of the unshown node isn't even in the
+                        # graph (if rn is None) or in this component (if
+                        # rn is not None but its ID isn't in shown_nids).
+                        # This can happen with asymmetric FASTG or DOT files.
+                        #
+                        # For really big asymmetric components these warnings
+                        # may be overkill, but let's keep them in for now maybe
                         logging.warning(
-                            f"Asymmetry: for {e}, {inval_type}-node {rn} not "
-                            f"in {self}?"
+                            f"    WARNING: Decoupling asymmetry: for {e}, "
+                            f"{inval_type}-node {rname} not in {self}."
                         )
-                    elif rn.unique_id not in shown_nids:
-                        raise WeirdError(f"{rn} is not shown, but {e} inval?")
                     else:
                         # okay, rn corresponds to a shown node! yay. we will
                         # draw this invalidated edge specially using it
