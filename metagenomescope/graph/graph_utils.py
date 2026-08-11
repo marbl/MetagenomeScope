@@ -835,7 +835,7 @@ def warn_if_cc_edge_cts_asymmetric(cc):
         revtup = name_utils.negate_edge_tuple(s, t)
         if revtup not in st2ct or st2ct[revtup] != edgect:
             logging.warning(
-                f"WARNING: Component #{cc.cc_num} has asymmetric edge counts: "
+                f"    WARNING: Component #{cc.cc_num} has asymmetric edge counts: "
                 f"e.g. {s} -> {t} has {ui_utils.pluralize(edgect, 'edge')}, "
                 f"but {revtup[0]} -> {revtup[1]} has "
                 f"{ui_utils.pluralize(st2ct[revtup], 'edge')}. Drawing this "

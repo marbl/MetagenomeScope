@@ -138,6 +138,51 @@ def test_decouple_all_negative_node_cc_dont_decouple():
     assert not ag.components[0].decoupling_done
 
 
+def test_decouple_asymmetric_cc(caplog):
+    # As we saw with all-negative.fastg above, FASTG/DOT files can be
+    # asymmetric. This is a strand-tangled component that is also asymmetric:
+    #
+    #         /--> 3
+    # -1 -> -2 -> -3
+    #
+    # The highest-degree forward node here (really, the ONLY forward node)
+    # is 3. So, we'll fix that to be +, and then radiate outward. This will
+    # invalidate the edge from -2 -> -3.
+    #
+    # Also, because this component is asymmetric, decoupling it will trigger
+    # a warning. We will check that this warning is logged.
+    ag = AssemblyGraph(
+        "metagenomescope/tests/input/asymm-strand-tangled.fastg"
+    )
+    assert (
+        "WARNING: Component #1 has asymmetric edge counts"
+        in caplog.records[0].msg
+    )
+    assert len(ag.components) == 1
+    cc = ag.components[0]
+    assert cc.decoupling_done
+
+    assert nodeids2names(ag, cc.dc_shown_node_ids) == ["-1", "-2", "3"]
+
+    assert edgeids2tuplectr(ag, cc.dc_shown_edge_ids) == {
+        ("-1", "-2"): 1,
+        ("-2", "3"): 1,
+    }
+
+    assert len(cc.dc_inval_edges) == 1
+    ie = cc.dc_inval_edges[0]
+    assert ie.inval_type == config.INVAL_TGT
+    assert ie.ports == ("e", "e")
+    assert id2name(ag, ie.rc_node_id) == "3"
+    # drawn as from -2 -> 3
+    assert edge2tuple(ag, ie) == ("-2", "3")
+    # but represents -2 -> -3
+    assert edge2tuple(ag, ie.e) == ("-2", "-3")
+    assert ie.rand_idx == ie.e.rand_idx
+    assert ie.cc_num == ie.e.cc_num
+    assert ie.parent_id == ie.e.parent_id
+
+
 def test_decouple_skips_nonstrandtangled_and_one_node_ccs():
     ag = AssemblyGraph("metagenomescope/tests/input/sample1.gfa")
     for cc in ag.components:
