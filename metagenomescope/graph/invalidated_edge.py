@@ -115,6 +115,10 @@ class InvalidatedEdge(Edge):
         self.e = e
         self.inval_type = inval_type
         self.rc_node_id = rc_node_id
+        # small note: for edge-centric graphs (where edges have user-specified
+        # IDs), these IDs are stored in the .data attribute of the edge. Thus,
+        # since we use e.data when setting up this InvalidatedEdge, the methods
+        # for getting these user-specified IDs should all work fine.
         super().__init__(e.unique_id, src_id, tgt_id, e.data)
 
         # just to be consistent, make these match the underlying edge's attrs.
