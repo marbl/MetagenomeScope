@@ -1065,22 +1065,20 @@ def disable_dcc_checklist_option(options, value_to_disable):
 
 
 
-def _get_selected_ele_html(eleType, columnDefs, extra_attrs=[]):
+def _get_selected_ele_html(eleType, columnDefs, extra_attrs=[], skip_attrs=[]):
     for a in extra_attrs:
+        # Skip certain attributes. The composition of this is up to the caller.
+        if a in skip_attrs:
+            continue
         # Do we know in advance a human-readable name and a good type for
         # this field? If so, get this info from ui_config.
         if eleType == "Node":
-            if a in ui_config.NODEATTRS_SKIP:
-                continue
             attrRef = ui_config.NODEATTR2HRT
         elif eleType == "Edge":
-            if a in ui_config.EDGEATTRS_SKIP:
-                continue
             attrRef = ui_config.EDGEATTR2HRT
         else:
-            # patterns shouldn't have extra attrs, as of writing, so we
-            # shouldn't end up here. but let's be defensive.
-            attrRef = {}
+            # patterns shouldn't have extra attributes in their table
+            raise WeirdError(f"eleType = {eleType} but extra attrs given?")
         if a in attrRef:
             headerName, colType = attrRef[a]
         else:
@@ -1142,7 +1140,13 @@ def _get_selected_ele_html(eleType, columnDefs, extra_attrs=[]):
     ]
 
 
-def get_selected_node_html(extra_attrs):
+def get_selected_node_html(extra_attrs, node_centric, orientation_in_name):
+    # Don't bother showing orientation for node-centric graphs where node names
+    # indicate orientation: https://github.com/marbl/MetagenomeScope/issues/470
+    skip_attrs = copy.deepcopy(ui_config.NODEATTRS_SKIP)
+    if node_centric and orientation_in_name:
+        skip_attrs.append("orientation")
+
     return _get_selected_ele_html(
         "Node",
         [
@@ -1153,7 +1157,8 @@ def get_selected_node_html(extra_attrs):
                 "cellClass": "fancytable-cells",
             },
         ],
-        extra_attrs,
+        extra_attrs=extra_attrs,
+        skip_attrs=skip_attrs,
     )
 
 
@@ -1174,7 +1179,8 @@ def get_selected_edge_html(extra_attrs):
                 "cellClass": "fancytable-cells",
             },
         ],
-        extra_attrs,
+        extra_attrs=extra_attrs,
+        skip_attrs=ui_config.EDGEATTRS_SKIP,
     )
 
 

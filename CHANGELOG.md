@@ -95,8 +95,7 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   - Components should also now be sorted deterministically. Probably that
     was already the case but now it is at least more provably consistent.
 
-- Various improvements to component tiling and padding, including adjusting
-  "breakpoint detection"
+- Various improvements to component tiling and padding
   ([#452](https://github.com/marbl/MetagenomeScope/issues/452),
   [#352](https://github.com/marbl/MetagenomeScope/issues/352)).
 
@@ -137,6 +136,10 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 - When searching for a node with ID `X`: if `X` is not currently drawn but its
   reverse-complementary node `-X` is drawn, then searching will now find `-X`
   ([#407](https://github.com/marbl/MetagenomeScope/issues/407)).
+
+- Adjust the table of selected nodes' information to not show orientation,
+  when it is already obvious from the node names
+  ([#470](https://github.com/marbl/MetagenomeScope/issues/470)).
 
 - Clean up the logging messages made when starting layout (e.g. only show
   layout parameters relevant to the currently selected algorithm).

@@ -692,7 +692,9 @@ def run(
                         html.H4("Selected"),
                         html.Div(
                             ui_utils.get_selected_node_html(
-                                ag.extra_node_attrs
+                                ag.extra_node_attrs,
+                                ag.node_centric,
+                                ag.orientation_in_name,
                             )
                             + ui_utils.get_selected_edge_html(
                                 ag.extra_edge_attrs
