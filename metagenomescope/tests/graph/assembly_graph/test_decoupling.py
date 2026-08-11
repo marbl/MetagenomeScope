@@ -1,6 +1,6 @@
 from collections import Counter
-from metagenomescope import config
-from metagenomescope.graph import AssemblyGraph
+from metagenomescope import config, name_utils
+from metagenomescope.graph import AssemblyGraph, graph_utils
 
 # This stuff MIGHT be overengineered
 
@@ -187,3 +187,71 @@ def test_decouple_skips_nonstrandtangled_and_one_node_ccs():
     ag = AssemblyGraph("metagenomescope/tests/input/sample1.gfa")
     for cc in ag.components:
         assert not cc.decoupling_done
+
+
+def test_decouple_chr15_full():
+    ag = AssemblyGraph("metagenomescope/tests/input/chr15_full.gv")
+    assert len(ag.components) == 1
+    cc = ag.components[0]
+    assert cc.decoupling_done
+
+    # Make sure that decoupling the cc keeps exactly one copy of each node
+    on2orient = {}
+    for nid in cc.dc_shown_node_ids:
+        n = ag.nodeid2obj[nid]
+        # ignore right split nodes, so that we only count each basename once
+        if n.is_not_split() or n.split == config.SPLIT_LEFT:
+            on = name_utils.get_orientationless_name(n.basename)
+            assert on not in on2orient, f"{on} shown twice in decoupling"
+            on2orient[on] = name_utils.get_orientation(n.basename)
+
+    # equal to the number of nodes in the graph (incl + and - copies),
+    # divided by 2
+    assert len(on2orient) == 502
+
+    for eid in cc.dc_shown_edge_ids:
+        e = ag.edgeid2obj[eid]
+        assert e.new_src_id in cc.dc_shown_node_ids
+        assert e.new_tgt_id in cc.dc_shown_node_ids
+
+    # there are ten palindromic edges -- which show up in the non-decoupled
+    # graph as five palindromic bulges. In the decoupled graph, they look like
+    # weird self loops that start from and end at the same port of a node.
+    # Incident on nodes 249210759, -637271666, -585460321, -21131660,
+    # 296237279 (orientations chosen for decoupling might vary, idk, although
+    # probs not)
+    palindromic_edges = []
+    for e in cc.edges:
+        srcname = ag.nodeid2obj[e.new_src_id].basename
+        tgtname = ag.nodeid2obj[e.new_tgt_id].basename
+        if srcname == name_utils.negate(tgtname):
+            palindromic_edges.append(e)
+    assert len(palindromic_edges) == 10
+
+    pal_ct = 0
+    for ie in cc.dc_inval_edges:
+        src_shown = ie.e.new_src_id in cc.dc_shown_node_ids
+        tgt_shown = ie.e.new_tgt_id in cc.dc_shown_node_ids
+        # exactly ONE of {src, tgt} should be shown
+        assert src_shown ^ tgt_shown
+        src = ag.nodeid2obj[ie.e.new_src_id]
+        tgt = ag.nodeid2obj[ie.e.new_tgt_id]
+        rc_obj = ag.nodeid2obj[ie.rc_node_id]
+        if src_shown:
+            assert ie.inval_type == config.INVAL_TGT
+            missing = tgt
+        else:
+            assert ie.inval_type == config.INVAL_SRC
+            missing = src
+        assert ie.rc_node_id in cc.dc_shown_node_ids
+        assert rc_obj.basename == name_utils.negate(missing.basename)
+
+        # find and check palindromic edges X -> -X (or -X -> X, whatever)
+        # that have been transformed into self-loops in the decoupling
+        if name_utils.negate(src.basename) == tgt.basename:
+            if src == missing:
+                assert ie.ports == ("w", "w")
+            else:
+                assert ie.ports == ("e", "e")
+            pal_ct += 1
+    assert pal_ct == 10
