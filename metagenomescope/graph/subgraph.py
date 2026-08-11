@@ -341,6 +341,11 @@ class Subgraph(object):
             raise WeirdError(f"{self} is already decoupled")
         if len(self.nodes) <= 1:
             return False
+        if not hasattr(self, "cc_num"):
+            # In theory this is doable, but then you run into weird jank with
+            # asymmetric things and honestly I don't know if it's worth the
+            # trouble. See https://github.com/marbl/MetagenomeScope/issues/459
+            raise WeirdError("Decoupling not currently supported for non-CCs")
 
         # maps orientationless node names (i.e. "X" for both X and -X) to a
         # fixed orientation
@@ -435,8 +440,7 @@ class Subgraph(object):
         #
         # TODO: Maybe disable decoupling for asymmetric components? That might
         # be overkill, but it would at least be safe.
-        if hasattr(self, "cc_num"):
-            graph_utils.warn_if_cc_edge_cts_asymmetric(self)
+        graph_utils.warn_if_cc_edge_cts_asymmetric(self)
 
         # Record what edges will be drawn in the decoupled version of this
         # subgraph...
@@ -508,19 +512,42 @@ class Subgraph(object):
                         nodename2objs, rname, rsplit
                     )
                     if rn is None or rn.unique_id not in shown_nids:
-                        # This should only be reached if the "asymmetric cc"
-                        # warning above was hit. This indicates that only one
-                        # of this edge's {src, tgt} nodes was shown, but also
-                        # that the RC of the unshown node isn't even in the
-                        # graph (if rn is None) or in this component (if
-                        # rn is not None but its ID isn't in shown_nids).
-                        # This can happen with asymmetric FASTG or DOT files.
+                        # This accounts for the case where we have an edge
+                        # s -> t (or t -> s, we don't really care) where s is
+                        # shown but t is not shown, AND -t isn't in the graph
+                        # at all (if rn is None) or just isn't in the component
+                        # (if rn exists but just isn't shown).
                         #
-                        # For really big asymmetric components these warnings
-                        # may be overkill, but let's keep them in for now maybe
-                        logging.warning(
-                            f"    WARNING: Decoupling asymmetry: for {e}, "
-                            f"{inval_type}-node {rname} not in {self}."
+                        # So... it is counterintuitive and I'm still not 100%
+                        # sure, but I think this case is IMPOSSIBLE to reach.
+                        # (At least if this subgraph is a component, which as
+                        # of writing should always be true.)
+                        #
+                        # You can "prove" that this case is impossible to
+                        # reach by contradiction as follows:
+                        #
+                        # * If -t isn't in this component (or the graph),
+                        #   then this means that the only "orientation copy" of
+                        #   {t, -t} in this component is t.
+                        #
+                        # * But THIS means that t must be shown! Since -t
+                        #   doesn't exist in this component (or the graph), the
+                        #   BFS above must have have encountered t and marked
+                        #   it as shown.
+                        #
+                        # Thus, there is a contradiction -- this situation can
+                        # never happen, given how marking nodes as "shown"
+                        # works.
+                        #
+                        # All of which is to say... I'm pretty sure we should
+                        # never get here (after a lot of testing & thinking
+                        # about this), but I am not 100% sure that there isn't
+                        # some dreadful graph out there that will break this.
+                        # If it does, then at least we can fail loudly.
+                        raise WeirdError(
+                            f"Wacky edge {e}: {rname} missing? This should "
+                            "never happen; please file an issue on GitHub :( "
+                            "Thanks!"
                         )
                     else:
                         # okay, rn corresponds to a shown node! yay. we will
