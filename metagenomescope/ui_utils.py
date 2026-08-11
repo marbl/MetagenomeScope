@@ -1064,7 +1064,6 @@ def disable_dcc_checklist_option(options, value_to_disable):
         raise WeirdError(f"Opts {options} has no val {value_to_disable}?")
 
 
-
 def _get_selected_ele_html(eleType, columnDefs, extra_attrs=[], skip_attrs=[]):
     for a in extra_attrs:
         # Skip certain attributes. The composition of this is up to the caller.
@@ -1214,7 +1213,6 @@ def get_selected_patt_html():
             },
         ],
     )
-
 
 
 def get_badge_color(ct, selection_only=True):
