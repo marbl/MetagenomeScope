@@ -188,7 +188,7 @@ def _average_cubic_bezier_midpoints(coords):
     """
     new_coords = []
     i = 2
-    while i < len(coords):
+    while i + 5 < len(coords):
         # Each block of 4 (x, y) positions -- 8 coordinates total -- represents
         # a cubic Bezier. This is given by [i - 2, i + 6) in Python's half-open
         # interval notation:

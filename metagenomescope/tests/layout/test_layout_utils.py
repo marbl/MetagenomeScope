@@ -232,7 +232,7 @@ def test_nums_to_str_no_thousands_sep():
 
 def test_dot_to_cyjs_control_points_loop_flattened():
     assert lu.dot_to_cyjs_control_points(
-        (1, 2), (1, 2), [3, 2, 7, 2, 9, 2], 200, None, None, 0, 0
+        (1, 2), (1, 2), [3, 2, 4, 2, 7, 2, 9, 2], 200, None, None, 0, 0
     ) == (True, None, None)
 
 
@@ -246,24 +246,26 @@ def test_dot_to_cyjs_control_points_empty_control_points_flattened():
 def test_dot_to_cyjs_control_points_straightline_flattened():
     # straight horizontal line
     assert lu.dot_to_cyjs_control_points(
-        (1, 198), (10, 198), [3, 2, 7, 2, 9, 2], 200, None, None, 0, 0
+        (1, 198), (10, 198), [3, 2, 4, 2, 7, 2, 9, 2], 200, None, None, 0, 0
     ) == (True, None, None)
 
     # straight vertical line
     assert lu.dot_to_cyjs_control_points(
-        (1, 180), (1, 199), [1, 5, 1, 10], 200, None, None, 0, 0
+        (1, 180), (1, 199), [1, 5, 1, 6, 1, 7, 1, 10], 200, None, None, 0, 0
     ) == (True, None, None)
 
 
 def test_dot_to_cyjs_control_points_basic():
-    # (7, 50) (aka (7, 150) due to flipheight = 200) is far enough from
-    # the horizontal line (relative to layout_config.CTRL_PT_DIST_EPSILON)
-    # that it causes these control points to no longer be representable as
-    # a simple straight line. Therefore, we should actually get Cytoscape.js-
-    # compatible control points.
+    # (4, 2) and (7, 50) are turned (due to flipheight = 200) into
+    # (4, 198) and (7, 150). They are then averaged into (5.5, 174), which is
+    # far enough away* from the horizontal line at y = 198 that these control
+    # points are no longer representable as a simple straight line. Therefore,
+    # we should actually get Cytoscape.js-compatible control points.
+    #
+    # * due to layout_config.CTRL_PT_DIST_EPSILON
     assert lu.dot_to_cyjs_control_points(
-        (1, 198), (10, 198), [3, 2, 7, 50, 9, 2], 200, None, None, 0, 0
-    ) == (False, "0 -48 0", "0.2222 0.6667 0.8889")
+        (1, 198), (10, 198), [3, 2, 4, 2, 7, 50, 9, 2], 200, None, None, 0, 0
+    ) == (False, "0 -24 0", "0.2222 0.5000 0.8889")
 
 
 def test_getxy():
