@@ -168,6 +168,70 @@ def _shift_control_points(coords, left, bottom):
     return new_coords
 
 
+def _flip_and_shift_control_points(coords, flipheight, dx, dy):
+    new_coords = []
+    for i, coord in enumerate(coords):
+        if i % 2 == 1:
+            new_coords.append((flipheight - coords[i]) + dy)
+        else:
+            new_coords.append(coords[i] + dx)
+    if i % 2 == 0:
+        raise ValueError(f"Odd number of control points: {coords}")
+    return new_coords
+
+
+def _average_cubic_bezier_midpoints(coords):
+    """Averages the middle two positions for a list of cubic Beziers in series.
+
+    See https://cprimozic.net/notes/posts/graphviz-spline-drawing/
+    and https://github.com/marbl/MetagenomeScope/issues/465.
+    """
+    new_coords = []
+    i = 2
+    while i < len(coords):
+        # Each block of 4 (x, y) positions -- 8 coordinates total -- represents
+        # a cubic Bezier. This is given by [i - 2, i + 6) in Python's half-open
+        # interval notation:
+        #
+        #                 i
+        #             +--------------+
+        #     i       |              |
+        # +--------------+           |
+        # |           |  |           |
+        # 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 ...
+        # 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 ...
+        # x y x y x y x y x y x y x y x y x ...
+
+        # Only add the first position if this is the first Bezier for this edge
+        if i == 2:
+            new_coords.append(coords[i - 2])
+            new_coords.append(coords[i - 1])
+
+        # average the middle 2 pts of each cubic Bezier. This is kind of like
+        # a bargain bin version of actually reducing the Bezier from cubic to
+        # quadratic, which we want to do since Cytoscape.js' unbundled-bezier
+        # edges assume that the control points are quadratic instead of cubic
+        #
+        # isn't it kind of cool how those lines ended at the same position? I
+        # didn't do that intentionally okay i did it on purpose that time lol
+        #
+        # ANYWAY in theory we should only need to specify these middle points
+        # (without the (a) and (b-1)th coordinates) but it looks better in my
+        # opinion if we include the other stuff. Not really sure. Ok i'm done
+
+        # average the middle x coordinates
+        new_coords.append((coords[i] + coords[i + 2]) / 2)
+        # average the middle y coordinates
+        new_coords.append((coords[i + 1] + coords[i + 3]) / 2)
+
+        # add the last position
+        new_coords.append(coords[i + 4])
+        new_coords.append(coords[i + 5])
+
+        i += 6
+    return new_coords
+
+
 def euclidean_distance(p1, p2):
     # https://en.wikipedia.org/wiki/Euclidean_distance
     # just sqrt(dx^2 + dy^2)
@@ -325,46 +389,18 @@ def dot_to_cyjs_control_points(
     if len(coords) == 0:
         return FLAT
 
+    # Apply some transformations to the coordinates. Yeah yeah yeah these all
+    # separately iterate through the coordinates, so if we combined them into
+    # one big function then we could save some time by doing only a single
+    # iteration!!! wow!!!
+    #
+    # except I really don't want to make this code a zillion percent more
+    # complex. Most edges have only a few control points, so this stuff should
+    # not be a bottleneck.
     if left is not None and bottom is not None:
         coords = _shift_control_points(coords, left, bottom)
-
-    x = []
-    y = []
-    for i in range(len(coords)):
-        if i % 2 == 1:
-            y.append((flipheight - coords[i]) + dy)
-        else:
-            x.append(coords[i] + dx)
-
-    # based on https://cprimozic.net/notes/posts/graphviz-spline-drawing/
-    mod_coords = []
-    i = 1
-    while i < len(x):
-        # Each x[a:b] and y[a:b] represents a cubic Bezier.
-        a = i - 1
-        b = i + 3
-        # average the middle 2 pts of each cubic Bezier. This is kind of like
-        # a bargain bin version of actually reducing the Bezier from cubic to
-        # quadratic, which we want to do since Cytoscape.js' unbundled-bezier
-        # edges assume that the control points are quadratic instead of cubic
-        #
-        # isn't it kind of cool how those lines ended at the same position? I
-        # didn't do that intentionally okay i did it on purpose that time lol
-        #
-        # ANYWAY in theory we should only need to specify these middle points
-        # (without the (a) and (b-1)th coordinates) but it looks better in my
-        # opinion if we include the other stuff. Not really sure. Ok i'm done
-        if i == 1:
-            mod_coords.append(x[a])
-            mod_coords.append(y[a])
-        midx = (x[a + 1] + x[a + 2]) / 2
-        midy = (y[a + 1] + y[a + 2]) / 2
-        mod_coords.append(midx)
-        mod_coords.append(midy)
-        mod_coords.append(x[b-1])
-        mod_coords.append(y[b-1])
-        i += 3
-    coords = mod_coords
+    coords = _flip_and_shift_control_points(coords, flipheight, dx, dy)
+    coords = _average_cubic_bezier_midpoints(coords)
 
     src_tgt_dist = euclidean_distance(src_pos, tgt_pos)
     cpdists = []
