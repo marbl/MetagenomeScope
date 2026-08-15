@@ -171,6 +171,25 @@ def test_average_cubic_bezier_midpoints():
     ) == [1, 2, 4, 5, 7, 8, 10, 11, 13, 14]
 
 
+def test_average_cubic_bezier_midpoints_bad_length():
+    # The length should be equal to 6n + 2, for integer n >= 1.
+    with pytest.raises(ValueError) as ei:
+        lu._average_cubic_bezier_midpoints([1, 2])
+    assert "2 control point coords" in str(ei.value)
+
+    with pytest.raises(ValueError) as ei:
+        lu._average_cubic_bezier_midpoints([1, 2, 3, 4, 5, 6, 7])
+    assert "7 control point coords" in str(ei.value)
+
+    with pytest.raises(ValueError) as ei:
+        lu._average_cubic_bezier_midpoints([1, 2, 3, 4, 5, 6, 7, 8, 9])
+    assert "9 control point coords" in str(ei.value)
+
+    with pytest.raises(ValueError) as ei:
+        lu._average_cubic_bezier_midpoints([1] * 16)
+    assert "16 control point coords" in str(ei.value)
+
+
 def test_euclidean_distance():
     # just checking that my boy Euclid didn't mess up
     assert lu.euclidean_distance((1, 5), (9, 30)) == math.sqrt(689)
