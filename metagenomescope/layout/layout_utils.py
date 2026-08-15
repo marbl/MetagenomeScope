@@ -327,11 +327,45 @@ def dot_to_cyjs_control_points(
 
     if left is not None and bottom is not None:
         coords = _shift_control_points(coords, left, bottom)
+
+    x = []
+    y = []
     for i in range(len(coords)):
         if i % 2 == 1:
-            coords[i] = (flipheight - coords[i]) + dy
+            y.append((flipheight - coords[i]) + dy)
         else:
-            coords[i] += dx
+            x.append(coords[i] + dx)
+
+    # based on https://cprimozic.net/notes/posts/graphviz-spline-drawing/
+    mod_coords = []
+    i = 1
+    while i < len(x):
+        # Each x[a:b] and y[a:b] represents a cubic Bezier.
+        a = i - 1
+        b = i + 3
+        # average the middle 2 pts of each cubic Bezier. This is kind of like
+        # a bargain bin version of actually reducing the Bezier from cubic to
+        # quadratic, which we want to do since Cytoscape.js' unbundled-bezier
+        # edges assume that the control points are quadratic instead of cubic
+        #
+        # isn't it kind of cool how those lines ended at the same position? I
+        # didn't do that intentionally okay i did it on purpose that time lol
+        #
+        # ANYWAY in theory we should only need to specify these middle points
+        # (without the (a) and (b-1)th coordinates) but it looks better in my
+        # opinion if we include the other stuff. Not really sure. Ok i'm done
+        if i == 1:
+            mod_coords.append(x[a])
+            mod_coords.append(y[a])
+        midx = (x[a + 1] + x[a + 2]) / 2
+        midy = (y[a + 1] + y[a + 2]) / 2
+        mod_coords.append(midx)
+        mod_coords.append(midy)
+        mod_coords.append(x[b-1])
+        mod_coords.append(y[b-1])
+        i += 3
+    coords = mod_coords
+
     src_tgt_dist = euclidean_distance(src_pos, tgt_pos)
     cpdists = []
     cpweights = []
