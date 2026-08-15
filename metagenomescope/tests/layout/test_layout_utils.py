@@ -154,6 +154,23 @@ def test_shift_control_points_odd():
         lu._shift_control_points([1, 2, 3], 10, 100)
 
 
+def test_average_cubic_bezier_midpoints():
+    # (3, 4) and (5, 6) get averaged out to (4, 5)
+    assert lu._average_cubic_bezier_midpoints([1, 2, 3, 4, 5, 6, 7, 8]) == [
+        1,
+        2,
+        4,
+        5,
+        7,
+        8,
+    ]
+    # Again, (3, 4) and (5, 6) average to (4, 5).
+    # Also: (9, 10) and (11, 12) average to (10, 11).
+    assert lu._average_cubic_bezier_midpoints(
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+    ) == [1, 2, 4, 5, 7, 8, 10, 11, 13, 14]
+
+
 def test_euclidean_distance():
     # just checking that my boy Euclid didn't mess up
     assert lu.euclidean_distance((1, 5), (9, 30)) == math.sqrt(689)

@@ -186,9 +186,12 @@ def _average_cubic_bezier_midpoints(coords):
     See https://cprimozic.net/notes/posts/graphviz-spline-drawing/
     and https://github.com/marbl/MetagenomeScope/issues/465.
     """
-    if len(coords) % 8 != 0:
-        # There are 4 pts per cubic Bezier, so ...
-        raise ValueError("# ctrl pts given for an edge isn't a multiple of 4")
+    if len(coords) < 8 or len(coords) % 6 != 2:
+        # There are 4 pts per cubic Bezier (or, 8 coordinates).
+        # Checking validity isn't as simple as checking divisibility by 8,
+        # since some coordinates overlap. I guess it's ummmm like there
+        # should be 3n + 1 control points, right? So, 6n + 2.
+        raise ValueError(f"{len(coords)} control point coords: {coords}")
     new_coords = []
     i = 2
     while i + 5 < len(coords):
