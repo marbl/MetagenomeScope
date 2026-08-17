@@ -2705,28 +2705,14 @@ def run(
                     size_ranks, len(ag.components)
                 )
             except UIError as err:
-                return (
-                    ui_utils.add_error_toast(
-                        curr_toasts, "Size rank error", str(err)
-                    ),
-                    no_update,
-                    no_update,
-                    {"requestGood": False},
-                )
+                return ui_utils.fail_flush(curr_toasts, "Size rank", err)
             draw_type = config.DRAW_CCS
 
         elif cc_drawing_selection_type == "ccDrawingNodeNames":
             try:
                 nn2cn = ag.get_nodename2ccnum(node_names)
             except UIError as err:
-                return (
-                    ui_utils.add_error_toast(
-                        curr_toasts, "Node name error", str(err)
-                    ),
-                    no_update,
-                    no_update,
-                    {"requestGood": False},
-                )
+                return ui_utils.fail_flush(curr_toasts, "Node name", err)
             cc_nums = set(nn2cn.values())
             draw_type = config.DRAW_CCS
 
@@ -2734,42 +2720,21 @@ def run(
             try:
                 around_node_ids = ag.get_node_ids(around_nodes_names)
             except UIError as err:
-                return (
-                    ui_utils.add_error_toast(
-                        curr_toasts, "Node name error", str(err)
-                    ),
-                    no_update,
-                    no_update,
-                    {"requestGood": False},
-                )
+                return ui_utils.fail_flush(curr_toasts, "Node name", err)
             try:
                 around_dist = ui_utils.get_num(
                     around_nodes_dist, "Distance", min_val=0, min_incl=True
                 )
             except UIError as err:
-                return (
-                    ui_utils.add_error_toast(
-                        curr_toasts, "Distance error", str(err)
-                    ),
-                    no_update,
-                    no_update,
-                    {"requestGood": False},
-                )
+                return ui_utils.fail_flush(curr_toasts, "Distance", err)
             draw_type = config.DRAW_AROUND
 
         elif cc_drawing_selection_type == "ccDrawingAll":
             draw_type = config.DRAW_ALL
 
         else:
-            return (
-                ui_utils.add_error_toast(
-                    curr_toasts,
-                    "Weird error?",
-                    f'Unrecognized method "{cc_drawing_selection_type}".',
-                ),
-                no_update,
-                no_update,
-                {"requestGood": False},
+            return ui_utils.fail_flush(
+                curr_toasts, "Drawing selection", cc_drawing_selection_type
             )
 
         cyjs_layout_settings = cy_utils.get_cyjs_layout_settings(
@@ -2777,6 +2742,8 @@ def run(
         )
 
         try:
+            # Currently, we validate all parameters - even those that do not
+            # pertain to the selected layout algorithm. Maybe overkill, but nbd
             dot_ranksep = ui_utils.get_num(
                 dot_ranksep,
                 "Rank separation",
@@ -2813,14 +2780,7 @@ def run(
                 max_incl=True,
             )
         except UIError as err:
-            return (
-                ui_utils.add_error_toast(
-                    curr_toasts, "Parameter error", str(err)
-                ),
-                no_update,
-                no_update,
-                {"requestGood": False},
-            )
+            return ui_utils.fail_flush(curr_toasts, "Parameter", err)
 
         draw_type, cc_nums, orig_cc_nums = ui_utils.nrfilter_draw_request(
             scope_settings, draw_type, cc_nums, ag

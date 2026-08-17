@@ -5,7 +5,7 @@ import statistics
 import dash_bootstrap_components as dbc
 import dash_ag_grid as dag
 from collections import defaultdict
-from dash import html, dcc
+from dash import html, dcc, no_update
 from . import css_config, ui_config, config, name_utils, misc_utils
 from .errors import UIError, WeirdError
 from .gap import Gap
@@ -1920,4 +1920,18 @@ def get_style_options_tab(node_centric):
                 style={"text-align": "right", "margin-top": "1em"},
             ),
         ]
+    )
+
+
+def fail_flush(curr_toasts, error_name, err):
+    """Returns output info for flush() indicating that an error happened.
+
+    Basically, most of the "failure paths" of flush() involve the same
+    kinda thing, so this way we can limit code duplication i guess
+    """
+    return (
+        add_error_toast(curr_toasts, f"{error_name} error", str(err)),
+        no_update,
+        no_update,
+        {"requestGood": False},
     )

@@ -144,7 +144,7 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 - Clean up the logging messages made when starting layout (e.g. only show
   layout parameters relevant to the currently selected algorithm).
 
-- Various improvements to the documentation and tests.
+- Various improvements to the documentation, tests, and code.
 
 ### Fixed
 
