@@ -1933,5 +1933,6 @@ def fail_flush(curr_toasts, error_name, err):
         add_error_toast(curr_toasts, f"{error_name} error", str(err)),
         no_update,
         no_update,
+        no_update,
         {"requestGood": False},
     )
