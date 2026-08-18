@@ -2640,7 +2640,6 @@ def run(
         Output("toastHolder", "children", allow_duplicate=True),
         Output("cyElementsHolder", "data", allow_duplicate=True),
         Output("cyLayoutSettingsHolder", "data"),
-        Output("currDrawnIDs", "data", allow_duplicate=True),
         Output("doneFlushing", "data"),
         State("toastHolder", "children"),
         State("ccDrawingSelect", "value"),
@@ -2811,7 +2810,6 @@ def run(
             no_update,
             [],
             cyjs_layout_settings,
-            {},
             {
                 "requestGood": True,
                 "draw_type": draw_type,
@@ -2838,7 +2836,7 @@ def run(
         Output("cyElementsHolder", "data", allow_duplicate=True),
         Output("currDrawnText", "children"),
         Output("currDrawnCounts", "children"),
-        Output("currDrawnIDs", "data", allow_duplicate=True),
+        Output("currDrawnIDs", "data"),
         Input("doneFlushing", "data"),
         running=DRAW_RUNNING,
         prevent_initial_call=True,
@@ -2972,56 +2970,39 @@ def run(
             prevent_initial_call=True,
         )
         def update_curr_available_paths(curr_drawn_ids):
-            """Updates the table of "available" paths.
-
-            As of writing (circa August 2026), there are two circumstances in
-            which currDrawnIDs can get updated and trigger this callback:
-
-            1. flush() finishes successfully, and sets currDrawnIDs to {}
-            2. draw() finishes, and sets currDrawnIDs to a nonempty dict!
-
-            In the first case, we can skip the logging messages, etc.
-            (Previously there WAS no first case, but then that led to
-            https://github.com/marbl/MetagenomeScope/issues/473 sooo)
-            """
-            nonempty = len(curr_drawn_ids) > 0
-            if nonempty:
-                logging.debug(
-                    "Updating info about available paths based on what was "
-                    "drawn..."
-                )
+            logging.debug(
+                "Updating info about available paths based on what was drawn..."
+            )
             # update the table of available paths, based on what's drawn
             rows = []
             ct = 0
-            if nonempty:
-                avail_paths = ag.get_avail_paths(curr_drawn_ids)
-                for p in avail_paths:
-                    rows.append(
-                        {
-                            ui_config.PATH_TBL_NAME_COL: p,
-                            # this ignores gaps, and ignores if a node has been
-                            # split or not. this is what we want for just
-                            # counting the number of full/real nodes/edges on
-                            # this path
-                            ui_config.PATH_TBL_COUNT_COL: len(
-                                ag.pathname2objnames[p]
-                            ),
-                            # TODO this is ugly pls move to AssemblyGraph so
-                            # it can be tested...
-                            ui_config.PATH_TBL_CC_COL: ", ".join(
-                                str(ccn) for ccn in ag.pathname2ccnums[p]
-                            ),
-                        }
-                    )
-                    ct += 1
+            avail_paths = ag.get_avail_paths(curr_drawn_ids)
+            for p in avail_paths:
+                rows.append(
+                    {
+                        ui_config.PATH_TBL_NAME_COL: p,
+                        # this ignores gaps, and ignores if a node has been
+                        # split or not. this is what we want for just
+                        # counting the number of full/real nodes/edges on
+                        # this path
+                        ui_config.PATH_TBL_COUNT_COL: len(
+                            ag.pathname2objnames[p]
+                        ),
+                        # TODO this is ugly pls move to AssemblyGraph so
+                        # it can be tested...
+                        ui_config.PATH_TBL_CC_COL: ", ".join(
+                            str(ccn) for ccn in ag.pathname2ccnums[p]
+                        ),
+                    }
+                )
+                ct += 1
             # also show a summary
             count_text = path_utils.get_available_count_badge_text(
                 ct, len(ag.pathname2objnames)
             )
             # FINEEE i'll do this correctly even though nobody will see it
             noun = "paths" if ct != 1 else "path"
-            if nonempty:
-                logging.debug(f"Done. {count_text} {noun} available.")
+            logging.debug(f"Done. {count_text} {noun} currently available.")
             return count_text, rows, ui_utils.get_badge_color(ct, False)
 
         @callback(
