@@ -189,7 +189,7 @@ DEFAULT_PATH_SETTINGS = [PATH_SETTINGS_ZOOM, PATH_SETTINGS_TOAST]
 OPTIONS_SEP = html.Div(style={"margin-top": "0.3em"})
 
 ###############################################################################
-# Histograms in the info dialog
+# Charts in the info dialog
 ###############################################################################
 
 # axis scales (correspond to yaxis_type plotly go.Histogram settings)
@@ -202,20 +202,20 @@ NODES_HIST = "nodes"
 EDGES_HIST = "edges"
 
 ###############################################################################
-# Component size rank selection
-###############################################################################
-
-# In theory we could support "--" without too much work, but ... that gives
-# me the heebie jeebies
-RANGE_DASHES = ("-", "\u2013", "\u2014")
-
-###############################################################################
 # Treemap in the graph info dialog
 ###############################################################################
 
 # if a graph has < this many components, then don't bother aggregating its
 # components in the treemap
 MIN_LARGE_CC_COUNT = 100
+
+###############################################################################
+# Component size rank selection
+###############################################################################
+
+# In theory we could support "--" without too much work, but ... that gives
+# me the heebie jeebies
+RANGE_DASHES = ("-", "\u2013", "\u2014")
 
 ###############################################################################
 # General table stuff (both paths and selected nodes/edges/patterns)
