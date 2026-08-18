@@ -379,10 +379,11 @@ def run(
     # that there is for some reason a small window at the end between when this
     # wears off and when stuff hasn't been drawn yet, so if you rapidly click
     # on the table then you could MAYBE trigger the JS alert message. But nbd
-    psty = Output("pathList", "style")
-    pn = {"pointer-events": "none"}
-    FLUSH_RUNNING.append((psty, pn, pn))
-    DRAW_RUNNING.append((psty, pn, {}))
+    if paths_given:
+        psty = Output("pathList", "style")
+        pn = {"pointer-events": "none"}
+        FLUSH_RUNNING.append((psty, pn, pn))
+        DRAW_RUNNING.append((psty, pn, {}))
 
     # update_title=None prevents Dash's default "Updating..." page title change
     #
