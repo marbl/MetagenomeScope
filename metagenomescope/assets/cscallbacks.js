@@ -474,11 +474,15 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
                         newEles = cy.edges('[edgeID="' + name + '"]');
                     }
                     if (newEles.empty()) {
+                        // Can happen if the user clicks on a path during
+                        // drawing; see
+                        // https://github.com/marbl/MetagenomeScope/issues/473.
+                        // Ideally we'd block these clicks entirely, but this
+                        // is fine for now
                         alert(
-                            "Element with name " +
+                            "Can't show selected path: element with name " +
                                 name +
-                                " not currently " +
-                                "drawn? This should never happen by this point.",
+                                " not currently drawn."
                         );
                         return;
                     }
