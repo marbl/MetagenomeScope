@@ -156,8 +156,9 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   should now look smoother
   ([#465](https://github.com/marbl/MetagenomeScope/issues/465)).
 
-- Adjust alert message that can happen due to selecting a path from the table
-  while the graph is being drawn
+- Try to prevent selecting a path from the path table while the graph is being
+  drawn, and adjust the associated alert message that happens if you manage to
+  do it anyway
   ([#473](https://github.com/marbl/MetagenomeScope/issues/473)).
 
 - Pin `dash >= 3`, which should fix some issues with installation.

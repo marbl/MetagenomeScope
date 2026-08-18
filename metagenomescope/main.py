@@ -372,6 +372,18 @@ def run(
         # can reenable it
         DRAW_RUNNING.append((o, True, False))
 
+    # It isn't as easy to do as setting "disabled" on buttons / inputs / etc,
+    # but we can disable click events on the path table also for
+    # https://github.com/marbl/MetagenomeScope/issues/473 by setting
+    # pointer-events to none: see https://stackoverflow.com/a/28083789. Note
+    # that there is for some reason a small window at the end between when this
+    # wears off and when stuff hasn't been drawn yet, so if you rapidly click
+    # on the table then you could MAYBE trigger the JS alert message. But nbd
+    psty = Output("pathList", "style")
+    pn = {"pointer-events": "none"}
+    FLUSH_RUNNING.append((psty, pn, pn))
+    DRAW_RUNNING.append((psty, pn, {}))
+
     # update_title=None prevents Dash's default "Updating..." page title change
     #
     # external_stylesheets are needed to load the balham dark theme:
