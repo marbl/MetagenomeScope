@@ -150,7 +150,7 @@ def get_max_x_option(val_id, btn_id):
     )
 
 
-def get_scale_options(html_obj_id, desc):
+def get_scale_options(html_obj_id, desc, default=ui_config.SCALE_LINEAR):
     return dbc.InputGroup(
         [
             dbc.InputGroupText(
@@ -168,7 +168,7 @@ def get_scale_options(html_obj_id, desc):
                             "value": ui_config.SCALE_LOG,
                         },
                     ],
-                    value=ui_config.SCALE_LINEAR,
+                    value=default,
                     className="btn-group",
                     inputClassName="btn-check",
                     labelClassName="btn btn-sm btn-outline-dark",
@@ -224,4 +224,19 @@ def get_node_edge_toggle(html_obj_id):
             ),
         ],
         size="sm",
+    )
+
+
+def get_scatterplot_options(x_scale_id, y_scale_id):
+    return html.Div(
+        [
+            get_scale_options(
+                x_scale_id, "x-axis scale", default=ui_config.SCALE_LOG
+            ),
+            ui_config.OPTIONS_SEP,
+            get_scale_options(
+                y_scale_id, "y-axis scale", default=ui_config.SCALE_LOG
+            ),
+            ui_config.OPTIONS_SEP,
+        ]
     )

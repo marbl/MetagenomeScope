@@ -1556,6 +1556,10 @@ def run(
                                                                             ),
                                                                             id="covlenCCScatterContainer",
                                                                         ),
+                                                                        chart_utils.get_scatterplot_options(
+                                                                            "covlenCCScatterXScale",
+                                                                            "covlenCCScatterYScale",
+                                                                        ),
                                                                         html.Div(
                                                                             id="covlenCCScatterMissingInfo",
                                                                         ),
@@ -1604,6 +1608,10 @@ def run(
                                                                         [
                                                                             html.Div(
                                                                                 id="covlenEleScatterContainer",
+                                                                            ),
+                                                                            chart_utils.get_scatterplot_options(
+                                                                                "covlenEleScatterXScale",
+                                                                                "covlenEleScatterYScale",
                                                                             ),
                                                                             html.Div(
                                                                                 id="covlenEleScatterMissingInfo",
@@ -2104,9 +2112,13 @@ def run(
             Output("covlenCCScatterMissingInfo", "style"),
             Input("covNestCCTab", "n_clicks"),
             Input("covTab", "n_clicks"),
+            Input("covlenCCScatterXScale", "value"),
+            Input("covlenCCScatterYScale", "value"),
             prevent_initial_call=True,
         )
-        def plot_cov_cc_scatter(parent_tab_nclicks, grandparent_tab_nclicks):
+        def plot_cov_cc_scatter(
+            parent_tab_nclicks, grandparent_tab_nclicks, xscale, yscale
+        ):
             # if we don't redo (?) the fig on clicking the covnestcctab then
             # the y-axis label can get knocked off the top part of the plot
             # partially when you go from another sibling tab to this one
@@ -2155,6 +2167,8 @@ def run(
                 ),
                 xaxis_title_text=xlatex,
                 yaxis_title_text=ylatex,
+                xaxis_type=xscale,
+                yaxis_type=yscale,
             )
             # shift the y-axis title to the left:
             # https://stackoverflow.com/a/75098774
@@ -2217,9 +2231,11 @@ def run(
             Output("covlenEleScatterContainer", "children"),
             Output("covlenEleScatterMissingInfo", "children"),
             Input("covNestEleTab", "n_clicks"),
+            Input("covlenEleScatterXScale", "value"),
+            Input("covlenEleScatterYScale", "value"),
             prevent_initial_call=True,
         )
-        def plot_cov_ele_scatter(n_clicks):
+        def plot_cov_ele_scatter(n_clicks, xscale, yscale):
             fig = go.Figure()
             desc = (
                 f"{ag.cov_source.title()} lengths and "
@@ -2273,6 +2289,8 @@ def run(
                 title_text=desc,
                 xaxis_title_text=f"Length ({ag.length_units})",
                 yaxis_title_text=fancycovtitle,
+                xaxis_type=xscale,
+                yaxis_type=yscale,
             )
             chart_utils.prettify_go_fig(fig)
             missing_info = chart_utils.get_plot_missing_data_msg(
