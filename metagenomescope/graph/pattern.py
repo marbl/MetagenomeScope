@@ -262,7 +262,10 @@ class Pattern(Node):
     def flatten_child_edges(self):
         """Flatten child edges of certain types of patterns.
 
-        The stuf for bubbles and frayed ropes here is mostly due to the fact
+        For config.PT2FLATTEN_CHILD_EDGES, see config.py -- it has some
+        explanations for types of patterns are included there.
+
+        The stuff for bubbles and frayed ropes here is mostly due to the fact
         that edge ports are now on by default. This is, of course, kind of
         handwavy and subject to change if I end up making the Graphviz ->
         Cytoscape.js edge conversion stuff look nicer for simple structures.
