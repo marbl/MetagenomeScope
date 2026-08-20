@@ -570,7 +570,10 @@ def flatten_some_edges(sg, edgeid2ctrlpts):
         # not actually being drawn
         if e.parent_id is not None and e.parent_id in sg.pattid2obj:
             patt = sg.pattid2obj[e.parent_id]
-            if config.PT2FLATTEN_CHILD_EDGES[patt.pattern_type]:
+            if (
+                config.PT2FLATTEN_CHILD_EDGES[patt.pattern_type]
+                or patt.probs_no_ports()
+            ):
                 edgeid2ctrlpts[e.unique_id] = FLAT
                 continue
 

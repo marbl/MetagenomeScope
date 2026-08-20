@@ -112,6 +112,14 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   identification at a glance clearer
   ([#443](https://github.com/marbl/MetagenomeScope/issues/443)).
 
+- Turn `Fix edges' headports and tailports` drawing option on by default, but
+  make it not apply to very simple types of bubbles and frayed ropes (which
+  don't really need fancy edges).
+
+  - Some context: this option is useful for studying repeats in big graphs,
+    since it makes the "direction" of edges much more visually clear. However,
+    for simple regions it can be overkill.
+
 - Adjust default edge widths, and vary these defaults based on whether or not
   the input graph is node-centric or not. (Node-centric graphs get thicker
   edges by default.)
