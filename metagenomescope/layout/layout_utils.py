@@ -470,7 +470,7 @@ def dot_to_cyjs_control_points(
 
     cpdists = []
     cpweights = []
-    for (w, pld) in wds:
+    for w, pld in wds:
         cpdists.append(pld)
         cpweights.append(w)
 
