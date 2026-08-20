@@ -36,8 +36,8 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   - Currently, this contains controls that can be used to change how selected
     nodes are represented, and how wide various types of edges should be.
 
-- For the length × coverage scatterplot: using Plotly's box / lasso selection
-  tools in this plot now shows a list of all selected components
+- For the component length × coverage scatterplot: using Plotly's box / lasso
+  selection tools in this plot now shows a list of all selected components
   ([#448](https://github.com/marbl/MetagenomeScope/issues/448)).
 
   - This list can be copy-and-pasted directly into the controls for drawing
@@ -47,6 +47,9 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
     high-coverage components in a graph could represent putative MAGs -- this
     functionality simplifies the process of selecting and drawing these
     components specifically.
+
+- Added the option to use logarithmic scales for the length × coverage
+  scatterplots.
 
 - You can now select and copy text from the node/edge/pattern/path tables
   ([#298](https://github.com/marbl/MetagenomeScope/issues/298)).
