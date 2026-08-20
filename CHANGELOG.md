@@ -112,13 +112,18 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   identification at a glance clearer
   ([#443](https://github.com/marbl/MetagenomeScope/issues/443)).
 
-- Turn `Fix edges' headports and tailports` drawing option on by default, but
-  make it not apply to very simple types of bubbles and frayed ropes (which
-  don't really need fancy edges).
+- Turn the `Fix edges' headports and tailports` drawing option on by default,
+  but make it not apply to very simple types of bubbles and frayed ropes
+  ([commit `706a8ac`](https://github.com/marbl/MetagenomeScope/commit/706a8acf2e0c277eeb0bcd056b15bed0f1d47cbe)).
 
-  - Some context: this option is useful for studying repeats in big graphs,
-    since it makes the "direction" of edges much more visually clear. However,
-    for simple regions it can be overkill.
+  - Edge ports are very useful for studying repeats in big graphs, since
+    they make the "direction" of edges much more visually clear. This can
+    matter when looking at repetitive nodes with many in- and out-edges.
+
+  - However, for simple parts of the graph like small bubbles, using fancy
+    edge routings like this is overkill (and can even be visually distracting).
+
+  - Long story short, the default should generally be good now ...
 
 - Adjust default edge widths, and vary these defaults based on whether or not
   the input graph is node-centric or not. (Node-centric graphs get thicker
