@@ -118,17 +118,16 @@ class Pattern(Node):
             self.pattern_type == config.PT_CHAIN
             or self.pattern_type == config.PT_CYCLICCHAIN
         )
+        self.has_compound_child_nodes = False
         # Iterate through a copy of self.nodes, since we may remove merged
         # chain nodes from self.nodes (and removing from a list while iterating
         # through it will cause weird behavior).
         for node in self.nodes[:]:
             node.parent_id = self.unique_id
-            if (
-                is_chain_ish
-                and node.compound
-                and node.pattern_type == config.PT_CHAIN
-            ):
-                self._absorb_child_pattern(node)
+            if node.compound:
+                self.has_compound_child_nodes = True
+                if is_chain_ish and node.pattern_type == config.PT_CHAIN:
+                    self._absorb_child_pattern(node)
         for edge in self.edges:
             edge.parent_id = self.unique_id
 
@@ -276,18 +275,27 @@ class Pattern(Node):
         if config.PT2FLATTEN_CHILD_EDGES[self.pattern_type]:
             return True
         elif self.pattern_type == config.PT_BUBBLE:
-            # simple 4-node, 4-edge bubbles. Note that although 3-node bubbles
-            # are technically even simpler, Graphviz likes to position the
-            # nodes in such a way that drawing the edges with straight lines
-            # only will look bad -- e.g.
+            # simple 4-node, 4-edge bubbles where none of the child nodes
+            # are collapsed patterns. Note that although 3-node bubbles are
+            # technically even simpler, Graphviz likes to position the nodes
+            # in such a way that drawing the edges with straight lines only
+            # will look bad -- e.g.
             #
             #  /---------\
             # 0 --> 1 --> 2
-            return len(self.nodes) == 4 and len(self.edges) == 4
+            return (
+                not self.has_compound_child_nodes
+                and len(self.nodes) == 4
+                and len(self.edges) == 4
+            )
         elif self.pattern_type == config.PT_FRAYEDROPE:
             # Simple frayed ropes (note that at least as of writing all frayed
             # ropes should have at least 5 nodes, so this is really only
             # relevant to the super simple case).
+            #
+            # We don't check if any of the child nodes are collapsed patterns,
+            # since that should only impact the middle node of the frayed rope
+            # and that shouldn't impact the "need" for drawing fancy edges imo.
             return len(self.nodes) == 5
         return False
 
