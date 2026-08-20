@@ -4,6 +4,8 @@ from . import layout_config
 from .. import config, ui_utils
 from ..errors import WeirdError
 
+FLAT = (True, None, None)
+
 
 def get_gv_header(prog, name="g", use_ports=False, params={}):
     """Returns the header of a DOT language file.
@@ -385,7 +387,6 @@ def dot_to_cyjs_control_points(
     For details about how Cytoscape.js expects control point data, see
     https://js.cytoscape.org/#style/unbundled-bezier-edges
     """
-    FLAT = (True, None, None)
     # Loop edges don't have (multiple) control points in Cytoscape.js
     if src_pos == tgt_pos:
         return FLAT
@@ -515,10 +516,10 @@ def flatten_some_edges(sg, edgeid2ctrlpts):
       there to not be jank abt the same node having SLIGHTLY different
       positions in a loop edge's control points, so let's be paranoid.
 
-    - If an edge is a child of a pattern, we will refer to
-      config.PT2FLATTEN_CHILD_EDGES to determine if this edge should just
-      immediately be flattened. (For example, bipartite patterns are IMO much
-      clearer when they just have straight-line edges.)
+    - If an edge is a child of a pattern P, we will refer to
+      P.flatten_child_edges() to determine if this edge should just immediately
+      be flattened. (For example, bipartite patterns are IMO much clearer when
+      they just have straight-line edges.)
 
     Parameters
     ----------
@@ -553,7 +554,6 @@ def flatten_some_edges(sg, edgeid2ctrlpts):
       https://github.com/marbl/MetagenomeScope/issues/360 and 361). So let's
       not bother explicitly about these kinds of cases anymore.
     """
-    FLAT = (True, None, None)
     for e in sg.edges:
         s = e.new_src_id
         t = e.new_tgt_id
@@ -570,10 +570,7 @@ def flatten_some_edges(sg, edgeid2ctrlpts):
         # not actually being drawn
         if e.parent_id is not None and e.parent_id in sg.pattid2obj:
             patt = sg.pattid2obj[e.parent_id]
-            if (
-                config.PT2FLATTEN_CHILD_EDGES[patt.pattern_type]
-                or patt.probs_no_ports()
-            ):
+            if patt.flatten_child_edges():
                 edgeid2ctrlpts[e.unique_id] = FLAT
                 continue
 

@@ -259,20 +259,27 @@ class Pattern(Node):
             edges.append(edge)
         return nodes, edges, patts, patt_stats
 
-    def probs_no_ports(self):
-        """Turn off fixed ports for edges in certain types of simple patterns.
+    def flatten_child_edges(self):
+        """Flatten child edges of certain types of patterns.
 
-        We don't bother considering chains / bipartites here -- those should
-        already be accounted for by config.PT2FLATTEN_CHILD_EDGES.
-
-        This is, of course, kind of handwavy and subject to change if I end
-        up making the Graphviz -> Cytoscape.js edge conversion stuff look
-        nicer for simple structures. I dunno, as of August 2026 I feel like
-        the curvy lines you see on simple bubbles and frayed ropes look a bit
-        ugly? But they look nice for more complex versions of these structures!
+        The stuf for bubbles and frayed ropes here is mostly due to the fact
+        that edge ports are now on by default. This is, of course, kind of
+        handwavy and subject to change if I end up making the Graphviz ->
+        Cytoscape.js edge conversion stuff look nicer for simple structures.
+        I dunno, as of August 2026 I feel like the curvy lines you see on
+        simple bubbles and frayed ropes look a bit ugly? But they look nice
+        for more complex versions of these structures!
         """
-        if self.pattern_type == config.PT_BUBBLE:
-            # simple 4-node bubbles
+        if config.PT2FLATTEN_CHILD_EDGES[self.pattern_type]:
+            return True
+        elif self.pattern_type == config.PT_BUBBLE:
+            # simple 4-node, 4-edge bubbles. Note that although 3-node bubbles
+            # are technically even simpler, Graphviz likes to position the
+            # nodes in such a way that drawing the edges with straight lines
+            # only will look bad -- e.g.
+            #
+            #  /---------\
+            # 0 --> 1 --> 2
             return len(self.nodes) == 4 and len(self.edges) == 4
         elif self.pattern_type == config.PT_FRAYEDROPE:
             # Simple frayed ropes (note that at least as of writing all frayed
