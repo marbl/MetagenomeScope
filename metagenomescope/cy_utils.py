@@ -7,6 +7,7 @@ def get_cyjs_stylesheet(
     labels,
     node_label_settings,
     edge_label_settings,
+    patt_label_settings,
     label_font_size,
     expand_settings,
     selected_node_settings,
@@ -148,6 +149,7 @@ def get_cyjs_stylesheet(
                 "border-color": cy_config.UNSELECTED_PATTERN_BORDER_COLOR,
                 "compound-sizing-wrt-labels": do_expand,
                 "padding": layout_config.CLUSTER_PADDING,
+                "text-outline-color": "#fff",
             },
         },
         {
@@ -155,6 +157,7 @@ def get_cyjs_stylesheet(
             "style": {
                 "border-width": cy_config.SELECTED_PATTERN_BORDER_WIDTH,
                 "border-color": cy_config.SELECTED_PATTERN_BORDER_COLOR,
+                "text-outline-color": cy_config.SELECTED_OBJ_OUTLINE_COLOR,
             },
         },
         {
@@ -329,7 +332,13 @@ def get_cyjs_stylesheet(
     if ui_config.PATTERN_LABELS in labels:
         for sty in stylesheet:
             if sty["selector"] == "node.pattern":
-                sty["style"].update(labelstyle)
+                pattlabelstyle = {}
+                pattlabelstyle.update(labelstyle)
+                if ui_config.LABEL_OUTLINE in patt_label_settings:
+                    pattlabelstyle["text-outline-width"] = text_outline_width
+                if ui_config.LABEL_OFFSET in patt_label_settings:
+                    pattlabelstyle["text-margin-y"] = -20
+                sty["style"].update(pattlabelstyle)
                 sty["style"].update(cy_config.PATTERN_LABEL_STYLE)
                 break
 

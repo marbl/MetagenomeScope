@@ -891,6 +891,47 @@ def run(
                         html.Div(
                             [
                                 ctrl_sep_invis,
+                                html.H5("Patterns"),
+                                dbc.InputGroup(
+                                    [
+                                        html.Div(
+                                            dbc.Checklist(
+                                                options=[
+                                                    {
+                                                        "label": "Offset",
+                                                        "value": ui_config.LABEL_OFFSET,
+                                                    },
+                                                    {
+                                                        "label": "Outline",
+                                                        "value": ui_config.LABEL_OUTLINE,
+                                                    },
+                                                ],
+                                                value=ui_config.DEFAULT_PATTERN_LABEL_SETTINGS,
+                                                className="btn-group",
+                                                inputClassName="btn-check",
+                                                labelClassName="btn btn-sm btn-outline-info",
+                                                labelCheckedClassName="active",
+                                                id="pattLabelSettingsChecklist",
+                                            ),
+                                            className="btn-opt-group",
+                                        ),
+                                    ],
+                                    size="sm",
+                                    style={
+                                        "justify-content": "center",
+                                    },
+                                ),
+                            ],
+                            id="pattLabelUI",
+                            className=(
+                                "removedEntirely"
+                                if ui_config.PATTERN_LABELS not in default_labels
+                                else ""
+                            ),
+                        ),
+                        html.Div(
+                            [
+                                ctrl_sep_invis,
                                 html.H5("Options"),
                                 dbc.InputGroup(
                                     [
@@ -1781,6 +1822,7 @@ def run(
                     default_labels,
                     ui_config.DEFAULT_NODE_LABEL_SETTINGS,
                     ui_config.DEFAULT_EDGE_LABEL_SETTINGS,
+                    ui_config.DEFAULT_PATTERN_LABEL_SETTINGS,
                     ui_config.NODECENTRIC_2_DEFAULT_LABELFONTSIZE[
                         ag.node_centric
                     ],
@@ -2464,6 +2506,7 @@ def run(
     @callback(
         Output("nodeLabelUI", "className"),
         Output("edgeLabelUI", "className"),
+        Output("pattLabelUI", "className"),
         Output("fontSizeUI", "className"),
         Input("labelChecklist", "value"),
         prevent_initial_call=True,
@@ -2471,10 +2514,12 @@ def run(
     def toggle_label_ui_visibility(label_checklist):
         nodes = ui_config.NODE_LABELS in label_checklist
         edges = ui_config.EDGE_LABELS in label_checklist
+        patts = ui_config.PATTERN_LABELS in label_checklist
         nodecls = "" if nodes else "removedEntirely"
         edgecls = "" if edges else "removedEntirely"
+        pattcls = "" if patts else "removedEntirely"
         sizecls = "" if len(label_checklist) > 0 else "removedEntirely"
-        return nodecls, edgecls, sizecls
+        return nodecls, edgecls, pattcls, sizecls
 
     @callback(
         Output("toastHolder", "children", allow_duplicate=True),
@@ -2491,6 +2536,7 @@ def run(
         Input("labelChecklist", "value"),
         Input("nodeLabelSettingsChecklist", "value"),
         Input("edgeLabelSettingsChecklist", "value"),
+        Input("pattLabelSettingsChecklist", "value"),
         Input("expandSettings", "value"),
         Input("nodeColorRadio", "value"),
         Input("edgeColorRadio", "value"),
@@ -2510,6 +2556,7 @@ def run(
         label_checklist,
         node_label_settings,
         edge_label_settings,
+        patt_label_settings,
         expand_settings,
         node_color_radio,
         edge_color_radio,
@@ -2532,6 +2579,7 @@ def run(
                 label_checklist,
                 node_label_settings,
                 edge_label_settings,
+                patt_label_settings,
                 labelfontsize,
                 expand_settings,
                 selected_node_settings,
