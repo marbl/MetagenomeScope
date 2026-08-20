@@ -409,8 +409,8 @@ def dot_to_cyjs_control_points(
     coords = _average_cubic_bezier_midpoints(coords)
 
     src_tgt_dist = euclidean_distance(src_pos, tgt_pos)
-    cpdists = []
-    cpweights = []
+    wds = []
+    decreasing = True
     just_a_straight_line = True
     i = 0
     while i < len(coords):
@@ -453,9 +453,26 @@ def dot_to_cyjs_control_points(
         elif i == len(coords) - 2 and w == 1:
             w = 0.99
 
+        # Flag whether control point weights are monotonically decreasing
+        if decreasing and i > 0 and wds[-1][0] < w:
+            decreasing = False
+        wds.append((w, pld))
+        i += 2
+
+    # If the control points occur in reverse order (according to the weights
+    # along the line from source -> sink), then flip them! This fixes the weird
+    # kinds of edges shown in the first two comments of
+    # https://github.com/marbl/MetagenomeScope/issues/465. (Note that we only
+    # do this if ALL weights for this edge are decreasing! Doing this
+    # indiscriminately can mess up some otherwise normal-looking edges.)
+    if decreasing:
+        wds = sorted(wds)
+
+    cpdists = []
+    cpweights = []
+    for (w, pld) in wds:
         cpdists.append(pld)
         cpweights.append(w)
-        i += 2
 
     if just_a_straight_line:
         # After seeing all the control points of this edge, none of them
