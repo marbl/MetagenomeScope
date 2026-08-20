@@ -454,7 +454,11 @@ def dot_to_cyjs_control_points(
         elif i == len(coords) - 2 and w == 1:
             w = 0.99
 
-        # Flag whether control point weights are monotonically decreasing
+        # Flag whether control point weights are monotonically decreasing. Note
+        # that weights being the same doesn't disqualify this -- so, something
+        # like [0.9, 0.9, 0.5] still counts as decreasing. (This is actually
+        # important because sometimes jank edges that we do want to reverse
+        # will have multiple adjacent zero weights...)
         if decreasing and i > 0 and wds[-1][0] < w:
             decreasing = False
         wds.append((w, pld))
