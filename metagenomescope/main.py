@@ -925,7 +925,8 @@ def run(
                             id="pattLabelUI",
                             className=(
                                 "removedEntirely"
-                                if ui_config.PATTERN_LABELS not in default_labels
+                                if ui_config.PATTERN_LABELS
+                                not in default_labels
                                 else ""
                             ),
                         ),
