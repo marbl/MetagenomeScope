@@ -173,7 +173,7 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   ([#398](https://github.com/marbl/MetagenomeScope/issues/398)).
 
 - Improve Graphviz-to-Cytoscape.js conversion for edge control points; edges
-  should now look smoother
+  should now look smoother, and certain types of squiggly edges should be fixed
   ([#465](https://github.com/marbl/MetagenomeScope/issues/465)).
 
 - Try to prevent selecting a path from the path table while the graph is being
