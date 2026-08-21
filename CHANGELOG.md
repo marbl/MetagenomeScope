@@ -181,6 +181,9 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   do it anyway
   ([#473](https://github.com/marbl/MetagenomeScope/issues/473)).
 
+- Make tall toast messages have scrollbars, and limit running off the screen
+  ([#477](https://github.com/marbl/MetagenomeScope/issues/477)).
+
 - Pin `dash >= 3`, which should fix some issues with installation.
 
 - Make the logging message saying the N50 say `(K+1)-mers` instead of `bp` for LJA DOT graphs.

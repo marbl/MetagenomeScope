@@ -1780,7 +1780,7 @@ def run(
             # https://getbootstrap.com/docs/5.3/components/toasts/#live-example
             html.Div(
                 id="toastHolder",
-                className="toast-container position-fixed top-0 end-0 p-3",
+                className="toast-container position-fixed top-0 bottom-0 end-0 p-3",
             ),
             # We want to initialize the Cytoscape.js instance when we load the
             # page, but AFTER the Dash app has rendered its content (so that
