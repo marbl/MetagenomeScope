@@ -140,6 +140,9 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   The "Outline" option should now look nicer for large-font-size labels
   ([#427](https://github.com/marbl/MetagenomeScope/issues/427)).
 
+- Make histograms (of node/edge counts, coverages, lengths, ...) default to
+  using logarithmic y-axes.
+
 - Disable certain UI elements during graph layout / drawing
   ([#266](https://github.com/marbl/MetagenomeScope/issues/266)).
 
