@@ -23,7 +23,7 @@ drawing summary plots of the graph's structure.
 
 MetagenomeScope supports the outputs of most modern assemblers,
 can handle large graphs including tens of thousands of nodes,
-and is backed by over five hundred automatic software tests.
+and is backed by over six hundred automatic software tests.
 
 The tool is under active development, so please let us know if you have any feedback!
 
