@@ -386,16 +386,7 @@ def run(
         DRAW_RUNNING.append((psty, pn, {}))
 
     # update_title=None prevents Dash's default "Updating..." page title change
-    #
-    # external_stylesheets are needed to load the balham dark theme:
-    # https://dash.plotly.com/dash-ag-grid/styling-themes#included-legacy-themes,
-    # https://github.com/plotly/dash-ag-grid/issues/427#issuecomment-3702398863
-    app = Dash(
-        __name__,
-        title="MgSc",
-        update_title=None,
-        external_stylesheets=[dag.themes.BASE, dag.themes.BALHAM],
-    )
+    app = Dash(__name__, title="MgSc", update_title=None)
     CONTROLS_TOGGLER_ICON_CLASSES = "bi bi-list"
     app.layout = dbc.Container(
         [
