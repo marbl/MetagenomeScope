@@ -3,6 +3,43 @@ from .layout import layout_config
 from .errors import WeirdError
 
 
+def get_selected_node_nonpattern_style(selected_node_settings):
+    """Determines styles for selected non-pattern nodes."""
+    selected_node_nonpattern_style = {
+        "z-index": "1",
+        "z-index-compare": "manual",
+    }
+    if ui_config.SELECTED_NODE_DARKEN in selected_node_settings:
+        selected_node_nonpattern_style.update(
+            {
+                "background-blacken": 0.65,
+                "color": "#ccc",
+                "text-outline-color": cy_config.SELECTED_OBJ_DARK_OUTLINE_COLOR,
+            }
+        )
+    else:
+        selected_node_nonpattern_style.update(
+            {
+                "color": "#000",
+                "text-outline-color": cy_config.SELECTED_OBJ_OUTLINE_COLOR,
+            }
+        )
+    if ui_config.SELECTED_NODE_BORDER in selected_node_settings:
+        selected_node_nonpattern_style.update(
+            {
+                "border-width": cy_config.SELECTED_NODE_BORDER_WIDTH,
+                "border-color": cy_config.SELECTED_NODE_BORDER_COLOR,
+            }
+        )
+    if ui_config.SELECTED_NODE_COLOR in selected_node_settings:
+        selected_node_nonpattern_style.update(
+            {
+                "background-color": "#f00",
+            }
+        )
+    return selected_node_nonpattern_style
+
+
 def get_cyjs_stylesheet(
     labels,
     node_label_settings,
@@ -23,34 +60,6 @@ def get_cyjs_stylesheet(
     else:
         do_expand = "exclude"
 
-    selected_node_nonpattern_style = {
-        "z-index": "1",
-        "z-index-compare": "manual",
-    }
-    if ui_config.SELECTED_NODE_DARKEN in selected_node_settings:
-        selected_node_nonpattern_style.update(
-            {
-                "background-blacken": 0.65,
-                "color": "#ccc",
-                "text-outline-color": cy_config.SELECTED_OBJ_DARK_OUTLINE_COLOR,
-            }
-        )
-    else:
-        selected_node_nonpattern_style.update(
-            {
-                "color": "#000",
-                "text-outline-color": cy_config.SELECTED_OBJ_OUTLINE_COLOR,
-            }
-        )
-
-    if ui_config.SELECTED_NODE_BORDER in selected_node_settings:
-        selected_node_nonpattern_style.update(
-            {
-                "border-width": cy_config.SELECTED_NODE_BORDER_WIDTH,
-                "border-color": cy_config.SELECTED_NODE_BORDER_COLOR,
-            }
-        )
-
     stylesheet = [
         # nodes
         {
@@ -63,10 +72,6 @@ def get_cyjs_stylesheet(
                 "width": "data(w)",
                 "height": "data(h)",
             },
-        },
-        {
-            "selector": "node.nonpattern:selected",
-            "style": selected_node_nonpattern_style,
         },
         ###### Forward-oriented nodes (pentagons pointing right)
         {
@@ -382,8 +387,20 @@ def get_cyjs_stylesheet(
 
     # Apply some last-minute styles. We save these until the end so that
     # they take precedence over even the random coloring stuff.
+
+    # Styles for selected nodes that aren't patterns. We defer this to here
+    # in order to allow a node to change color when selected (depending on
+    # the style settings).
+    selected_node_nonpattern_style = get_selected_node_nonpattern_style(
+        selected_node_settings
+    )
+
     stylesheet.extend(
         [
+            {
+                "selector": "node.nonpattern:selected",
+                "style": selected_node_nonpattern_style,
+            },
             {
                 "selector": "edge.inval",
                 "style": {

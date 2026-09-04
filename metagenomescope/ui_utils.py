@@ -1846,6 +1846,10 @@ def get_style_options_tab(node_centric):
                             "label": "Show a border around it",
                             "value": ui_config.SELECTED_NODE_BORDER,
                         },
+                        {
+                            "label": "Color it red",
+                            "value": ui_config.SELECTED_NODE_COLOR,
+                        },
                     ],
                     value=ui_config.DEFAULT_SELECTED_NODE_SETTINGS,
                     id="selectedNodeSettingsChecklist",
