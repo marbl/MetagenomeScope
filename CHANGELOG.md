@@ -48,10 +48,10 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
     functionality simplifies the process of selecting and drawing these
     components specifically.
 
-- Added the option to use logarithmic scales for the length × coverage
+- Add the option to use logarithmic scales for the length × coverage
   scatterplots.
 
-- Added some basic pattern label options (`Offset` and `Outline`).
+- Add some basic pattern label options (`Offset` and `Outline`).
 
 - You can now select and copy text from the node/edge/pattern/path tables
   ([#298](https://github.com/marbl/MetagenomeScope/issues/298)).
@@ -292,10 +292,10 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 
 - Add some more tests for the GFA-parsing parts of the code.
 
-- Removed some ancient test data / code that was previously in
+- Remove some ancient test data / code that was previously in
   `metagenomescope/tests/input/extras/`.
 
-- Cleaned up the test data descriptions in `metagenomescope/tests/input/README.md`.
+- Clean up the test data descriptions in `metagenomescope/tests/input/README.md`.
 
 - Various updates to the README.
 
