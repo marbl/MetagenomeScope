@@ -187,7 +187,8 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 - Make tall toast messages have scrollbars, and limit running off the screen
   ([#477](https://github.com/marbl/MetagenomeScope/issues/477)).
 
-- Prevent table formatting from being broken when offline.
+- Prevent table formatting from being broken when offline
+  ([plotly/dash-ag-grid#484](https://github.com/plotly/dash-ag-grid/issues/484)).
 
 - Pin `dash >= 3`, which should fix some issues with installation.
 
