@@ -164,6 +164,9 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   when it is already obvious from the node names
   ([#470](https://github.com/marbl/MetagenomeScope/issues/470)).
 
+- Use nicer sorting for the `CC #` column in the table of available paths
+  ([#415](https://github.com/marbl/MetagenomeScope/issues/415)).
+
 - Clean up the logging messages made when starting layout (e.g. only show
   layout parameters relevant to the currently selected algorithm).
 

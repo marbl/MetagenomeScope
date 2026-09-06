@@ -234,6 +234,16 @@ DASH_GRID_OPTIONS = {
     # https://dash.plotly.com/dash-ag-grid/clipboard#regular-text-selection
     "enableCellTextSelection": True,
     "ensureDomOrder": True,
+    # Custom column type, for formatting sorted lists of connected component #s
+    "dataTypeDefinitions": {
+        "numList": {
+            "extendsDataType": "object",
+            "baseDataType": "object",
+            "valueFormatter": {
+                "function": "numListValueFormatter(params.value)"
+            },
+        }
+    },
 }
 
 ###############################################################################

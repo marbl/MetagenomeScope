@@ -278,15 +278,14 @@ def run(
                                         "field": ui_config.PATH_TBL_CC_COL,
                                         "headerName": "CC #",
                                         "cellClass": "fancytable-cells",
-                                        # NOTE: Some paths might have multiple
-                                        # components, meaning their entry for
-                                        # this column will look like "1, 44"
-                                        # instead of just a single number.
-                                        # It would be nice to implement
-                                        # custom sorting that respects this
-                                        # stuff while still sorting single-
-                                        # component paths properly...
-                                        "cellDataType": "text",
+                                        # Some paths might have multiple ccs,
+                                        # meaning their entry for this column
+                                        # will look like "1, 44" instead of
+                                        # just a single number.
+                                        "cellDataType": "numList",
+                                        "comparator": {
+                                            "function": "numListComparator"
+                                        },
                                     },
                                 ],
                                 # https://dash.plotly.com/dash-ag-grid/column-sizing
@@ -3059,10 +3058,13 @@ def run(
                         ui_config.PATH_TBL_COUNT_COL: len(
                             ag.pathname2objnames[p]
                         ),
-                        # TODO this is ugly pls move to AssemblyGraph so
-                        # it can be tested...
-                        ui_config.PATH_TBL_CC_COL: ", ".join(
-                            str(ccn) for ccn in ag.pathname2ccnums[p]
+                        # convert the set of cc nums to a sorted list;
+                        # it will be handled as a custom "numList" type.
+                        # NOTE: it might be nice to do this in advance (rather
+                        # than store these as sets) but then other stuff would
+                        # need to be updated sooooo whatever
+                        ui_config.PATH_TBL_CC_COL: sorted(
+                            ag.pathname2ccnums[p]
                         ),
                     }
                 )
