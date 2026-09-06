@@ -236,11 +236,11 @@ DASH_GRID_OPTIONS = {
     "ensureDomOrder": True,
     # Custom column type, for formatting sorted lists of connected component #s
     "dataTypeDefinitions": {
-        "numList": {
+        "sortedNumList": {
             "extendsDataType": "object",
             "baseDataType": "object",
             "valueFormatter": {
-                "function": "numListValueFormatter(params.value)"
+                "function": "sortedNumListValueFormatter(params.value)"
             },
         }
     },

@@ -1,18 +1,18 @@
 // https://dash.plotly.com/dash-ag-grid/row-sorting#custom-sorting
 var dagfuncs = (window.dashAgGridFunctions = window.dashAgGridFunctions || {});
 
-/* Formats a list of connected component numbers to be comma-separated. */
-dagfuncs.numListValueFormatter = function (c) {
+/* Formats a sorted list of numbers to be comma-separated. */
+dagfuncs.sortedNumListValueFormatter = function (c) {
     return c.join(", ");
 };
 
-/* Compares two sorted lists of connected component numbers.
+/* Compares two sorted lists of numbers.
  *
  * @param {Array} c1 First such list.
  * @param {Array} c2 Second such list.
  * @return {Number} 0, -1, or 1: c1 === c2, c1 < c2, or c1 > c2 respectively
  */
-dagfuncs.numListComparator = function (c1, c2) {
+dagfuncs.sortedNumListComparator = function (c1, c2) {
     var i = 0;
     while (true) {
         if (i < c1.length) {
@@ -41,7 +41,7 @@ dagfuncs.numListComparator = function (c1, c2) {
         }
         i++;
     }
-    // Should never get here
+    // should never get here!!!
     throw new Error(
         "sorting cc arrays broke: " + c1.toString() + " & " + c2.toString(),
     );

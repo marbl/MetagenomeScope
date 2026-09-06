@@ -282,9 +282,9 @@ def run(
                                         # meaning their entry for this column
                                         # will look like "1, 44" instead of
                                         # just a single number.
-                                        "cellDataType": "numList",
+                                        "cellDataType": "sortedNumList",
                                         "comparator": {
-                                            "function": "numListComparator"
+                                            "function": "sortedNumListComparator"
                                         },
                                     },
                                 ],
@@ -3059,7 +3059,7 @@ def run(
                             ag.pathname2objnames[p]
                         ),
                         # convert the set of cc nums to a sorted list;
-                        # it will be handled as a custom "numList" type.
+                        # it will be handled as a custom "sortedNumList" type.
                         # NOTE: it might be nice to do this in advance (rather
                         # than store these as sets) but then other stuff would
                         # need to be updated sooooo whatever
