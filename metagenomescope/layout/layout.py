@@ -39,6 +39,7 @@ class Layout(object):
             scope_settings, modifier_settings
         )
         self.use_gv_ports = ui_utils.use_gv_ports(modifier_settings)
+        self.quad_bezier = ui_utils.quad_bezier(modifier_settings)
         self.params = params
 
         if alg not in ui_config.LAYOUT2GVPROG:
@@ -487,6 +488,7 @@ class Layout(object):
                             nodeid2xy[edge.new_tgt_id],
                             self.edgeid2rel[edge.unique_id],
                             self.height,
+                            quad_bezier=self.quad_bezier,
                             left=left,
                             bottom=bottom,
                             dx=dx,
@@ -508,6 +510,7 @@ class Layout(object):
                             nodeid2xy[edge.new_tgt_id],
                             self.edgeid2rel[edge.unique_id],
                             self.height,
+                            quad_bezier=self.quad_bezier,
                             dx=dx,
                             dy=dy,
                         )

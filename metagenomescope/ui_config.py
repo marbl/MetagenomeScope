@@ -28,6 +28,7 @@ SCOPE_SETTINGS_OPTIONS = [
 
 RECURSIVE = "recursive"
 USE_GV_PORTS = "ports"
+QUAD_BEZIER = "quadbezier"
 HCENTER = "hcenter"
 DO_LAYOUT_ANIMATION = "animate"
 
@@ -55,6 +56,16 @@ MODIFIER_SETTINGS_OPTIONS = [
     {
         "label": html.Span(
             [
+                "Reduce cubic Béziers to quadratic (",
+                DOT_TEXT,
+                " only)",
+            ]
+        ),
+        "value": QUAD_BEZIER,
+    },
+    {
+        "label": html.Span(
+            [
                 "Horizontally center rows (",
                 DOT_TEXT,
                 " & sfdp only)",
@@ -67,7 +78,12 @@ MODIFIER_SETTINGS_OPTIONS = [
         "value": DO_LAYOUT_ANIMATION,
     },
 ]
-DEFAULT_MODIFIER_SETTINGS = [HCENTER, USE_GV_PORTS, DO_LAYOUT_ANIMATION]
+DEFAULT_MODIFIER_SETTINGS = [
+    HCENTER,
+    USE_GV_PORTS,
+    QUAD_BEZIER,
+    DO_LAYOUT_ANIMATION,
+]
 
 
 COLORING_RANDOM = "random"

@@ -10,7 +10,7 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 
 ### Added
 
-- Add new options to the the drawing options dialog (both selected by default):
+- Add new options to the the drawing options dialog (all selected by default):
 
   - `Decouple strand-tangled components`
     ([#449](https://github.com/marbl/MetagenomeScope/issues/449))
@@ -30,6 +30,14 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
     - If this option is selected, then -- when we are drawing multiple
       components at once, when using the _dot_ or sfdp layout
       algorithms -- we will horizontally center each row of components.
+
+  - `Reduce cubic Béziers to quadratic`
+    ([#465](https://github.com/marbl/MetagenomeScope/issues/465))
+
+    - If this option is selected, then we will attempt to convert the cubic
+      Bézier curves that make up Graphviz edges to quadratic Bézier curves, which
+      Cytoscape.js expects. This is currently done simply by just averaging the
+      midpoints of each cubic Bézier curve.
 
 - Add a new section, "Style," in the drawing options dialog.
 

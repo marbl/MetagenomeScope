@@ -1283,6 +1283,10 @@ def use_gv_ports(modifier_settings):
     return ui_config.USE_GV_PORTS in modifier_settings
 
 
+def quad_bezier(modifier_settings):
+    return ui_config.QUAD_BEZIER in modifier_settings
+
+
 def hcenter(modifier_settings):
     return ui_config.HCENTER in modifier_settings
 

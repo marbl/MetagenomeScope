@@ -346,7 +346,15 @@ def nums_to_str(nums):
 
 
 def dot_to_cyjs_control_points(
-    src_pos, tgt_pos, coords, flipheight, left=None, bottom=None, dx=0, dy=0
+    src_pos,
+    tgt_pos,
+    coords,
+    flipheight,
+    quad_bezier=True,
+    left=None,
+    bottom=None,
+    dx=0,
+    dy=0,
 ):
     """Shifts edge control points and converts them to Cytoscape.js format.
 
@@ -359,6 +367,8 @@ def dot_to_cyjs_control_points(
     coords: list of float
 
     flipheight: float
+
+    quad_bezier: bool
 
     left: float or None
 
@@ -407,7 +417,8 @@ def dot_to_cyjs_control_points(
     if left is not None and bottom is not None:
         coords = _shift_control_points(coords, left, bottom)
     coords = _flip_and_shift_control_points(coords, flipheight, dx, dy)
-    coords = _average_cubic_bezier_midpoints(coords)
+    if quad_bezier:
+        coords = _average_cubic_bezier_midpoints(coords)
 
     src_tgt_dist = euclidean_distance(src_pos, tgt_pos)
     wds = []
