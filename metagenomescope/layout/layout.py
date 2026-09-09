@@ -488,11 +488,11 @@ class Layout(object):
                             nodeid2xy[edge.new_tgt_id],
                             self.edgeid2rel[edge.unique_id],
                             self.height,
-                            quad_bezier=self.quad_bezier,
                             left=left,
                             bottom=bottom,
                             dx=dx,
                             dy=dy,
+                            quad_bezier=self.quad_bezier,
                         )
                     )
         else:
@@ -510,9 +510,9 @@ class Layout(object):
                             nodeid2xy[edge.new_tgt_id],
                             self.edgeid2rel[edge.unique_id],
                             self.height,
-                            quad_bezier=self.quad_bezier,
                             dx=dx,
                             dy=dy,
+                            quad_bezier=self.quad_bezier,
                         )
                     )
         if self.record_edge_ctrl_pts:

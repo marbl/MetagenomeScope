@@ -350,11 +350,11 @@ def dot_to_cyjs_control_points(
     tgt_pos,
     coords,
     flipheight,
-    quad_bezier=True,
     left=None,
     bottom=None,
     dx=0,
     dy=0,
+    quad_bezier=True,
 ):
     """Shifts edge control points and converts them to Cytoscape.js format.
 
@@ -368,8 +368,6 @@ def dot_to_cyjs_control_points(
 
     flipheight: float
 
-    quad_bezier: bool
-
     left: float or None
 
     bottom: float or None
@@ -377,6 +375,8 @@ def dot_to_cyjs_control_points(
     dx: float
 
     dy: float
+
+    quad_bezier: bool
 
     Returns
     -------
