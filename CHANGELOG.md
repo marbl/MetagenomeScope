@@ -34,10 +34,11 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   - `Reduce cubic Béziers to quadratic`
     ([#465](https://github.com/marbl/MetagenomeScope/issues/465))
 
-    - If this option is selected, then we will attempt to convert the cubic
-      Bézier curves that make up Graphviz edges to quadratic Bézier curves, which
-      Cytoscape.js expects. This is currently done simply by just averaging the
-      midpoints of each cubic Bézier curve.
+    - If this option is selected, then we will try to convert the cubic
+      Bézier curves that make up Graphviz edges to quadratic Bézier curves
+      (since Cytoscape.js currently expects that edge control points are
+      quadratic). This is currently done by just averaging the middle two
+      points of each cubic Bézier curve.
 
 - Add a new section, "Style," in the drawing options dialog.
 
