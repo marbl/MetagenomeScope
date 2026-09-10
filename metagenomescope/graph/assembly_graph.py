@@ -651,6 +651,14 @@ class AssemblyGraph(object):
             # If we have not seen the RC of this node yet (or if that RC does
             # not exist in this graph at all), then assign this node a new
             # random index for coloring.
+            #
+            # Note that this does not consider whether the graph is node- or
+            # edge-centric, and does not consider whether nodes/edges have
+            # orientations in their names. This is because we want to make sure
+            # node colors match even for some edge-centric graphs (LJA DOT
+            # graphs, where nodes have orientations in names). Really the only
+            # two types of graphs where this is unnecessary (because nodes
+            # shouldn't have RCs) are Flye DOT files and MetaCarvel GML files.
             rc_name = name_utils.negate(str_node_name)
             if rc_name in oldid2uniqueid:
                 new_node.rand_idx = self.nodeid2obj[
