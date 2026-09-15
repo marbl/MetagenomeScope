@@ -22,7 +22,7 @@ def log_lines_with_sep(lines, sepchar=config.SEPSML, endsepline=False):
     logger.info(out)
 
 
-def start_log(verbose: bool):
+def start_log(verbose, logfile=None):
     # in any case, stop logging every time a request or something happens:
     # https://community.plotly.com/t/logging-debug-messages-suppressed-in-callbacks/17854/4
     logging.getLogger("werkzeug").setLevel(logging.WARNING)
@@ -39,6 +39,13 @@ def start_log(verbose: bool):
         format="{{{asctime}.{msecs:03.0f}}} {message}",
         datefmt="%H:%M:%S",
     )
+    if logfile is not None:
+        # https://stackoverflow.com/a/59574847
+        fh = logging.FileHandler(filename=logfile)
+        # make sure this file has timestamps: https://stackoverflow.com/a/65512535
+        logger = logging.getLogger()
+        fh.setFormatter(logger.handlers[0].formatter)
+        logger.addHandler(fh)
     # Log the version, just for reference -- based on this blog post:
     # http://lh3.github.io/2022/09/28/additional-recommendations-for-creating-command-line-interfaces
     log_lines_with_sep(

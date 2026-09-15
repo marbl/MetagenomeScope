@@ -65,6 +65,13 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 - You can now select and copy text from the node/edge/pattern/path tables
   ([#298](https://github.com/marbl/MetagenomeScope/issues/298)).
 
+- Add the `-l`/`--logfile` command-line option. If specified, this will write
+  logging messages to a given filepath, in addition to printing them to the
+  terminal.
+
+  - This is mostly useful for benchmarking how long things take (since now you
+    can just read the file; no need to mess around with logging config stuff).
+
 ### Changed
 
 - Dramatically speed up pattern decomposition, mostly by addressing a
@@ -178,6 +185,9 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 
 - Clean up the logging messages made when starting layout (e.g. only show
   layout parameters relevant to the currently selected algorithm).
+
+- Emit logging messages in the browser developer console when a Cytoscape.js
+  rendering event happens. (Useful for benchmarking.)
 
 - Various improvements to the documentation, tests, and code.
 
