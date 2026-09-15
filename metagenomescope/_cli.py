@@ -98,6 +98,13 @@ from . import __version__, defaults, descs, config
     help=descs.VERBOSE,
 )
 @click.option(
+    "--dry/--no-dry",
+    is_flag=True,
+    default=defaults.DRY,
+    show_default=True,
+    help=descs.DRY,
+)
+@click.option(
     "-l",
     "--logfile",
     type=click.Path(dir_okay=False, writable=True),
@@ -117,6 +124,7 @@ def run_script(
     dcheck: bool,
     debug: bool,
     verbose: bool,
+    dry: bool,
     logfile: str,
 ) -> None:
     """Visualizes an assembly graph.
@@ -146,6 +154,7 @@ def run_script(
             f"Post-decomp check?: {dcheck}",
             f"Debug mode?: {debug}",
             f"Verbose?: {verbose}",
+            f"Dry run?: {dry}",
             f"Log file: {logfile}",
         ],
         endsepline=True,
@@ -164,6 +173,7 @@ def run_script(
         debug=debug,
         decomp=decomp,
         dcheck=dcheck,
+        dry=dry,
     )
 
 

@@ -45,6 +45,7 @@ def run(
     debug: bool = defaults.DEBUG,
     decomp: bool = defaults.DECOMP,
     dcheck: bool = defaults.DCHECK,
+    dry: bool = defaults.DRY,
 ):
     """Reads the graph and starts a Dash app for visualizing it.
 
@@ -89,6 +90,11 @@ def run(
         involves (at least as of April 2026) creating an extra copy of the
         input graph structure, so this is probably not worth doing for
         massive graphs.
+
+    dry: bool
+        If True, quit before calling Dash's app.run(). If False, um, don't do
+        that. This is useful for benchmarking stuff (in cases where we are just
+        measuring how long it takes to get the server started).
 
     Returns
     -------
@@ -3368,4 +3374,7 @@ def run(
         prevent_initial_call=True,
     )
 
-    app.run(debug=debug, port=port)
+    if dry:
+        logging.info("Dry run finished.")
+    else:
+        app.run(debug=debug, port=port)

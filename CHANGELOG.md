@@ -65,12 +65,14 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 - You can now select and copy text from the node/edge/pattern/path tables
   ([#298](https://github.com/marbl/MetagenomeScope/issues/298)).
 
-- Add the `-l`/`--logfile` command-line option. If specified, this will write
-  logging messages to a given filepath, in addition to printing them to the
-  terminal.
+- Add some command-line options that make benchmarking easier:
 
-  - This is mostly useful for benchmarking how long things take (since now you
-    can just read the file; no need to mess around with logging config stuff).
+    - Add the `-l`/`--logfile` command-line option. If specified, this will
+      write logging messages to a given filepath, in addition to printing them
+      to the terminal.
+
+    - Add the `--dry` command-line option. If specified, this will quit before
+      starting a server with Dash.
 
 ### Changed
 
