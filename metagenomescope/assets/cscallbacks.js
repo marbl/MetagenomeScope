@@ -250,6 +250,12 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
                     cy.data(WIPE_DONE_FLAG, true);
                 }
             });
+            cy.on("render", function (e) {
+                let d = new Date();
+                console.log(
+                    "Rendering event at", d.toLocaleString(), d.getMilliseconds(), "ms"
+                );
+            });
         },
         changeEles: function (eles, layoutSettings) {
             let cy = getCy();
