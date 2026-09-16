@@ -27,6 +27,4 @@ DEBUG = "Use Dash's debug mode."
 
 DCHECK = "Do post-decomposition sanity check."
 
-LOGFILE = "Write logging messages to this filepath."
-
 DRY = "Quit before starting a server."

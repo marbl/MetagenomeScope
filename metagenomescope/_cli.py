@@ -104,14 +104,6 @@ from . import __version__, defaults, descs, config
     show_default=True,
     help=descs.DRY,
 )
-@click.option(
-    "-l",
-    "--logfile",
-    type=click.Path(dir_okay=False, writable=True),
-    default=None,
-    required=False,
-    help=descs.LOGFILE,
-)
 @click.version_option(__version__, "-v", "--version")
 def run_script(
     graph: str,
@@ -125,7 +117,6 @@ def run_script(
     debug: bool,
     verbose: bool,
     dry: bool,
-    logfile: str,
 ) -> None:
     """Visualizes an assembly graph.
 
@@ -140,7 +131,7 @@ def run_script(
     # long as possible.
     from . import log_utils
 
-    log_utils.start_log(verbose, logfile)
+    log_utils.start_log(verbose)
     log_utils.log_lines_with_sep(
         [
             "Settings:",
@@ -155,7 +146,6 @@ def run_script(
             f"Debug mode?: {debug}",
             f"Verbose?: {verbose}",
             f"Dry run?: {dry}",
-            f"Log file: {logfile}",
         ],
         endsepline=True,
     )

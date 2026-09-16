@@ -65,14 +65,8 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 - You can now select and copy text from the node/edge/pattern/path tables
   ([#298](https://github.com/marbl/MetagenomeScope/issues/298)).
 
-- Add some command-line options that make benchmarking easier:
-
-    - Add the `-l`/`--logfile` command-line option. If specified, this will
-      write logging messages to a given filepath, in addition to printing them
-      to the terminal.
-
-    - Add the `--dry` command-line option. If specified, this will quit before
-      starting a server with Dash.
+- Add the `--dry` command-line option. If specified, this will quit before
+  starting a server with Dash. (Useful for benchmarking.)
 
 ### Changed
 
@@ -188,8 +182,9 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 - Clean up the logging messages made when starting layout (e.g. only show
   layout parameters relevant to the currently selected algorithm).
 
-- Emit logging messages in the browser developer console when a Cytoscape.js
-  rendering event happens. (Useful for benchmarking.)
+- Emit logging messages in the browser developer console when the "Draw"
+  button is clicked, and when a Cytoscape.js rendering event happens.
+  (Useful for benchmarking.)
 
 - Various improvements to the documentation, tests, and code.
 
