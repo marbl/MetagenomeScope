@@ -98,6 +98,13 @@ from . import __version__, defaults, descs, config
     help=descs.VERBOSE,
 )
 @click.option(
+    "--quiet/--no-quiet",
+    is_flag=True,
+    default=defaults.QUIET,
+    show_default=True,
+    help=descs.QUIET,
+)
+@click.option(
     "--dry/--no-dry",
     is_flag=True,
     default=defaults.DRY,
@@ -116,6 +123,7 @@ def run_script(
     dcheck: bool,
     debug: bool,
     verbose: bool,
+    quiet: bool,
     dry: bool,
 ) -> None:
     """Visualizes an assembly graph.
@@ -131,7 +139,7 @@ def run_script(
     # long as possible.
     from . import log_utils
 
-    log_utils.start_log(verbose)
+    log_utils.start_log(verbose=verbose, quiet=quiet)
     log_utils.log_lines_with_sep(
         [
             "Settings:",
@@ -145,6 +153,7 @@ def run_script(
             f"Post-decomp check?: {dcheck}",
             f"Debug mode?: {debug}",
             f"Verbose?: {verbose}",
+            f"Quiet?: {quiet}",
             f"Dry run?: {dry}",
         ],
         endsepline=True,
@@ -159,7 +168,6 @@ def run_script(
         flye_info=info,
         port=port,
         rmdup=rmdup,
-        verbose=verbose,
         debug=debug,
         decomp=decomp,
         dcheck=dcheck,

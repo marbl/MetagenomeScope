@@ -41,7 +41,6 @@ def run(
     flye_info: str = None,
     port: int = defaults.PORT,
     rmdup: str = defaults.RMDUP,
-    verbose: bool = defaults.VERBOSE,
     debug: bool = defaults.DEBUG,
     decomp: bool = defaults.DECOMP,
     dcheck: bool = defaults.DCHECK,
@@ -71,9 +70,6 @@ def run(
 
     rmdup: str
         Indicates whether or not to remove parallel edges.
-
-    verbose: bool
-        If True, include DEBUG messages in the log output.
 
     debug: bool
         If True, run Dash in debug mode. See https://dash.plotly.com/devtools.

@@ -22,14 +22,24 @@ def log_lines_with_sep(lines, sepchar=config.SEPSML, endsepline=False):
     logger.info(out)
 
 
-def start_log(verbose):
+def start_log(verbose, quiet):
     # in any case, stop logging every time a request or something happens:
     # https://community.plotly.com/t/logging-debug-messages-suppressed-in-callbacks/17854/4
     logging.getLogger("werkzeug").setLevel(logging.WARNING)
     if verbose:
-        logging_level = logging.DEBUG
+        if quiet:
+            # verbose and quiet (these are mutually exclusive options, so ...)
+            raise ValueError("Both 'verbose' and 'quiet' specified.")
+        else:
+            # verbose
+            logging_level = logging.DEBUG
     else:
-        logging_level = logging.INFO
+        if quiet:
+            # quiet
+            logging_level = logging.WARNING
+        else:
+            # default
+            logging_level = logging.INFO
     # use datefmt for pretty timestamps: https://stackoverflow.com/a/14226251
     # msecs corresponds to milliseconds, which should be in the range [000, 999]:
     # https://docs.python.org/3/library/logging.html#logrecord-attributes

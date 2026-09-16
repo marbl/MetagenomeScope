@@ -21,6 +21,8 @@ RMDUP = "Remove parallel edges."
 
 VERBOSE = "Log extra details."
 
+QUIET = "Only log warnings/errors/Dash/..."
+
 DECOMP = "Do pattern decomposition."
 
 DEBUG = "Use Dash's debug mode."
