@@ -613,7 +613,7 @@ def parse_gfa(filename):
                     cov=segcov,
                 )
 
-            if line.startswith("L"):
+            elif line.startswith("L"):
                 parts = gfa_utils.get_gfa_line_parts(line, 6)
                 # for now, ignore the overlap CIGAR string - it's parts[5]
                 src_id, src_orient, tgt_id, tgt_orient = parts[1:5]
@@ -630,7 +630,7 @@ def parse_gfa(filename):
                 if not_self_implying:
                     digraph.add_edge(s2, t2)
 
-            if line.startswith("E"):
+            elif line.startswith("E"):
                 parts = gfa_utils.get_gfa_line_parts(line, 9)
                 # for now, ignore the alignment string - it's parts[8]
                 edge_id, src, tgt, b1, e1, b2, e2 = parts[1:8]
@@ -655,7 +655,7 @@ def parse_gfa(filename):
                     if not_self_implying:
                         digraph.add_edge(s2, t2)
 
-            if line.startswith("P"):
+            elif line.startswith("P"):
                 parts = gfa_utils.get_gfa_line_parts(line, 4)
                 path_id, path_segments = parts[1:3]
                 gfa_utils.check_path_nonempty(path_id, path_segments)
@@ -666,7 +666,7 @@ def parse_gfa(filename):
                     path_segment_ids.append(psi)
                 paths[path_id] = path_segment_ids
 
-            if line.startswith("O"):
+            elif line.startswith("O"):
                 # P-lines (above) in GFA 1 files are easy because they can only
                 # contain segment IDs. O-lines are trickier: they can also
                 # contain edge IDs or other O-line IDs! Oh no!
@@ -678,6 +678,9 @@ def parse_gfa(filename):
                 gfa_utils.check_path_nonempty(path_id, path_children)
                 gfa_utils.store_gfa_id(path_id, id2type, "O")
                 oid2childids[path_id] = path_children.split(" ")
+
+            # Other types of lines (e.g. comments, jumps, unoriented groups)
+            # are ignored
 
         # After going through the entire file, we can resolve O-lines.
         if len(oid2childids) > 0:
