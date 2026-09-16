@@ -135,6 +135,32 @@ function tryToSetBadEdgeDragRescuer(cy) {
     }
 }
 
+var LAST_TIME_DRAW_BUTTON_CLICKED = null;
+
+function getCurrTime() {
+    let d = new Date();
+    return {
+        dobj: d,
+        dstr: d.toLocaleString() + " ." + d.getMilliseconds() + "ms"
+    };
+}
+
+function logDrawTime() {
+    t = getCurrTime();
+    LAST_TIME_DRAW_BUTTON_CLICKED = t.dobj;
+    console.log("Draw button click at", t.dstr);
+}
+
+function logRenderTime() {
+    t = getCurrTime();
+    // purposefully trying to align the log text here to make comparison easier
+    console.log("Cyjs render event at", t.dstr);
+    if (LAST_TIME_DRAW_BUTTON_CLICKED !== null) {
+        duration_sec = (t.dobj - LAST_TIME_DRAW_BUTTON_CLICKED) / 1000;
+        console.log("Time since last draw button click:", duration_sec, "sec");
+    }
+}
+
 const WIPE_DONE_FLAG = "_mgscWipeDone";
 const FIT_PADDING_PX = 20;
 
@@ -250,12 +276,9 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
                     cy.data(WIPE_DONE_FLAG, true);
                 }
             });
-            cy.on("render", function (e) {
-                let d = new Date();
-                console.log(
-                    "Rendering event at", d.toLocaleString(), d.getMilliseconds(), "ms"
-                );
-            });
+            // Prep some things to make timing drawing easier
+            document.getElementById("drawButton").addEventListener("click", logDrawTime);
+            cy.on("render", logRenderTime);
         },
         changeEles: function (eles, layoutSettings) {
             let cy = getCy();
