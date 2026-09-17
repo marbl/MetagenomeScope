@@ -141,7 +141,7 @@ function getCurrTime() {
     let d = new Date();
     return {
         dobj: d,
-        dstr: d.toLocaleString() + " ." + d.getMilliseconds() + "ms"
+        dstr: d.toLocaleString() + " " + d.getMilliseconds() + "ms"
     };
 }
 
