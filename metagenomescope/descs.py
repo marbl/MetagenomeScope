@@ -21,7 +21,7 @@ RMDUP = "Remove parallel edges."
 
 VERBOSE = "Log extra details."
 
-QUIET = "Only log warnings/errors/Dash/..."
+QUIET = "Only log warnings/errors/etc."
 
 DECOMP = "Do pattern decomposition."
 
