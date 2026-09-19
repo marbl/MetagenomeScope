@@ -3300,8 +3300,7 @@ def run(
         prevent_initial_call=True,
     )
     def copy_selected_node_ids(selected_node_data, n_clicks):
-        labels = [r[ui_config.NODE_TBL_NAME_COL] for r in selected_node_data]
-        return ", ".join(labels)
+        return ui_utils.get_selected_node_basenames(selected_node_data)
 
     @callback(
         Output("copySelectedNodeIDs", "n_clicks"),

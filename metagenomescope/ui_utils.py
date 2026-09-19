@@ -941,6 +941,13 @@ def get_fancy_node_name_list(node_names, quote=True, bracket=False):
         return out
 
 
+def get_selected_node_basenames(selected_node_data):
+    names = set()
+    for row in selected_node_data:
+        names.add(name_utils.get_base(row[ui_config.NODE_TBL_NAME_COL]))
+    return ", ".join(sorted(names))
+
+
 def fail_if_unfound_nodes(unfound_node_names):
     if len(unfound_node_names) == 1:
         n = unfound_node_names.pop()

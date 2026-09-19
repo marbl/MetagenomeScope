@@ -123,10 +123,21 @@ def has_split_suffix(name):
     return has_leftsplit_suffix(name) or has_rightsplit_suffix(name)
 
 
+def _rm_split_suffix(name):
+    return name[:-2]
+
+
 def get_splitname_base(name):
     if has_split_suffix(name):
-        return name[:-2]
+        return _rm_split_suffix(name)
     raise WeirdError(f"Node name {name} does not have a split suffix?")
+
+
+def get_base(name):
+    # gentler version of the above, i guess?
+    if has_split_suffix(name):
+        return _rm_split_suffix(name)
+    return name
 
 
 def _sanity_check_name(name, node=True):
