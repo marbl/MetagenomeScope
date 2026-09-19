@@ -57,17 +57,21 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
     functionality simplifies the process of selecting and drawing these
     components specifically.
 
-- Add a small UI element underneath the table of selected nodes that you can
-  use to copy the names of selected nodes to the clipboard
-  ([#481](https://github.com/marbl/MetagenomeScope/issues/481)).
-
 - Add the option to use logarithmic scales for the length × coverage
   scatterplots.
 
 - Add some basic pattern label options (`Offset` and `Outline`).
 
-- You can now select and copy text from the node/edge/pattern/path tables
-  ([#298](https://github.com/marbl/MetagenomeScope/issues/298)).
+- More features for copying information about selected elements:
+
+  - You can now select and copy text from the node/edge/pattern/path tables
+    ([#298](https://github.com/marbl/MetagenomeScope/issues/298)).
+  
+  - Because the above functionality can be clunky if you want to copy the
+    names of multiple selected nodes at once, without all of the other data
+    in the table: add a small UI element underneath the table of selected nodes
+    that you can use to copy the names of selected nodes to the clipboard
+    ([#481](https://github.com/marbl/MetagenomeScope/issues/481)).
 
 - Add the `--dry` command-line option. If specified, this will quit before
   starting a server with Dash. (Useful for benchmarking.)
