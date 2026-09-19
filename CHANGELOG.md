@@ -57,6 +57,10 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
     functionality simplifies the process of selecting and drawing these
     components specifically.
 
+- Add a small UI element underneath the table of selected nodes that you can
+  use to copy the names of selected nodes to the clipboard
+  ([#481](https://github.com/marbl/MetagenomeScope/issues/481)).
+
 - Add the option to use logarithmic scales for the length × coverage
   scatterplots.
 
