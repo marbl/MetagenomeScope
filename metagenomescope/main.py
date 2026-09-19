@@ -712,7 +712,7 @@ def run(
                                             },
                                         ),
                                         html.Span(
-                                            "Copy node names to clipboard",
+                                            "Copy selected nodes to clipboard",
                                             id="copySelectedNodeIDsLabel",
                                         ),
                                     ],
