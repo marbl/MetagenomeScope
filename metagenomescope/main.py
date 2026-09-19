@@ -701,6 +701,25 @@ def run(
                                 ag.node_centric,
                                 ag.orientation_in_name,
                             )
+                            + [
+                                html.Div(
+                                    [
+                                        dcc.Clipboard(
+                                            id="copySelectedNodeIDs",
+                                            style={
+                                                "display": "inline-block",
+                                                "margin-right": "0.5em",
+                                            },
+                                        ),
+                                        html.Span(
+                                            "Copy node names to clipboard",
+                                            id="copySelectedNodeIDsLabel",
+                                        ),
+                                    ],
+                                    id="nodeCopyingUI",
+                                    className="removedEntirely",
+                                )
+                            ]
                             + ui_utils.get_selected_edge_html(
                                 ag.extra_edge_attrs
                             )
@@ -3154,12 +3173,19 @@ def run(
     @callback(
         Output("selectedNodeList", "className"),
         Output("selectedNodeOpener", "className"),
+        Output("nodeCopyingUI", "className"),
         State("selectedNodeList", "className"),
         Input("selectedNodeHeader", "n_clicks"),
         prevent_initial_call=True,
     )
     def toggle_node_table(classes, n_clicks):
-        return toggle_ele_ui(classes)
+        tbl_class, opener_class = toggle_ele_ui(classes)
+        # this is a little jank ... we don't wanna pass tbl_class to the
+        # class of nodeCopyingUI because then that would cause it to look weird
+        copy_ui_class = (
+            "" if "removedEntirely" not in tbl_class else "removedEntirely"
+        )
+        return tbl_class, opener_class, copy_ui_class
 
     @callback(
         Output("selectedEdgeList", "className"),
@@ -3266,6 +3292,37 @@ def run(
             edge_data.append(row)
         ect = len(edge_data)
         return edge_data, f"{ect:,}", ui_utils.get_badge_color(ect)
+
+    @callback(
+        Output("copySelectedNodeIDs", "content"),
+        State("selectedNodeList", "rowData"),
+        Input("copySelectedNodeIDs", "n_clicks"),
+        prevent_initial_call=True,
+    )
+    def copy_selected_node_ids(selected_node_data, n_clicks):
+        labels = [r[ui_config.NODE_TBL_NAME_COL] for r in selected_node_data]
+        return ", ".join(labels)
+
+    @callback(
+        Output("copySelectedNodeIDs", "n_clicks"),
+        State("copySelectedNodeIDs", "n_clicks"),
+        Input("nodeCopyingUI", "n_clicks"),
+        prevent_initial_call=True,
+    )
+    def copy_selected_node_ids_if_label_clicked(nc1, nc2):
+        # In order to trigger the copying if the user clicks on the label,
+        # we need to actually update the number of times the clipboard was
+        # clicked: https://community.plotly.com/t/83101/2 -- for some reason
+        # we can't just merge these into a single callback where clicking on
+        # the label directly outputs to the clipboard content. idk why ._.
+        #
+        # Anyway, even though nodeCopyingUI includes copySelectedNodeIDs as a
+        # descendant, this doesn't seem to result in "double-callbacks" when
+        # you click on copySelectedNodeIDs directly. Which is good with me.
+        # (Not that that would really matter, anyway ... it would just perform
+        # the same copying operation twice instead of once which wouldnt change
+        # anything... but it is good we are efficient here)
+        return nc1 + 1 if nc1 is not None else 1
 
     @callback(
         Output("toastHolder", "children", allow_duplicate=True),

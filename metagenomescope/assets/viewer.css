@@ -476,6 +476,12 @@ input {
     float: right;
 }
 
+#nodeCopyingUI {
+    cursor: pointer;
+    font-size: 0.9em;
+    margin-bottom: 0.3em;
+}
+
 /* indicate visually that you can click on the path name to highlight it */
 .path-table-name {
     cursor: pointer;
