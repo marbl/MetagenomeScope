@@ -75,11 +75,15 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 
 - Add the option
   `Show only nonredundant components, and decouple strand-tangled components?`
-  for the treemap (selected by default)
-  ([#332](https://github.com/marbl/MetagenomeScope/issues/332).
+  for the treemap
+  ([#332](https://github.com/marbl/MetagenomeScope/issues/332)).
 
-  - This makes the treemap more useful for graphs where there are two copies
-    of each node (which is most assembly graphs, e.g. GFA files).
+  - This is selected by default for graphs where it is possible -- i.e. graphs
+    where node names include an orientation, which is pretty much all supported
+    graphs except for MetaCarvel GML and Flye DOT files.
+
+  - This makes the treemap more useful in most cases, because it will just
+    represent each pair of nodes {`X`, `-X`} once instead of twice.
 
 - Add the `--dry` command-line option. If specified, this will quit before
   starting a server with Dash. (Useful for benchmarking.)
