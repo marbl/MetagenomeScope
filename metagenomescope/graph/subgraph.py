@@ -147,6 +147,11 @@ class Subgraph(object):
         # num_unsplit_nodes + (num_split_nodes / 2).
         self.num_full_nodes = 0
 
+        # Total number of "full" nodes that have names that do not start w/ "-"
+        # This doesn't mean anything for graphs where node names do not have
+        # orientations (MetaCarvel GML and Flye DOT)
+        self.num_fwd_nodes = 0
+
         # Number of edges in this Subgraph, not including fake edges from a
         # left split node to a right split node.
         self.num_real_edges = 0
@@ -237,6 +242,8 @@ class Subgraph(object):
                 self._add_length(node)
             if self.record_node_names:
                 self._record_name(node.basename)
+            if name_utils.is_fwd(bn):
+                self.num_fwd_nodes += 1
             self.seen_basenames.add(bn)
 
         # It is possible for only one of a split node to be in a Subgraph
