@@ -78,9 +78,9 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   for the treemap
   ([#332](https://github.com/marbl/MetagenomeScope/issues/332)).
 
-  - This is selected by default for graphs where it is possible -- i.e. graphs
-    where node names include an orientation, which is pretty much all supported
-    graphs except for MetaCarvel GML and Flye DOT files.
+  - This is selected by default for all graphs where possible (currently, the
+    only graphs where this is not selected by default are MetaCarvel GML and
+    Flye DOT files).
 
   - This makes the treemap more useful in most cases, because it will just
     represent each pair of nodes {`X`, `-X`} once instead of twice.
