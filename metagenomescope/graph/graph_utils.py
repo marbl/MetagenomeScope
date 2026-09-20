@@ -396,7 +396,9 @@ def validate_treemap_type(ag, treemap_type):
             raise WeirdError("Graph does not support 'single' treemap")
 
 
-def get_treemap_rectangles(cc_nums, node_ct, aggregate=True):
+def get_treemap_rectangles(
+    cc_nums, node_ct, aggregate=True, force_range_threshold=10
+):
     """Formats components of a given node size to be represented in a treemap.
 
     Parameters
@@ -416,6 +418,13 @@ def get_treemap_rectangles(cc_nums, node_ct, aggregate=True):
         If True, we will only create a single rectangle (representing all of
         these components). Otherwise, we will create one rectangle for each
         component.
+
+    force_range_threshold: int
+        If aggregate is True and len(cc_nums) is >= this value, don't use
+        ui_utils.fmt_num_ranges() to set the name of this rectangle -- instead,
+        just force the display of a range. If there are discontinuities (aka
+        "breaks") in the range of component numbers, indicate this by using
+        a "..." instead of an en dash as the range delimiter.
 
     Returns
     -------
@@ -452,7 +461,7 @@ def get_treemap_rectangles(cc_nums, node_ct, aggregate=True):
         # "#1; #3; #5; ... #N"). So, if there are lots of ccs in cc_nums we
         # will avoid fmt_num_ranges() (which will respect breaks) and instead
         # just force the display of a range.
-        if len(cc_nums) < 10:
+        if len(cc_nums) < force_range_threshold:
             name = ui_utils.fmt_num_ranges(cc_nums)
         else:
             if max_cc_num - min_cc_num + 1 == len(cc_nums):

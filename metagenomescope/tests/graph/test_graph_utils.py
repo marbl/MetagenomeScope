@@ -375,6 +375,24 @@ def test_get_treemap_rectangles_multi_discontinuous():
     )
 
 
+def test_get_treemap_rectangles_multi_discontinuous_force_range():
+    assert gu.get_treemap_rectangles(
+        [900, 901, 2000, 1999], 30, force_range_threshold=4
+    ) == (
+        ["#900 ... 2,000 (30-node components)"],
+        [120],
+    )
+
+
+def test_get_treemap_rectangles_multi_continuous_force_range():
+    assert gu.get_treemap_rectangles(
+        [900, 901], 30, force_range_threshold=2
+    ) == (
+        ["#900 \u2013 901 (30-node components)"],
+        [60],
+    )
+
+
 def test_get_treemap_rectangles_multi_no_aggregate():
     assert gu.get_treemap_rectangles([1, 2], 5, aggregate=False) == (
         ["#1", "#2"],
