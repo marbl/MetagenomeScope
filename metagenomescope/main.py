@@ -1444,9 +1444,14 @@ def run(
                                                         html.Div(
                                                             [
                                                                 html.Div(
-                                                                    html.Div(
-                                                                        id="ccTreemapContainer",
-                                                                    ),
+                                                                    [
+                                                                        html.Div(
+                                                                            id="ccTreemapContainer",
+                                                                        ),
+                                                                        chart_utils.get_treemap_options(
+                                                                            ag
+                                                                        ),
+                                                                    ],
                                                                     className="tab-pane fade show active",
                                                                     id="ccNestTreemapTabPane",
                                                                     role="tabpanel",
@@ -1956,7 +1961,7 @@ def run(
                 nouns = "edges"
                 barcolor = "#7a0"
 
-            title = f"Number of {nouns} per component"
+            title = f"Number of {nouns} per component (all components)"
             cts, title = ui_utils.truncate_hist(cts, title, maxx)
 
             fig = go.Figure()
@@ -1981,16 +1986,20 @@ def run(
 
         @callback(
             Output("ccTreemapContainer", "children"),
+            Input("ccTreemapType", "value"),
             Input("ccTab", "n_clicks"),
             prevent_initial_call=True,
         )
-        def plot_cc_treemap(n_clicks):
-            cc_names, cc_parents, cc_sizes, cc_aggs = ag.to_treemap()
+        def plot_cc_treemap(treemap_type, n_clicks):
+            cc_names, cc_parents, cc_sizes, cc_aggs = ag.to_treemap(
+                treemap_type
+            )
             # silly thing: scale the aggregated rectangles' colors along a
             # distinct gradient to make them stand out visually
             cc_marker_colors = color_utils.selectively_interpolate_hsl(
                 cc_aggs, S=5
             )
+            title = chart_utils.get_treemap_title(treemap_type)
             fig = go.Figure(
                 go.Treemap(
                     # actual data
@@ -2021,7 +2030,7 @@ def run(
                 )
             )
             fig.update_layout(
-                title_text="Number of nodes per component",
+                title_text=title,
                 title=dict(yanchor="bottom", y=1, yref="paper"),
                 font=dict(size=16),
                 title_pad=dict(b=30),

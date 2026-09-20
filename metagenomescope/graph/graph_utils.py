@@ -1,6 +1,6 @@
 import logging
 from collections import Counter
-from .. import ui_utils, name_utils, config
+from .. import ui_utils, name_utils, config, ui_config
 from metagenomescope.errors import WeirdError, GraphParsingError
 
 
@@ -390,6 +390,12 @@ def validate_multiple_ccs(ag):
         raise WeirdError("Graph has < 1 components? Something is busted.")
 
 
+def validate_treemap_type(ag, treemap_type):
+    if treemap_type == ui_config.TREEMAP_SINGLE:
+        if not ag.orientation_in_name or ag.is_flye_dot:
+            raise WeirdError("Graph does not support 'single' treemap")
+
+
 def get_treemap_rectangles(cc_nums, node_ct, aggregate=True):
     """Formats components of a given node size to be represented in a treemap.
 
@@ -428,8 +434,6 @@ def get_treemap_rectangles(cc_nums, node_ct, aggregate=True):
     ------
     WeirdError
         If len(cc_nums) < 1.
-        If aggregate=True and cc_nums does not represent a continuous range
-        of integers.
     """
     if len(cc_nums) < 1:
         raise WeirdError("cc_nums cannot be empty")
@@ -438,18 +442,17 @@ def get_treemap_rectangles(cc_nums, node_ct, aggregate=True):
     if len(cc_nums) > 1 and aggregate:
         min_cc_num = min(cc_nums)
         max_cc_num = max(cc_nums)
-        # NOTE: now that we delegate computing the hover text template to
-        # ui_utils.fmt_num_ranges(), this is no longer a strict requirement;
-        # that function can describe discontinuous cc size ranks. However, we
-        # should not see this happen in practice here, so let's be paranoid.
-        if max_cc_num - min_cc_num + 1 != len(cc_nums):
-            raise WeirdError(
-                "Discontinuous size ranks: "
-                f"|{min_cc_num:,} to {max_cc_num:,}| != {len(cc_nums):,}"
-            )
-        names.append(
-            f"{ui_utils.fmt_num_ranges(cc_nums)} ({node_ct:,}-node components)"
-        )
+        # We now allow there to be "breaks" in cc_nums -- this can happen if
+        # we are showing only nonredundant ccs.
+        if len(cc_nums) < 10:
+            name = ui_utils.fmt_num_ranges(cc_nums)
+        else:
+            # Since showing like a zillion components using
+            # ui_utils.fmt_num_ranges() can take up a lot of space if there
+            # are "breaks" in between components (e.g. "#1; #3; #5; ... #N"),
+            # we just show "#1 - N" and call it a day.
+            name = ui_utils.get_from_text(min_cc_num, max_cc_num)
+        names.append(f"{name} ({node_ct:,}-node components)")
         # If we have let's say 5 components that each contain
         # exactly 3 nodes, then they represent 15 nodes total.
         sizes.append(node_ct * len(cc_nums))

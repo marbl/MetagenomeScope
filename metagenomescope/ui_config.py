@@ -227,6 +227,11 @@ EDGES_HIST = "edges"
 # components in the treemap
 MIN_LARGE_CC_COUNT = 100
 
+# single means "only show NR components and decouple strand-tangled components"
+# double means "show all components, and do not take into account decoupling"
+TREEMAP_SINGLE = "single"
+TREEMAP_DOUBLE = "double"
+
 ###############################################################################
 # Component size rank selection
 ###############################################################################

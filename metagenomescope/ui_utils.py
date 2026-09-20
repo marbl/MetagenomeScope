@@ -788,9 +788,9 @@ def _get_fmt_num(n, prefix="#", thousands_seps=True):
         return f"{prefix}{n}"
 
 
-def _get_from_text(a, b, prefix="#", thousands_seps=True):
+def get_from_text(a, b, prefix="#", thousands_seps=True, delim="\u2013"):
     out = _get_fmt_num(a, prefix=prefix, thousands_seps=thousands_seps)
-    out += " \u2013 "
+    out += f" {delim} "
     out += _get_fmt_num(b, prefix="", thousands_seps=thousands_seps)
     return out
 
@@ -801,7 +801,7 @@ def _get_range_text(r, thousands_seps=True):
     if len(r) == 1:
         return _get_fmt_num(r[0], thousands_seps=thousands_seps)
     else:
-        return _get_from_text(r[0], r[-1], thousands_seps=thousands_seps)
+        return get_from_text(r[0], r[-1], thousands_seps=thousands_seps)
 
 
 def _get_range_text_from_bounds_only(low, high):
@@ -810,7 +810,7 @@ def _get_range_text_from_bounds_only(low, high):
     if low == high:
         return f"#{low:,}"
     else:
-        return _get_from_text(low, high)
+        return get_from_text(low, high)
 
 
 def fmt_num_ranges(nums, thousands_seps=True):

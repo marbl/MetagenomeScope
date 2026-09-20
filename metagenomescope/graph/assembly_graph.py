@@ -2668,11 +2668,26 @@ class AssemblyGraph(object):
 
         return dr
 
-    def to_treemap(self, min_large_cc_ct=ui_config.MIN_LARGE_CC_COUNT):
+    def to_treemap(
+        self,
+        treemap_type=ui_config.TREEMAP_DOUBLE,
+        min_large_cc_ct=ui_config.MIN_LARGE_CC_COUNT,
+    ):
         """Creates data describing the graph's components for use in a treemap.
 
         Parameters
         ----------
+        treemap_type: str
+            ui_config.DOUBLE is the old way of doing this: get the full node
+            counts from all components, ignoring nonredundant components and
+            decoupling.
+
+            ui_config.SINGLE is the new way of doing this: only get counts from
+            nonredundant components, and if a component has been decoupled then
+            just use its number of shown full nodes in the decoupling. (Of
+            course, not all graphs will support this - hence why this function
+            defaults to DOUBLE.)
+
         min_large_cc_ct: int
             We will aggregate components with the same number of nodes together
             only if the graph contains at least this many components.
@@ -2699,19 +2714,31 @@ class AssemblyGraph(object):
             is not considered to be an aggregate.
         """
         graph_utils.validate_multiple_ccs(self)
+        graph_utils.validate_treemap_type(self, treemap_type)
 
         cc_names = ["Components"]
         cc_parents = [""]
-        cc_sizes = [self.node_ct]
+        cc_sizes = []
         cc_aggs = [False]
 
+        single = treemap_type == ui_config.TREEMAP_SINGLE
+
+        if single:
+            ccs = [self.get_cc_by_num(i) for i in self.nr_cc_nums]
+        else:
+            ccs = self.components
+
         node_ct2cc_nums = defaultdict(list)
-        for cc in self.components:
-            node_ct2cc_nums[cc.num_full_nodes].append(cc.cc_num)
+        for cc in ccs:
+            if single and cc.decoupling_done:
+                nct = cc.dc_shown_num_full_nodes
+            else:
+                nct = cc.num_full_nodes
+            node_ct2cc_nums[nct].append(cc.cc_num)
 
         # If the graph contains a relatively small number of components,
         # don't bother aggregating same-size components' rectangles together
-        aggregate = len(self.components) >= min_large_cc_ct
+        aggregate = len(ccs) >= min_large_cc_ct
 
         # Go in descending order of node counts: so, consider the biggest
         # component first, then the second biggest, etc.
@@ -2731,6 +2758,7 @@ class AssemblyGraph(object):
             else:
                 cc_aggs.append(False)
 
+        cc_sizes.insert(0, sum(cc_sizes))
         return cc_names, cc_parents, cc_sizes, cc_aggs
 
     def to_cc_scatter(self):

@@ -242,3 +242,54 @@ def get_scatterplot_options(x_scale_id, y_scale_id):
             ui_config.OPTIONS_SEP,
         ]
     )
+
+
+def get_treemap_options(ag):
+    if ag.orientation_in_name and not ag.is_flye_dot:
+        default = ui_config.TREEMAP_SINGLE
+        ig_classes = ""
+    else:
+        # MetaCarvel GML and Flye DOT files don't support decoupling (and
+        # MetaCarvel GMLs don't even support the notion of "nonredundant"
+        # components), so hide the option for these graphs.
+        default = ui_config.TREEMAP_DOUBLE
+        ig_classes = " removedEntirely"
+
+    return dbc.InputGroup(
+        [
+            dbc.InputGroupText(
+                "Show only nonredundant components, and decouple strand-tangled components?",
+                className="input-group-text-next-to-radio-button-group",
+            ),
+            html.Div(
+                dbc.RadioItems(
+                    options=[
+                        {
+                            "label": "Yes",
+                            "value": ui_config.TREEMAP_SINGLE,
+                        },
+                        {
+                            "label": "No",
+                            "value": ui_config.TREEMAP_DOUBLE,
+                        },
+                    ],
+                    value=default,
+                    className="btn-group",
+                    inputClassName="btn-check",
+                    labelClassName="btn btn-sm btn-outline-dark",
+                    labelCheckedClassName="active",
+                    id="ccTreemapType",
+                ),
+                className="btn-opt-group",
+            ),
+        ],
+        size="sm",
+        className=ig_classes,
+    )
+
+
+def get_treemap_title(treemap_type):
+    if treemap_type == ui_config.TREEMAP_SINGLE:
+        return "Number of nodes per component (nonredundant and decoupled)"
+    else:
+        return "Number of nodes per component (all components)"
