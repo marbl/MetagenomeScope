@@ -1470,7 +1470,12 @@ def get_dot_alg_descriptions(scope_settings, modifier_settings):
                 "patterns first, then lay out parent patterns of those "
                 "patterns, and eventually lay out the entire graph.",
             ],
-            id="dotAlgPatternDesc",
+        ),
+        html.P(
+            [
+                html.Span("Note:", style={"font-weight": "bold"}),
+                " Recursive layout can take a while for large graphs.",
+            ],
         ),
     ]
     if do_recursive_layout(scope_settings, modifier_settings):
