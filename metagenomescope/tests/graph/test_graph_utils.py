@@ -364,13 +364,15 @@ def test_get_treemap_rectangles_multi_aggregate():
 
 
 def test_get_treemap_rectangles_multi_discontinuous():
-    with pytest.raises(WeirdError) as ei:
-        gu.get_treemap_rectangles([1, 3], 5)
-    assert str(ei.value) == "Discontinuous size ranks: |1 to 3| != 2"
+    assert gu.get_treemap_rectangles([1, 3], 5) == (
+        ["#1; #3 (5-node components)"],
+        [10],
+    )
 
-    with pytest.raises(WeirdError) as ei:
-        gu.get_treemap_rectangles([900, 901, 2000, 1999], 30)
-    assert str(ei.value) == "Discontinuous size ranks: |900 to 2,000| != 4"
+    assert gu.get_treemap_rectangles([900, 901, 2000, 1999], 30) == (
+        ["#900 \u2013 901; #1,999 \u2013 2,000 (30-node components)"],
+        [120],
+    )
 
 
 def test_get_treemap_rectangles_multi_no_aggregate():
