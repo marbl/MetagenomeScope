@@ -1,6 +1,7 @@
 import pytest
 from metagenomescope.errors import WeirdError
 from metagenomescope.graph import AssemblyGraph
+from metagenomescope import ui_config
 
 
 def test_to_treemap_one_cc_fails():
@@ -32,4 +33,20 @@ def test_to_treemap_aggregation():
         ["", "Components", "Components"],
         [12, 10, 2],
         [False, True, True],
+    )
+
+
+def test_to_treemap_single_no_aggregation():
+    ag = AssemblyGraph("metagenomescope/tests/input/sample1.gfa")
+    assert ag.to_treemap(
+        treemap_type=ui_config.TREEMAP_SINGLE, min_large_cc_ct=100
+    ) == (
+        [
+            "Components",
+            "#1",
+            "#3",
+        ],
+        ["", "Components", "Components"],
+        [6, 5, 1],
+        [False, False, False],
     )
