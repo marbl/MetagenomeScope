@@ -443,15 +443,25 @@ def get_treemap_rectangles(cc_nums, node_ct, aggregate=True):
         min_cc_num = min(cc_nums)
         max_cc_num = max(cc_nums)
         # We now allow there to be "breaks" in cc_nums -- this can happen if
-        # we are showing only nonredundant ccs.
+        # we are showing only nonredundant ccs (where instead of aggregating
+        # 10, 11, 12, 13, ... together we might be aggregating 10, 12, ...).
+        # fmt_num_ranges() will handle this case nicely.
+        #
+        # However, showing many components using fmt_num_ranges() can take up a
+        # lot of space due to breaks (e.g. instead of showing "#1 - N" we show
+        # "#1; #3; #5; ... #N"). So, if there are lots of ccs in cc_nums we
+        # will avoid fmt_num_ranges() (which will respect breaks) and instead
+        # just force the display of a range.
         if len(cc_nums) < 10:
             name = ui_utils.fmt_num_ranges(cc_nums)
         else:
-            # Since showing like a zillion components using
-            # ui_utils.fmt_num_ranges() can take up a lot of space if there
-            # are "breaks" in between components (e.g. "#1; #3; #5; ... #N"),
-            # we just show "#1 - N" and call it a day.
-            name = ui_utils.get_from_text(min_cc_num, max_cc_num)
+            if max_cc_num - min_cc_num + 1 == len(cc_nums):
+                # No breaks, so showing a range is fine
+                delim = "\u2013"
+            else:
+                # There are breaks! Indicate this.
+                delim = "..."
+            name = ui_utils.get_from_text(min_cc_num, max_cc_num, delim=delim)
         names.append(f"{name} ({node_ct:,}-node components)")
         # If we have let's say 5 components that each contain
         # exactly 3 nodes, then they represent 15 nodes total.
