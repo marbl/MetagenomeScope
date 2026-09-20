@@ -235,8 +235,9 @@ class AssemblyGraph(object):
         self.edge_ct = len(self.graph.edges)
 
         logger.info(
-            f"Graph contains {ui_utils.pluralize(self.node_ct, 'node')} and "
-            f"{ui_utils.pluralize(self.edge_ct, 'edge')}."
+            f"Graph has {ui_utils.pluralize(self.node_ct, 'node')} and "
+            f"{ui_utils.pluralize(self.edge_ct, 'edge')} (including both "
+            "+ and -)."
         )
         graph_utils.validate_nonempty(self)
 
