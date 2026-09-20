@@ -36,7 +36,7 @@ def test_to_treemap_aggregation():
     )
 
 
-def test_to_treemap_single_no_aggregation():
+def test_to_treemap_single_no_aggregation_no_decoupling():
     ag = AssemblyGraph("metagenomescope/tests/input/sample1.gfa")
     assert ag.to_treemap(
         treemap_type=ui_config.TREEMAP_SINGLE, min_large_cc_ct=100
@@ -49,4 +49,43 @@ def test_to_treemap_single_no_aggregation():
         ["", "Components", "Components"],
         [6, 5, 1],
         [False, False, False],
+    )
+
+
+def test_to_treemap_single_no_aggregation_decoupling():
+    ag = AssemblyGraph(
+        "metagenomescope/tests/input/strand-tangled-with-other-ccs.gfa"
+    )
+    assert ag.to_treemap(
+        treemap_type=ui_config.TREEMAP_SINGLE, min_large_cc_ct=100
+    ) == (
+        [
+            "Components",
+            "#1",
+            "#2",
+            "#4",
+        ],
+        ["", "Components", "Components", "Components"],
+        [5, 3, 1, 1],
+        [False, False, False, False],
+    )
+
+
+def test_to_treemap_single_aggregation_and_also_decoupling():
+    # okay but like for the record the aggregation doesnt impact the decoupling
+    # in this particular example
+    ag = AssemblyGraph(
+        "metagenomescope/tests/input/strand-tangled-with-other-ccs.gfa"
+    )
+    assert ag.to_treemap(
+        treemap_type=ui_config.TREEMAP_SINGLE, min_large_cc_ct=1
+    ) == (
+        [
+            "Components",
+            "#1",
+            "#2; #4 (1-node components)",
+        ],
+        ["", "Components", "Components"],
+        [5, 3, 2],
+        [False, False, True],
     )
