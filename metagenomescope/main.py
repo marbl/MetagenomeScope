@@ -3500,11 +3500,16 @@ def run(
             Input("seqSearchRunButton", "n_clicks"),
             State("seqSearchInput", "value"),
             prevent_initial_call=True,
+            running=[
+                (Output("seqSearchStatus", "children"), "Running...", "Done.")
+            ],
         )
         def run_seq_search(curr_toasts, nc, in_fasta):
             try:
+                logging.debug("Running sequence search...")
                 inseq2graphseqs = ag.run_seq_search(in_fasta)
             except UIError as err:
+                logging.debug("...Ran into an error.")
                 return (
                     ui_utils.add_error_toast(
                         curr_toasts, "Mapping error", str(err)
@@ -3512,7 +3517,9 @@ def run(
                     no_update,
                 )
             paras = []
-            for s in inseq2graphseqs:
+            # TODO it might be nice to match the ordering in the input FASTA
+            # eventually
+            for s in sorted(inseq2graphseqs):
                 paras.append(
                     html.P(
                         [
@@ -3522,6 +3529,7 @@ def run(
                         ]
                     )
                 )
+            logging.debug("...Done.")
             return no_update, html.Div(paras)
 
     clientside_callback(

@@ -49,9 +49,10 @@ class SeqHolder(object):
         return len(self.node_names_with_seqs)
 
     def run_search(self, in_fasta):
-        # TODO it would be good to do some sort of validation on this.
-        # but in the meantime I guesssss we can leave that up to the aligner
-        logging.debug("Running sequence search...")
+        if in_fasta is None:
+            # can happen if the textarea is empty
+            raise UIError("No sequence(s) given.")
+
         # Use a temporary directory instead of just a single temporary file,
         # since indexing will create a bunch of files that I don't want to
         # leave around (so that doing a bunch of searches won't clog up the
@@ -128,5 +129,4 @@ class SeqHolder(object):
                 "  ...Done. "
                 f"Found {ui_utils.pluralize(num_alns, 'alignment')}."
             )
-        logging.debug("...Done.")
         return inseq2graphseqs

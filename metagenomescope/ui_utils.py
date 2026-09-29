@@ -1959,21 +1959,24 @@ def get_seq_search_modal_body():
                 size="md",
                 placeholder="FASTA of sequence(s) to search for in the graph",
                 style={"min-height": "15em"},
+                className="font-monospace",
                 id="seqSearchInput",
             ),
             html.Div(
-                html.Button(
-                    [
-                        html.I(className="bi bi-shuffle"),
-                        html.Span(
-                            "Map graph sequences to these sequences",
-                            className="iconlbl",
-                        ),
-                    ],
-                    id="seqSearchRunButton",
-                    className="btn btn-success",
-                    type="button",
-                ),
+                [
+                    html.Button(
+                        [
+                            html.I(className="bi bi-shuffle"),
+                            html.Span(
+                                "Map graph sequences to these sequences",
+                                className="iconlbl",
+                            ),
+                        ],
+                        id="seqSearchRunButton",
+                        className="btn btn-success",
+                        type="button",
+                    ),
+                ],
                 style={
                     "text-align": "right",
                     "margin-top": "1em",
@@ -1983,11 +1986,14 @@ def get_seq_search_modal_body():
             html.H5(
                 "Results: input sequences, and the graph sequences that mapped to them"
             ),
-            html.Div(
+            html.P(
                 "(No results yet.)",
+                id="seqSearchStatus",
+                style={"margin-top": "1em"},
+            ),
+            html.Div(
                 id="seqSearchResults",
                 className="font-monospace",
-                style={"margin-top": "1em"},
             ),
         ]
     )
