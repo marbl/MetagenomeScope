@@ -1964,6 +1964,15 @@ def get_seq_search_modal_body():
             ),
             html.Div(
                 [
+                    html.Span(
+                        "(No results yet.)",
+                        className="font-monospace",
+                        id="seqSearchStatus",
+                        style={
+                            "margin-right": "1em",
+                            "vertical-align": "middle",
+                        },
+                    ),
                     html.Button(
                         [
                             html.I(className="bi bi-shuffle"),
@@ -1986,14 +1995,10 @@ def get_seq_search_modal_body():
             html.H5(
                 "Results: input sequences, and the graph sequences that mapped to them"
             ),
-            html.P(
-                "(No results yet.)",
-                id="seqSearchStatus",
-                style={"margin-top": "1em"},
-            ),
             html.Div(
                 id="seqSearchResults",
                 className="font-monospace",
+                style={"margin-top": "1em"},
             ),
         ]
     )
