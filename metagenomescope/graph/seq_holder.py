@@ -109,9 +109,8 @@ class SeqHolder(object):
                 )
             except subprocess.CalledProcessError:
                 raise UIError(
-                    "Running bowtie2 failed. I'm not sure why this would "
-                    "happen, since indexing the above FASTA apparently worked "
-                    "out??? Please file an issue on MetagenomeScope's GitHub."
+                    "Performing alignment with bowtie2 failed. This could "
+                    "indicate that it ran out of memory."
                 )
             logging.debug("  ...Done. Parsing alignment...")
 
