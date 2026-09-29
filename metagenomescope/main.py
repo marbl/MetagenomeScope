@@ -3494,13 +3494,23 @@ def run(
             return is_open
 
         @callback(
+            Output("toastHolder", "children", allow_duplicate=True),
             Output("seqSearchResults", "children"),
+            State("toastHolder", "children"),
             Input("seqSearchRunButton", "n_clicks"),
             State("seqSearchInput", "value"),
             prevent_initial_call=True,
         )
-        def run_seq_search(nc, in_fasta):
-            inseq2graphseqs = ag.run_seq_search(in_fasta)
+        def run_seq_search(curr_toasts, nc, in_fasta):
+            try:
+                inseq2graphseqs = ag.run_seq_search(in_fasta)
+            except UIError as err:
+                return (
+                    ui_utils.add_error_toast(
+                        curr_toasts, "Mapping error", str(err)
+                    ),
+                    no_update,
+                )
             paras = []
             for s in inseq2graphseqs:
                 paras.append(
@@ -3512,7 +3522,7 @@ def run(
                         ]
                     )
                 )
-            return html.Div(paras)
+            return no_update, html.Div(paras)
 
     clientside_callback(
         ClientsideFunction(

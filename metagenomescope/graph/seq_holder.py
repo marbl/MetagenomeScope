@@ -5,7 +5,7 @@ import subprocess
 import pyfastx as pf
 from collections import defaultdict
 from .. import name_utils, ui_utils
-from ..errors import SeqParsingError
+from ..errors import SeqParsingError, UIError
 
 
 class SeqHolder(object):
@@ -64,28 +64,54 @@ class SeqHolder(object):
                 fh.write(in_fasta)
             logging.debug("  ...Done. Indexing input FASTA...")
 
-            subprocess.run(["bowtie2-build", "--quiet", tfp, tfp])
+            try:
+                subprocess.run(
+                    ["bowtie2-build", "--quiet", tfp, tfp], check=True
+                )
+            except FileNotFoundError:
+                raise UIError(
+                    "Received a FileNotFoundError when using bowtie2-build. "
+                    "Please make sure that bowtie2 is installed."
+                )
+            except subprocess.CalledProcessError:
+                raise UIError(
+                    "Creating an index using bowtie2-build failed. Please "
+                    "make sure that you provided valid FASTA input above."
+                )
             logging.debug("  ...Done. Running alignment...")
 
             # https://docs.python.org/3/library/subprocess.html#replacing-shell-pipeline
             afp = os.path.join(td, "aln.sam")
             # need -f because the "reads" (query sequences) are in FASTA
             # instead of FASTQ format
-            subprocess.run(
-                [
-                    "bowtie2",
-                    "-x",
-                    tfp,
-                    "--quiet",
-                    "--local",
-                    "--no-unal",
-                    "--no-head",
-                    "-f",
-                    self.fasta_fp,
-                    "-S",
-                    afp,
-                ],
-            )
+            try:
+                subprocess.run(
+                    [
+                        "bowtie2",
+                        "-x",
+                        tfp,
+                        "--quiet",
+                        "--local",
+                        "--no-unal",
+                        "--no-head",
+                        "-f",
+                        self.fasta_fp,
+                        "-S",
+                        afp,
+                    ],
+                    check=True,
+                )
+            except FileNotFoundError:
+                raise UIError(
+                    "Received a FileNotFoundError when using bowtie2. "
+                    "Please make sure that bowtie2 is installed."
+                )
+            except subprocess.CalledProcessError:
+                raise UIError(
+                    "Running bowtie2 failed. I'm not sure why this would "
+                    "happen, since indexing the above FASTA apparently worked "
+                    "out??? Please file an issue on MetagenomeScope's GitHub."
+                )
             logging.debug("  ...Done. Parsing alignment...")
 
             # I am SURE there are faster ways to do this; see
