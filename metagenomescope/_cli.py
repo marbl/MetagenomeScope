@@ -23,13 +23,13 @@ from . import __version__, defaults, descs, config
     required=True,
     help=descs.GRAPH,
 )
-# @click.option(
-#     "-f",
-#     "--fasta",
-#     type=click.Path(exists=True, dir_okay=False, readable=True),
-#     required=False,
-#     help=FASTA,
-# )
+@click.option(
+    "-f",
+    "--fasta",
+    type=click.Path(exists=True, dir_okay=False, readable=True),
+    required=False,
+    help=descs.FASTA,
+)
 @click.option(
     "-a",
     "--agp",
@@ -114,6 +114,7 @@ from . import __version__, defaults, descs, config
 @click.version_option(__version__, "-v", "--version")
 def run_script(
     graph: str,
+    fasta: str,
     agp: str,
     vtsv: str,
     info: str,
@@ -144,6 +145,7 @@ def run_script(
         [
             "Settings:",
             f"Graph file: {graph}",
+            f"FASTA file: {fasta}",
             f"AGP file: {agp}",
             f"Verkko paths TSV file: {vtsv}",
             f"Flye info file: {info}",
@@ -163,6 +165,7 @@ def run_script(
 
     run(
         graph=graph,
+        fasta=fasta,
         agp=agp,
         vtsv=vtsv,
         flye_info=info,

@@ -6,6 +6,10 @@ class PathParsingError(Exception):
     pass
 
 
+class SeqParsingError(Exception):
+    pass
+
+
 class GraphError(Exception):
     pass
 

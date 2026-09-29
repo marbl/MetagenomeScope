@@ -36,6 +36,7 @@ from .errors import UIError, WeirdError
 
 def run(
     graph: str = None,
+    fasta: str = None,
     agp: str = None,
     vtsv: str = None,
     flye_info: str = None,
@@ -52,6 +53,11 @@ def run(
     ----------
     graph: str
         Path to the assembly graph to be visualized.
+
+    fasta: str
+        Path to a FASTA file describing node sequences. Eventually this
+        will support edge sequences in DOT files, etc., probably.
+        (Optional.)
 
     agp: str or None
         Path to an AGP file describing paths of nodes/edges in the graph.
@@ -101,6 +107,7 @@ def run(
     # edges, etc.
     ag = AssemblyGraph(
         graph,
+        fasta_fp=fasta,
         agp_fp=agp,
         verkko_tsv_fp=vtsv,
         flye_info_fp=flye_info,

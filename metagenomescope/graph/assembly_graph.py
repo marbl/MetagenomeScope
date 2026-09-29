@@ -2,6 +2,7 @@ import math
 import random
 import logging
 import pandas as pd
+import pyfastx
 from copy import deepcopy
 from collections import defaultdict
 import networkx as nx
@@ -22,6 +23,7 @@ from .. import (
 from ..gap import Gap
 from ..errors import WeirdError, GraphParsingError
 from . import validators, graph_utils
+from .seq_holder import SeqHolder
 from .draw_results import DrawResults
 from .subgraph import Subgraph
 from .component import Component
@@ -69,6 +71,7 @@ class AssemblyGraph(object):
     def __init__(
         self,
         graph_fp,
+        fasta_fp=None,
         agp_fp=None,
         verkko_tsv_fp=None,
         flye_info_fp=None,
@@ -82,6 +85,10 @@ class AssemblyGraph(object):
         ----------
         graph_fp: str
             Path to the assembly graph to be visualized.
+
+        fasta_fp: str or None
+            If specified, this should be a path to a FASTA file describing the
+            sequences of nodes in the graph.
 
         agp_fp: str or None
             If specified, this should be a path to an AGP file describing paths
@@ -135,6 +142,9 @@ class AssemblyGraph(object):
 
         self.filename = graph_fp
         self.basename = misc_utils.get_basename_if_fp(graph_fp)
+        self.fasta_filename = fasta_fp
+        self.fasta_basename = misc_utils.get_basename_if_fp(fasta_fp)
+        self.seq_holder = None
         self.agp_filename = agp_fp
         self.agp_basename = misc_utils.get_basename_if_fp(agp_fp)
         self.verkko_tsv_filename = verkko_tsv_fp
@@ -435,6 +445,18 @@ class AssemblyGraph(object):
                     f"{ui_utils.pluralize(len(self.st_cc_nums), 'strand-tangled component')}."
                 )
 
+        # Process sequences, if given.
+        if self.fasta_filename is not None:
+            logger.info(
+                '  Loading and (if needed) indexing input FASTA file '
+                f'"{self.fasta_basename}"...'
+            )
+            self.seq_holder = SeqHolder(self.fasta_filename, self.nodename2objs)
+            logger.info(
+                "  ...Done. It contained "
+                f"{ui_utils.pluralize(len(self.seq_holder), 'sequence')}."
+            )
+
         # Process paths, if given.
         #
         # Maps path names -> list of node or edge names in path
@@ -504,7 +526,7 @@ class AssemblyGraph(object):
         # If there were any paths at all, record info about them (and filter
         # out paths containing stuff not in the graph)
         if len(input_paths) > 0:
-            logger.debug("  Matching up paths to the graph...")
+            logger.info("  Matching up paths to the graph...")
             # TODO can update path lookup stuff to use nodename2objs - faster
             id2obj = self.nodeid2obj if self.node_centric else self.edgeid2obj
             self.objname2pathnames, self.pathname2ccnums = (
@@ -520,7 +542,7 @@ class AssemblyGraph(object):
                     n for n in input_paths[p] if type(n) is not Gap
                 ]
                 ccs_with_a_path |= ccnums
-            logger.debug(
+            logger.info(
                 "  ...Done. Found "
                 f"{ui_utils.pluralize(len(self.pathname2objnames), 'path')} "
                 "across "

@@ -213,6 +213,8 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 
 - Various improvements to the documentation, tests, and code.
 
+- Add pyfastx as a dependency.
+
 ### Fixed
 
 - Use consistent conversions between Graphviz points and inches; fixes

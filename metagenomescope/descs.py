@@ -2,10 +2,7 @@
 
 GRAPH = "In GFA, FASTG, DOT, GML, or LastGraph format."
 
-FASTA = (
-    "FASTA file describing the sequences of the nodes (GFA, FASTG, GML, "
-    "LastGraph) or edges (DOT)."
-)
+FASTA = "FASTA file describing node sequences."
 
 AGP = "AGP file describing paths."
 
