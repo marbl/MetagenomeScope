@@ -216,6 +216,15 @@ def run(
         ]
     )
 
+    # If the user specified, show an interface for that
+    seqs_given = ag.seq_holder is not None
+    seq_html = []
+    if seqs_given:
+        seq_html = [
+            ctrl_sep,
+            html.H4("Sequences"),
+        ]
+
     # If the user specified paths somehow (e.g. an AGP file), we'll show an
     # interface for these
     paths_given = len(ag.pathname2objnames) > 0
@@ -733,6 +742,7 @@ def run(
                             + ui_utils.get_selected_patt_html(),
                             className="noPadding",
                         ),
+                        *seq_html,
                         *path_html,
                         ctrl_sep,
                         html.H4(

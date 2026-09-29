@@ -2,7 +2,6 @@ import math
 import random
 import logging
 import pandas as pd
-import pyfastx
 from copy import deepcopy
 from collections import defaultdict
 import networkx as nx
