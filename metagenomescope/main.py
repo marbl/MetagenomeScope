@@ -3494,12 +3494,14 @@ def run(
             return is_open
 
         @callback(
+            Output("seqSearchResults", "children"),
             Input("seqSearchRunButton", "n_clicks"),
             State("seqSearchInput", "value"),
             prevent_initial_call=True,
         )
-        def run_seq_search(nc, query_fasta):
-            print("running! yay")
+        def run_seq_search(nc, in_fasta):
+            matching_seqs = ag.run_seq_search(in_fasta)
+            return matching_seqs
 
     clientside_callback(
         ClientsideFunction(

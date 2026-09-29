@@ -2897,3 +2897,10 @@ class AssemblyGraph(object):
             xlatex,
             ylatex,
         )
+
+    def run_seq_search(self, in_fasta):
+        if self.seq_holder is not None:
+            return ", ".join(self.seq_holder.run_search(in_fasta))
+        else:
+            # if no seqs given, the UI elements for this should be hidden
+            raise WeirdError("No sequences given")

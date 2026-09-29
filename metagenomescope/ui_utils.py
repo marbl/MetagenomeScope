@@ -1946,7 +1946,7 @@ def get_style_options_tab(node_centric):
 def get_seq_search_modal_body():
     return html.Div(
         [
-            html.H5("Query sequence(s)"),
+            html.H5("Input sequence(s)"),
             html.P(
                 "Here, you can specify the sequence(s) to search for in the "
                 "graph. Your input should be in FASTA format."
@@ -1976,7 +1976,7 @@ def get_seq_search_modal_body():
                 ),
                 style={"text-align": "right"},
             ),
-            html.H5("Search results"),
+            html.H5("Nodes to which at least one input sequence mapped"),
             html.P("(No results yet.)", id="seqSearchResults"),
         ]
     )
