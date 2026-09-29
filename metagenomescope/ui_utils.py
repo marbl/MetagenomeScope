@@ -1952,7 +1952,7 @@ def get_seq_search_modal_body():
                 "graph. Your input should be in FASTA format."
             ),
             html.P(
-                "Note that this functionality requires that you have bowtie2 "
+                "Note that this functionality requires that you have Bowtie 2 "
                 "installed and available in your PATH!"
             ),
             dbc.Textarea(
