@@ -2,6 +2,7 @@ from .. import name_utils
 from ..errors import SeqParsingError
 import pyfastx as pf
 
+
 class SeqHolder(object):
     """Holds sequence data.
 

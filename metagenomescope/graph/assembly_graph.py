@@ -447,10 +447,12 @@ class AssemblyGraph(object):
         # Process sequences, if given.
         if self.fasta_filename is not None:
             logger.info(
-                '  Loading and (if needed) indexing input FASTA file '
+                "  Loading and (if needed) indexing input FASTA file "
                 f'"{self.fasta_basename}"...'
             )
-            self.seq_holder = SeqHolder(self.fasta_filename, self.nodename2objs)
+            self.seq_holder = SeqHolder(
+                self.fasta_filename, self.nodename2objs
+            )
             logger.info(
                 "  ...Done. It contained "
                 f"{ui_utils.pluralize(len(self.seq_holder), 'sequence')}."

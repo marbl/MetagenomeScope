@@ -223,6 +223,18 @@ def run(
         seq_html = [
             ctrl_sep,
             html.H4("Sequences"),
+            html.Button(
+                [
+                    html.I(className="bi bi-filter-left"),
+                    html.Span(
+                        "Search by sequence",
+                        className="iconlbl",
+                    ),
+                ],
+                id="seqSearchButton",
+                className="btn btn-light",
+                type="button",
+            ),
         ]
 
     # If the user specified paths somehow (e.g. an AGP file), we'll show an
@@ -1805,7 +1817,28 @@ def run(
                         ),
                     ),
                 ],
-                id="modal",
+                id="drawingOptionsModal",
+                is_open=False,
+            ),
+            dbc.Modal(
+                [
+                    dbc.ModalHeader(
+                        [
+                            html.H1(
+                                [
+                                    html.I(className="bi bi-filter-left"),
+                                    html.Span(
+                                        "Search by sequence",
+                                        className="iconlbl",
+                                    ),
+                                ],
+                                className="modal-title fs-5",
+                            ),
+                        ]
+                    ),
+                    dbc.ModalBody(ui_utils.get_seq_search_modal_body()),
+                ],
+                id="seqSearchModal",
                 is_open=False,
             ),
             # toast messages will go here. you can change top-0 to bottom-0 to
@@ -2415,9 +2448,9 @@ def run(
             )
 
     @callback(
-        Output("modal", "is_open"),
+        Output("drawingOptionsModal", "is_open"),
         Input("drawingOptionsButton", "n_clicks"),
-        State("modal", "is_open"),
+        State("drawingOptionsModal", "is_open"),
     )
     def toggle_drawing_options_modal(nc, is_open):
         # from https://www.dash-bootstrap-components.com/docs/components/modal/
@@ -3443,6 +3476,17 @@ def run(
             toasts,
             {"requestGood": True, "nodesToSelect": drawn_nodes},
         )
+
+    @callback(
+        Output("seqSearchModal", "is_open"),
+        Input("seqSearchButton", "n_clicks"),
+        State("seqSearchModal", "is_open"),
+    )
+    def toggle_seq_search_modal(nc, is_open):
+        # from https://www.dash-bootstrap-components.com/docs/components/modal/
+        if nc:
+            return not is_open
+        return is_open
 
     clientside_callback(
         ClientsideFunction(

@@ -1943,6 +1943,10 @@ def get_style_options_tab(node_centric):
     )
 
 
+def get_seq_search_modal_body():
+    return "helo :)"
+
+
 def fail_flush(curr_toasts, error_name, err):
     """Returns output info for flush() indicating that an error happened.
 
