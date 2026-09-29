@@ -1952,8 +1952,8 @@ def get_seq_search_modal_body():
                 "graph. Your input should be in FASTA format."
             ),
             html.P(
-                "Note that this functionality requires that you have minimap2 "
-                "and samtools installed!"
+                "Note that this functionality requires that you have bowtie2 "
+                "installed!"
             ),
             dbc.Textarea(
                 size="md",
@@ -1966,7 +1966,7 @@ def get_seq_search_modal_body():
                     [
                         html.I(className="bi bi-shuffle"),
                         html.Span(
-                            "Map sequences to those in the graph",
+                            "Map graph sequences to these sequences",
                             className="iconlbl",
                         ),
                     ],
@@ -1976,8 +1976,15 @@ def get_seq_search_modal_body():
                 ),
                 style={"text-align": "right"},
             ),
-            html.H5("Nodes to which at least one input sequence mapped"),
-            html.P("(No results yet.)", id="seqSearchResults"),
+            html.H5(
+                "Results: input sequences, and the graph sequences that mapped to them"
+            ),
+            html.Div(
+                "(No results yet.)",
+                id="seqSearchResults",
+                className="font-monospace",
+                style={"margin-top": "1em"},
+            ),
         ]
     )
 

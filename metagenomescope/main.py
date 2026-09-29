@@ -3500,8 +3500,19 @@ def run(
             prevent_initial_call=True,
         )
         def run_seq_search(nc, in_fasta):
-            matching_seqs = ag.run_seq_search(in_fasta)
-            return matching_seqs
+            inseq2graphseqs = ag.run_seq_search(in_fasta)
+            paras = []
+            for s in inseq2graphseqs:
+                paras.append(
+                    html.P(
+                        [
+                            html.Span(f"{s}:", style={"font-weight": "bold"}),
+                            " ",
+                            ", ".join(inseq2graphseqs[s]),
+                        ]
+                    )
+                )
+            return html.Div(paras)
 
     clientside_callback(
         ClientsideFunction(

@@ -3,7 +3,8 @@ import logging
 import tempfile
 import subprocess
 import pyfastx as pf
-from .. import name_utils
+from collections import defaultdict
+from .. import name_utils, ui_utils
 from ..errors import SeqParsingError
 
 
@@ -58,45 +59,48 @@ class SeqHolder(object):
         with tempfile.TemporaryDirectory() as td:
 
             tfp = os.path.join(td, "in.fa")
-            afp = os.path.join(td, "filtered-aln.sam")
             logging.debug(f"  Writing out input FASTA to {tfp}...")
             with open(tfp, "w") as fh:
                 fh.write(in_fasta)
-            logging.debug("  ...Done.")
+            logging.debug("  ...Done. Indexing input FASTA...")
 
-            logging.debug("  Indexing input FASTA...")
             subprocess.run(["bowtie2-build", "--quiet", tfp, tfp])
-            logging.debug("  ...Done.")
+            logging.debug("  ...Done. Running alignment...")
 
             # https://docs.python.org/3/library/subprocess.html#replacing-shell-pipeline
-            logging.debug("  Running alignment and filtering to matches...")
+            afp = os.path.join(td, "aln.sam")
             # need -f because the "reads" (query sequences) are in FASTA
             # instead of FASTQ format
-            aln = subprocess.Popen(
-                ["bowtie2", "-x", tfp, "--local", "-f", self.fasta_fp],
-                stdout=subprocess.PIPE,
+            subprocess.run(
+                [
+                    "bowtie2",
+                    "-x",
+                    tfp,
+                    "--quiet",
+                    "--local",
+                    "--no-unal",
+                    "--no-head",
+                    "-f",
+                    self.fasta_fp,
+                    "-S",
+                    afp,
+                ],
             )
+            logging.debug("  ...Done. Parsing alignment...")
 
-            # use "samtools view -F 4" to get only the mapped query seqs
-            # (i.e. the stuff in the FASTA file or whatever provided along
-            # with the graph when starting up mgsc).
-            samtools = subprocess.Popen(
-                ["samtools", "view", "-F", "4", "-o", afp, "--no-header"],
-                stdin=aln.stdout,
-                stdout=subprocess.PIPE,
-            )
-            logging.debug("  ...Done.")
-
-            aln.stdout.close()
-            samtools.communicate()
-
-            logging.debug("  Extracting match information...")
             # I am SURE there are faster ways to do this; see
             # https://github.com/samtools/samtools/issues/1672 for some
             # discussion
-            names = set()
+            inseq2graphseqs = defaultdict(set)
+            num_alns = 0
             with open(afp, "r") as fh:
                 for line in fh:
-                    names.add(line.split("\t")[0])
-            logging.debug(f"  ...Done. Found {len(names):,} matches.")
-        return names
+                    parts = line.split("\t")
+                    inseq2graphseqs[parts[2]].add(parts[0])
+                    num_alns += 1
+            logging.debug(
+                "  ...Done. "
+                f"Found {ui_utils.pluralize(num_alns, 'alignment')}."
+            )
+        logging.debug("...Done.")
+        return inseq2graphseqs
