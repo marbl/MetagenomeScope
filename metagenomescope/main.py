@@ -1840,6 +1840,7 @@ def run(
                 ],
                 id="seqSearchModal",
                 is_open=False,
+                size="xl",
             ),
             # toast messages will go here. you can change top-0 to bottom-0 to
             # position these in the bottom right of the window; see
@@ -2451,6 +2452,7 @@ def run(
         Output("drawingOptionsModal", "is_open"),
         Input("drawingOptionsButton", "n_clicks"),
         State("drawingOptionsModal", "is_open"),
+        prevent_initial_call=True,
     )
     def toggle_drawing_options_modal(nc, is_open):
         # from https://www.dash-bootstrap-components.com/docs/components/modal/
@@ -3477,16 +3479,27 @@ def run(
             {"requestGood": True, "nodesToSelect": drawn_nodes},
         )
 
-    @callback(
-        Output("seqSearchModal", "is_open"),
-        Input("seqSearchButton", "n_clicks"),
-        State("seqSearchModal", "is_open"),
-    )
-    def toggle_seq_search_modal(nc, is_open):
-        # from https://www.dash-bootstrap-components.com/docs/components/modal/
-        if nc:
-            return not is_open
-        return is_open
+    if seqs_given:
+
+        @callback(
+            Output("seqSearchModal", "is_open"),
+            Input("seqSearchButton", "n_clicks"),
+            State("seqSearchModal", "is_open"),
+            prevent_initial_call=True,
+        )
+        def toggle_seq_search_modal(nc, is_open):
+            # https://www.dash-bootstrap-components.com/docs/components/modal/
+            if nc:
+                return not is_open
+            return is_open
+
+        @callback(
+            Input("seqSearchRunButton", "n_clicks"),
+            State("seqSearchInput", "value"),
+            prevent_initial_call=True,
+        )
+        def run_seq_search(nc, query_fasta):
+            print("running! yay")
 
     clientside_callback(
         ClientsideFunction(

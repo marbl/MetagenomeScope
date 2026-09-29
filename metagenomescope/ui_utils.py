@@ -1944,7 +1944,42 @@ def get_style_options_tab(node_centric):
 
 
 def get_seq_search_modal_body():
-    return "helo :)"
+    return html.Div(
+        [
+            html.H5("Query sequence(s)"),
+            html.P(
+                "Here, you can specify the sequence(s) to search for in the "
+                "graph. Your input should be in FASTA format."
+            ),
+            html.P(
+                "Note that this functionality requires that you have minimap2 "
+                "and samtools installed!"
+            ),
+            dbc.Textarea(
+                size="md",
+                placeholder="FASTA of sequence(s) to search for in the graph",
+                style={"min-height": "15em", "margin-bottom": "1em"},
+                id="seqSearchInput",
+            ),
+            html.Div(
+                html.Button(
+                    [
+                        html.I(className="bi bi-shuffle"),
+                        html.Span(
+                            "Map sequences to those in the graph",
+                            className="iconlbl",
+                        ),
+                    ],
+                    id="seqSearchRunButton",
+                    className="btn btn-success",
+                    type="button",
+                ),
+                style={"text-align": "right"},
+            ),
+            html.H5("Search results"),
+            html.P("(No results yet.)", id="seqSearchResults"),
+        ]
+    )
 
 
 def fail_flush(curr_toasts, error_name, err):
