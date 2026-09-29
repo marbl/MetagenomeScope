@@ -1953,12 +1953,12 @@ def get_seq_search_modal_body():
             ),
             html.P(
                 "Note that this functionality requires that you have bowtie2 "
-                "installed!"
+                "installed and available in your PATH!"
             ),
             dbc.Textarea(
                 size="md",
                 placeholder="FASTA of sequence(s) to search for in the graph",
-                style={"min-height": "15em", "margin-bottom": "1em"},
+                style={"min-height": "15em"},
                 id="seqSearchInput",
             ),
             html.Div(
@@ -1974,7 +1974,11 @@ def get_seq_search_modal_body():
                     className="btn btn-success",
                     type="button",
                 ),
-                style={"text-align": "right"},
+                style={
+                    "text-align": "right",
+                    "margin-top": "1em",
+                    "margin-bottom": "1em",
+                },
             ),
             html.H5(
                 "Results: input sequences, and the graph sequences that mapped to them"
