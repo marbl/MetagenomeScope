@@ -109,8 +109,8 @@ class SeqHolder(object):
                 )
             except subprocess.CalledProcessError:
                 raise UIError(
-                    "Performing alignment with bowtie2 failed. This could "
-                    "indicate that it ran out of memory."
+                    "Performing alignment with bowtie2 failed. Among other "
+                    "reasons, this could indicate that it ran out of memory."
                 )
             logging.debug("  ...Done. Parsing alignment...")
 
