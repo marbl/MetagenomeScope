@@ -2036,6 +2036,10 @@ def get_seq_search_results_html(inseq2graphseqs):
     return paras
 
 
+def get_dot_plot_modal_body():
+    return html.Div()
+
+
 def fail_flush(curr_toasts, error_name, err):
     """Returns output info for flush() indicating that an error happened.
 

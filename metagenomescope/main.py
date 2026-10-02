@@ -235,6 +235,19 @@ def run(
                 className="btn btn-light",
                 type="button",
             ),
+            ctrl_sep_invis,
+            html.Button(
+                [
+                    html.I(className="bi bi-graph-up"),
+                    html.Span(
+                        "Dot plots",
+                        className="iconlbl",
+                    ),
+                ],
+                id="dotPlotButton",
+                className="btn btn-light",
+                type="button",
+            ),
         ]
 
     # If the user specified paths somehow (e.g. an AGP file), we'll show an
@@ -1839,6 +1852,28 @@ def run(
                     dbc.ModalBody(ui_utils.get_seq_search_modal_body()),
                 ],
                 id="seqSearchModal",
+                is_open=False,
+                size="xl",
+            ),
+            dbc.Modal(
+                [
+                    dbc.ModalHeader(
+                        [
+                            html.H1(
+                                [
+                                    html.I(className="bi bi-graph-up"),
+                                    html.Span(
+                                        "Dot plots of sequences",
+                                        className="iconlbl",
+                                    ),
+                                ],
+                                className="modal-title fs-5",
+                            ),
+                        ]
+                    ),
+                    dbc.ModalBody(ui_utils.get_dot_plot_modal_body()),
+                ],
+                id="dotPlotModal",
                 is_open=False,
                 size="xl",
             ),
@@ -3522,6 +3557,17 @@ def run(
             )
             logging.debug("...Done.")
             return no_update, seq_search_results
+
+        @callback(
+            Output("dotPlotModal", "is_open"),
+            Input("dotPlotButton", "n_clicks"),
+            State("dotPlotModal", "is_open"),
+            prevent_initial_call=True,
+        )
+        def toggle_dot_plot_modal(nc, is_open):
+            if nc:
+                return not is_open
+            return is_open
 
     clientside_callback(
         ClientsideFunction(
