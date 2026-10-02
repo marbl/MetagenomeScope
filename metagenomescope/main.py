@@ -3517,16 +3517,26 @@ def run(
                     no_update,
                 )
             paras = []
-            # TODO it might be nice to match the ordering in the input FASTA
-            # eventually
-            for s in sorted(inseq2graphseqs):
+            if len(inseq2graphseqs) > 0:
+                # TODO would be nice to match the ordering in the input FASTA
+                for s in sorted(inseq2graphseqs):
+                    paras.append(
+                        html.P(
+                            [
+                                html.Span(
+                                    f"{s}:", style={"font-weight": "bold"}
+                                ),
+                                " ",
+                                ", ".join(inseq2graphseqs[s]),
+                            ]
+                        )
+                    )
+            else:
                 paras.append(
                     html.P(
-                        [
-                            html.Span(f"{s}:", style={"font-weight": "bold"}),
-                            " ",
-                            ", ".join(inseq2graphseqs[s]),
-                        ]
+                        "No sequences in the graph mapped to any of the input "
+                        "sequence(s).",
+                        style={"font-weight": "bold"},
                     )
                 )
             logging.debug("...Done.")
