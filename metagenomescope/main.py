@@ -3517,31 +3517,11 @@ def run(
                     ),
                     no_update,
                 )
-            paras = []
-            if len(inseq2graphseqs) > 0:
-                # TODO would be nice to match the ordering in the input FASTA
-                for s in sorted(inseq2graphseqs):
-                    paras.append(
-                        html.P(
-                            [
-                                html.Span(
-                                    f"{s}:", style={"font-weight": "bold"}
-                                ),
-                                " ",
-                                ", ".join(inseq2graphseqs[s]),
-                            ]
-                        )
-                    )
-            else:
-                paras.append(
-                    html.P(
-                        "No sequences in the graph mapped to any of the input "
-                        "sequence(s).",
-                        style={"font-weight": "bold"},
-                    )
-                )
+            seq_search_results = ui_utils.get_seq_search_results_html(
+                inseq2graphseqs
+            )
             logging.debug("...Done.")
-            return no_update, html.Div(paras)
+            return no_update, seq_search_results
 
     clientside_callback(
         ClientsideFunction(

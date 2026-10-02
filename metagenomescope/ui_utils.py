@@ -1960,6 +1960,7 @@ def get_seq_search_modal_body(aligner=aln_config.MINIMAP2):
                 placeholder="FASTA of sequence(s) to search for in the graph",
                 style={"min-height": "15em"},
                 className="font-monospace",
+                spellcheck=False,
                 id="seqSearchInput",
             ),
             html.Div(
@@ -1996,12 +1997,43 @@ def get_seq_search_modal_body(aligner=aln_config.MINIMAP2):
                 "Results: input sequences, and the graph sequences that mapped to them"
             ),
             html.Div(
+                html.P(
+                    "When you run a search, the results will be shown here. "
+                    "But you haven't done that yet, so all there is is just "
+                    "this placeholder text. Um, so like. Hey how's it going. "
+                    "Look, just run a search or something so you can stop "
+                    "reading this and I can stop writing this, okay?"
+                ),
                 id="seqSearchResults",
                 className="font-monospace",
-                style={"margin-top": "1em"},
             ),
         ]
     )
+
+
+def get_seq_search_results_html(inseq2graphseqs):
+    paras = []
+    if len(inseq2graphseqs) > 0:
+        # TODO would be nice to match the ordering in the input FASTA
+        for s in sorted(inseq2graphseqs):
+            paras.append(
+                html.P(
+                    [
+                        html.Span(f"{s}:", style={"font-weight": "bold"}),
+                        " ",
+                        ", ".join(inseq2graphseqs[s]),
+                    ]
+                )
+            )
+    else:
+        paras.append(
+            html.P(
+                "No sequences in the graph mapped to any of the input "
+                "sequence(s).",
+                style={"font-weight": "bold"},
+            )
+        )
+    return paras
 
 
 def fail_flush(curr_toasts, error_name, err):
