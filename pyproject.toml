@@ -67,6 +67,7 @@ dependencies = [
     "click",
     "networkx",
     "pygraphviz",
+    "pyfastx",
     # pyfastg 0.2.0 added support for MEGAHIT FASTG files!
     "pyfastg >= 0.2.0",
     "pandas",

@@ -36,6 +36,7 @@ from .errors import UIError, WeirdError
 
 def run(
     graph: str = None,
+    fasta: str = None,
     agp: str = None,
     vtsv: str = None,
     flye_info: str = None,
@@ -52,6 +53,11 @@ def run(
     ----------
     graph: str
         Path to the assembly graph to be visualized.
+
+    fasta: str
+        Path to a FASTA file describing node sequences. Eventually this
+        will support edge sequences in DOT files, etc., probably.
+        (Optional.)
 
     agp: str or None
         Path to an AGP file describing paths of nodes/edges in the graph.
@@ -101,6 +107,7 @@ def run(
     # edges, etc.
     ag = AssemblyGraph(
         graph,
+        fasta_fp=fasta,
         agp_fp=agp,
         verkko_tsv_fp=vtsv,
         flye_info_fp=flye_info,
@@ -208,6 +215,40 @@ def run(
             "the controls for drawing components.",
         ]
     )
+
+    # If the user specified, show an interface for that
+    seqs_given = ag.seq_holder is not None
+    seq_html = []
+    if seqs_given:
+        seq_html = [
+            ctrl_sep,
+            html.H4("Sequences"),
+            html.Button(
+                [
+                    html.I(className="bi bi-filter-left"),
+                    html.Span(
+                        "Search by sequence",
+                        className="iconlbl",
+                    ),
+                ],
+                id="seqSearchButton",
+                className="btn btn-light",
+                type="button",
+            ),
+            ctrl_sep_invis,
+            html.Button(
+                [
+                    html.I(className="bi bi-graph-up"),
+                    html.Span(
+                        "Dot plots",
+                        className="iconlbl",
+                    ),
+                ],
+                id="dotPlotButton",
+                className="btn btn-light",
+                type="button",
+            ),
+        ]
 
     # If the user specified paths somehow (e.g. an AGP file), we'll show an
     # interface for these
@@ -726,6 +767,7 @@ def run(
                             + ui_utils.get_selected_patt_html(),
                             className="noPadding",
                         ),
+                        *seq_html,
                         *path_html,
                         ctrl_sep,
                         html.H4(
@@ -1788,8 +1830,52 @@ def run(
                         ),
                     ),
                 ],
-                id="modal",
+                id="drawingOptionsModal",
                 is_open=False,
+            ),
+            dbc.Modal(
+                [
+                    dbc.ModalHeader(
+                        [
+                            html.H1(
+                                [
+                                    html.I(className="bi bi-filter-left"),
+                                    html.Span(
+                                        "Search by sequence",
+                                        className="iconlbl",
+                                    ),
+                                ],
+                                className="modal-title fs-5",
+                            ),
+                        ]
+                    ),
+                    dbc.ModalBody(ui_utils.get_seq_search_modal_body()),
+                ],
+                id="seqSearchModal",
+                is_open=False,
+                size="xl",
+            ),
+            dbc.Modal(
+                [
+                    dbc.ModalHeader(
+                        [
+                            html.H1(
+                                [
+                                    html.I(className="bi bi-graph-up"),
+                                    html.Span(
+                                        "Dot plots of sequences",
+                                        className="iconlbl",
+                                    ),
+                                ],
+                                className="modal-title fs-5",
+                            ),
+                        ]
+                    ),
+                    dbc.ModalBody(ui_utils.get_dot_plot_modal_body()),
+                ],
+                id="dotPlotModal",
+                is_open=False,
+                size="xl",
             ),
             # toast messages will go here. you can change top-0 to bottom-0 to
             # position these in the bottom right of the window; see
@@ -2398,9 +2484,10 @@ def run(
             )
 
     @callback(
-        Output("modal", "is_open"),
+        Output("drawingOptionsModal", "is_open"),
         Input("drawingOptionsButton", "n_clicks"),
-        State("modal", "is_open"),
+        State("drawingOptionsModal", "is_open"),
+        prevent_initial_call=True,
     )
     def toggle_drawing_options_modal(nc, is_open):
         # from https://www.dash-bootstrap-components.com/docs/components/modal/
@@ -3426,6 +3513,61 @@ def run(
             toasts,
             {"requestGood": True, "nodesToSelect": drawn_nodes},
         )
+
+    if seqs_given:
+
+        @callback(
+            Output("seqSearchModal", "is_open"),
+            Input("seqSearchButton", "n_clicks"),
+            State("seqSearchModal", "is_open"),
+            prevent_initial_call=True,
+        )
+        def toggle_seq_search_modal(nc, is_open):
+            # https://www.dash-bootstrap-components.com/docs/components/modal/
+            if nc:
+                return not is_open
+            return is_open
+
+        @callback(
+            Output("toastHolder", "children", allow_duplicate=True),
+            Output("seqSearchResults", "children"),
+            State("toastHolder", "children"),
+            Input("seqSearchRunButton", "n_clicks"),
+            State("seqSearchInput", "value"),
+            prevent_initial_call=True,
+            running=[
+                (Output("seqSearchStatus", "children"), "Running...", "Done."),
+                (Output("seqSearchRunButton", "disabled"), True, False),
+            ],
+        )
+        def run_seq_search(curr_toasts, nc, in_fasta):
+            try:
+                logging.debug("Running sequence search...")
+                inseq2graphseqs = ag.run_seq_search(in_fasta)
+            except UIError as err:
+                logging.debug("...Ran into an error.")
+                return (
+                    ui_utils.add_error_toast(
+                        curr_toasts, "Mapping error", str(err)
+                    ),
+                    no_update,
+                )
+            seq_search_results = ui_utils.get_seq_search_results_html(
+                inseq2graphseqs
+            )
+            logging.debug("...Done.")
+            return no_update, seq_search_results
+
+        @callback(
+            Output("dotPlotModal", "is_open"),
+            Input("dotPlotButton", "n_clicks"),
+            State("dotPlotModal", "is_open"),
+            prevent_initial_call=True,
+        )
+        def toggle_dot_plot_modal(nc, is_open):
+            if nc:
+                return not is_open
+            return is_open
 
     clientside_callback(
         ClientsideFunction(

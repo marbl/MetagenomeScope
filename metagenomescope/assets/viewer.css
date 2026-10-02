@@ -267,6 +267,7 @@ h6 {
 /* same deal for some other icons */
 .bi-search,
 .bi-snow,
+.bi-shuffle,
 .bi-arrow-right,
 .bi-record-circle {
     -webkit-text-stroke: 1px;
@@ -748,4 +749,18 @@ input {
 /* i feel like the bottom margin is way too big here */
 .layout-alg-desc p:last-of-type {
     margin-bottom: 0;
+}
+
+#seqSearchResults {
+    margin-top: 1em;
+    max-height: 25em;
+    padding: 0em 0.75em;
+    overflow-y: auto;
+    border: 1px dashed var(--bs-success);
+    border-radius: 4px;
+}
+
+#seqSearchResults p {
+    margin-top: 0.75em;
+    margin-bottom: 0.75em;
 }
