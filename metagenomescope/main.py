@@ -3501,7 +3501,8 @@ def run(
             State("seqSearchInput", "value"),
             prevent_initial_call=True,
             running=[
-                (Output("seqSearchStatus", "children"), "Running...", "Done.")
+                (Output("seqSearchStatus", "children"), "Running...", "Done."),
+                (Output("seqSearchRunButton", "disabled"), True, False)
             ],
         )
         def run_seq_search(curr_toasts, nc, in_fasta):
