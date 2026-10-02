@@ -93,8 +93,13 @@ class SeqHolder(object):
                         tfp,
                         "--quiet",
                         "--local",
+                        # don't output SAM info for unaligned query seqs
                         "--no-unal",
+                        # don't output SAM header lines
                         "--no-head",
+                        # use memory-mapped I/O
+                        # see eg https://github.com/tyjo/coptr/issues/2
+                        "--mm",
                         "-f",
                         self.fasta_fp,
                         "-S",
@@ -107,10 +112,10 @@ class SeqHolder(object):
                     "Received a FileNotFoundError when using bowtie2. "
                     "Please make sure that bowtie2 is installed."
                 )
-            except subprocess.CalledProcessError:
+            except subprocess.CalledProcessError as cpe:
                 raise UIError(
-                    "Performing alignment with bowtie2 failed. Among other "
-                    "reasons, this could indicate that it ran out of memory."
+                    "Performing alignment with bowtie2 failed with return "
+                    f'code "{cpe.returncode}".'
                 )
             logging.debug("  ...Done. Parsing alignment...")
 
