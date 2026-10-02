@@ -6,7 +6,7 @@ import dash_bootstrap_components as dbc
 import dash_ag_grid as dag
 from collections import defaultdict
 from dash import html, dcc, no_update
-from . import css_config, ui_config, config, name_utils, misc_utils
+from . import css_config, ui_config, aln_config, config, name_utils, misc_utils
 from .errors import UIError, WeirdError
 from .gap import Gap
 
@@ -1943,7 +1943,7 @@ def get_style_options_tab(node_centric):
     )
 
 
-def get_seq_search_modal_body():
+def get_seq_search_modal_body(aligner=aln_config.MINIMAP2):
     return html.Div(
         [
             html.H5("Input sequence(s)"),
@@ -1952,8 +1952,8 @@ def get_seq_search_modal_body():
                 "graph. Your input should be in FASTA format."
             ),
             html.P(
-                "Note that this functionality requires that you have Bowtie 2 "
-                "installed and available in your PATH!"
+                "Note that this functionality requires that you have "
+                f"{aligner} installed and available in your PATH!"
             ),
             dbc.Textarea(
                 size="md",

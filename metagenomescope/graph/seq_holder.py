@@ -4,7 +4,7 @@ import tempfile
 import subprocess
 import pyfastx as pf
 from collections import defaultdict
-from .. import name_utils, ui_utils
+from .. import name_utils, ui_utils, aln_config
 from ..errors import SeqParsingError, UIError
 
 
@@ -48,7 +48,7 @@ class SeqHolder(object):
         """Returns the number of nodes with sequences given."""
         return len(self.node_names_with_seqs)
 
-    def run_search(self, in_fasta):
+    def run_search(self, in_fasta, aligner=aln_config.MINIMAP2):
         if in_fasta is None:
             # can happen if the textarea is empty
             raise UIError("No sequence(s) given.")
@@ -63,71 +63,44 @@ class SeqHolder(object):
             logging.debug(f"  Writing out input FASTA to {tfp}...")
             with open(tfp, "w") as fh:
                 fh.write(in_fasta)
-            logging.debug("  ...Done. Indexing input FASTA...")
+            logging.debug(f"  ...Done. Running {aligner}...")
 
-            try:
-                subprocess.run(
-                    ["bowtie2-build", "--quiet", tfp, tfp], check=True
-                )
-            except FileNotFoundError:
-                raise UIError(
-                    "Received a FileNotFoundError when using bowtie2-build. "
-                    "Please make sure that bowtie2 is installed."
-                )
-            except subprocess.CalledProcessError:
-                raise UIError(
-                    "Creating an index using bowtie2-build failed. Please "
-                    "make sure that you provided valid FASTA input above."
-                )
-            logging.debug("  ...Done. Running alignment...")
-
-            # https://docs.python.org/3/library/subprocess.html#replacing-shell-pipeline
-            afp = os.path.join(td, "aln.sam")
-            # need -f because the "reads" (query sequences) are in FASTA
-            # instead of FASTQ format
+            afp = os.path.join(td, "aln.paf")
             try:
                 subprocess.run(
                     [
-                        "bowtie2",
+                        "minimap2",
                         "-x",
+                        "sr",
                         tfp,
-                        "--quiet",
-                        "--local",
-                        # don't output SAM info for unaligned query seqs
-                        "--no-unal",
-                        # don't output SAM header lines
-                        "--no-head",
-                        # use memory-mapped I/O
-                        # see eg https://github.com/tyjo/coptr/issues/2
-                        "--mm",
-                        "-f",
                         self.fasta_fp,
-                        "-S",
+                        "-o",
                         afp,
                     ],
                     check=True,
                 )
             except FileNotFoundError:
                 raise UIError(
-                    "Received a FileNotFoundError when using bowtie2. "
-                    "Please make sure that bowtie2 is installed."
+                    "Received a FileNotFoundError when trying to run "
+                    "{aligner}. Please make sure that it is installed."
                 )
             except subprocess.CalledProcessError as cpe:
                 raise UIError(
-                    "Performing alignment with bowtie2 failed with return "
-                    f'code "{cpe.returncode}".'
+                    f"Running {aligner} failed. Return code: {cpe.returncode}."
                 )
             logging.debug("  ...Done. Parsing alignment...")
 
-            # I am SURE there are faster ways to do this; see
-            # https://github.com/samtools/samtools/issues/1672 for some
-            # discussion
+            # NOTE: since we haven't specified -a, -c, or --cs,
+            # minimap2 will only output approximate mapping locations.
+            # This should be okay if we are just checking for hits and don't
+            # care abt exact locations within the sequences -- see
+            # https://github.com/lh3/minimap2/blob/master/FAQ.md
             inseq2graphseqs = defaultdict(set)
             num_alns = 0
             with open(afp, "r") as fh:
                 for line in fh:
                     parts = line.split("\t")
-                    inseq2graphseqs[parts[2]].add(parts[0])
+                    inseq2graphseqs[parts[5]].add(parts[0])
                     num_alns += 1
             logging.debug(
                 "  ...Done. "
