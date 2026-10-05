@@ -1998,11 +1998,8 @@ def get_seq_search_modal_body(aligner=aln_config.MINIMAP2):
             ),
             html.Div(
                 html.P(
-                    "When you run a search, the results will be shown here. "
-                    "But you haven't done that yet, so all there is is just "
-                    "this placeholder text. Um, so like. Hey how's it going. "
-                    "Look, just run a search or something so you can stop "
-                    "reading this and I can stop writing this, okay?"
+                    "super secret placeholder text :)",
+                    style={"color": "#fff"}
                 ),
                 id="seqSearchResults",
                 className="font-monospace",
