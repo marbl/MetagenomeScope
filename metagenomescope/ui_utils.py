@@ -1998,8 +1998,7 @@ def get_seq_search_modal_body(aligner=aln_config.MINIMAP2):
             ),
             html.Div(
                 html.P(
-                    "super secret placeholder text :)",
-                    style={"color": "#fff"}
+                    "super secret placeholder text :)", style={"color": "#fff"}
                 ),
                 id="seqSearchResults",
                 className="font-monospace",
@@ -2034,7 +2033,49 @@ def get_seq_search_results_html(inseq2graphseqs):
 
 
 def get_dot_plot_modal_body():
-    return html.Div()
+    return html.Div(
+        # https://www.dash-bootstrap-components.com/docs/components/layout/
+        # basically the two dbc.Cols should add up to a total width of 12.
+        # setting 6 and 6 means they take up half of the total row width.
+        dbc.Row(
+            [
+                dbc.Col(
+                    [
+                        html.H5("Sequence 1 (x-axis)"),
+                        html.H5("Sequence 2 (y-axis)"),
+                        html.H5("Parameters"),
+                        dbc.InputGroup(
+                            [
+                                dbc.InputGroupText(
+                                    [
+                                        html.Span(
+                                            "k",
+                                            style={"font-style": "italic"},
+                                        ),
+                                        "-mer size",
+                                    ],
+                                ),
+                                dbc.Input(
+                                    type="text",
+                                    id="dotplotK",
+                                    value=21,
+                                    className="short-num-input",
+                                ),
+                            ],
+                            size="sm",
+                        ),
+                    ],
+                    width=6,
+                ),
+                dbc.Col(
+                    [
+                        html.Div("Plot goes here :)"),
+                    ],
+                    width=6,
+                ),
+            ]
+        ),
+    )
 
 
 def fail_flush(curr_toasts, error_name, err):
