@@ -2944,7 +2944,7 @@ class AssemblyGraph(object):
 
         s1 = self._get_seq(type1, graphseq1, otherseq1, 1)
         s2 = self._get_seq(type2, graphseq2, otherseq2, 2)
-        logging.debug(f"  ...Done. Creating matrix...")
+        logging.debug("  ...Done. Creating matrix...")
 
         try:
             m = wp.DotPlotMatrix(s1, s2, k)
