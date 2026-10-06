@@ -2918,7 +2918,9 @@ class AssemblyGraph(object):
         else:
             if other_seq is None:
                 raise UIError(f"Sequence {seq_num}: No sequence given.")
-            return other_seq
+            # lazy hack to remove whitespace:
+            # https://stackoverflow.com/a/8270146
+            return "".join(other_seq.split())
 
     def create_dot_plot(
         self,

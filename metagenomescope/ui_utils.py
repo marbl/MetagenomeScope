@@ -2091,7 +2091,7 @@ def get_dot_plot_seq_ui(seq_num):
             html.Div(
                 dbc.Textarea(
                     size="sm",
-                    placeholder="Single sequence, in FASTA format",
+                    placeholder="Single sequence (just A/C/G/Ts)",
                     style={"min-height": "10em"},
                     className="font-monospace",
                     spellcheck=False,
