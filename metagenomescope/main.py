@@ -3593,6 +3593,42 @@ def run(
             else:
                 return "removedEntirely", ""
 
+        @callback(
+            Output("toastHolder", "children", allow_duplicate=True),
+            Output("dotPlotImg", "src"),
+            State("toastHolder", "children"),
+            State("dotPlotK", "value"),
+            State("dp1SeqType", "value"),
+            State("dp2SeqType", "value"),
+            State("dp1GraphSeq", "value"),
+            State("dp1OtherSeq", "value"),
+            State("dp2GraphSeq", "value"),
+            State("dp2OtherSeq", "value"),
+            Input("dotPlotRunButton", "n_clicks"),
+            prevent_initial_call=True,
+            running=[
+                (Output("dotPlotStatus", "children"), "Running...", "Done."),
+                (Output("dotPlotRunButton", "disabled"), True, False),
+            ],
+        )
+        def create_dot_plot(curr_toasts, k, t1, t2, gs1, os1, gs2, os2, nc):
+            k = ui_utils.get_num(
+                k, "k-mer size", integer=True, min_val=1, min_incl=True
+            )
+            try:
+                logging.debug("Creating a dot plot...")
+                img_b64 = ag.create_dot_plot(k, t1, t2, gs1, os1, gs2, os2)
+            except UIError as err:
+                logging.debug("...Ran into an error.")
+                return (
+                    ui_utils.add_error_toast(
+                        curr_toasts, "Dot plot error", str(err)
+                    ),
+                    no_update,
+                )
+            logging.debug("...Done.")
+            return no_update, img_b64
+
     clientside_callback(
         ClientsideFunction(
             namespace="selection", function_name="showSelectedNodes"

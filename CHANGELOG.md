@@ -10,6 +10,10 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 
 ### Added
 
+- Add the `-f`/`--fasta` command-line option, along with basic functionality
+  for searching by sequence and drawing dot plots of sequences
+  ([#44](https://github.com/marbl/MetagenomeScope/issues/44)).
+
 - Add new options to the the drawing options dialog (all selected by default):
 
   - `Decouple strand-tangled components`
@@ -213,7 +217,7 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 
 - Various improvements to the documentation, tests, and code.
 
-- Add pyfastx as a dependency.
+- Add pyfastx and wotplot as dependencies.
 
 ### Fixed
 

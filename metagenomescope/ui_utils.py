@@ -2133,7 +2133,7 @@ def get_dot_plot_modal_body():
                                     ),
                                     dbc.Input(
                                         type="text",
-                                        id="dotplotK",
+                                        id="dotPlotK",
                                         value=21,
                                         className="short-num-input",
                                     ),
@@ -2144,9 +2144,8 @@ def get_dot_plot_modal_body():
                         width=6,
                     ),
                     dbc.Col(
-                        [
-                            html.H5("Dot plot"),
-                        ],
+                        html.Img(id="dotPlotImg"),
+                        style={"text-align": "center"},
                         width=6,
                     ),
                 ]

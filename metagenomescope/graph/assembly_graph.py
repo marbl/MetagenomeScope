@@ -1,10 +1,13 @@
 import math
 import random
+import base64
 import logging
 import pandas as pd
+from io import BytesIO
 from copy import deepcopy
 from collections import defaultdict
 import networkx as nx
+import wotplot as wp
 from .. import (
     parsers,
     config,
@@ -20,7 +23,7 @@ from .. import (
     log_utils,
 )
 from ..gap import Gap
-from ..errors import WeirdError, GraphParsingError
+from ..errors import WeirdError, GraphParsingError, UIError
 from . import validators, graph_utils
 from .seq_holder import SeqHolder
 from .draw_results import DrawResults
@@ -457,6 +460,7 @@ class AssemblyGraph(object):
                 "  ...Done. It contained "
                 f"{ui_utils.pluralize(len(self.seq_holder), 'sequence')}."
             )
+        self.matplotlib_backend_set = False
 
         # Process paths, if given.
         #
@@ -2904,3 +2908,54 @@ class AssemblyGraph(object):
         else:
             # if no seqs given, the UI elements for this should be hidden
             raise WeirdError("No sequences given")
+
+    def _get_seq(self, seq_type, graph_seq, other_seq, seq_num):
+        if seq_type == ui_config.GRAPH_SEQ:
+            if graph_seq is None:
+                raise UIError(f"Sequence {seq_num}: No node name specified.")
+            return self.seq_holder.get_seq(graph_seq)
+
+        else:
+            if other_seq is None:
+                raise UIError(f"Sequence {seq_num}: No sequence given.")
+            return other_seq
+
+    def create_dot_plot(
+        self, k, type1, type2, graphseq1, otherseq1, graphseq2, otherseq2
+    ):
+        # turn off matplotlib warning: https://stackoverflow.com/a/74471578
+        # (only bother doing this once, so that we don't need to repeatedly
+        # import matplotlib lol)
+        if not self.matplotlib_backend_set:
+            import matplotlib
+
+            matplotlib.use("agg")
+            self.matplotlib_backend_set = True
+
+        logging.debug("  Getting sequences...")
+
+        s1 = self._get_seq(type1, graphseq1, otherseq1, 1)
+        s2 = self._get_seq(type2, graphseq2, otherseq2, 2)
+        logging.debug(f"  ...Done. Creating matrix...")
+
+        try:
+            m = wp.DotPlotMatrix(s1, s2, k)
+        except ValueError as ei:
+            raise UIError(str(ei))
+        logging.debug("  ...Done. Drawing the matrix...")
+
+        title = f"Dot plot ($k$ = {k:,})"
+        if len(s2) < 10000 / len(s1):
+            fig, ax = wp.viz_imshow(m, title=title)
+        else:
+            fig, ax = wp.viz_spy(m, title=title, markersize=0.01)
+
+        # Convert matplotlib output to a base 64 string so that it can be used
+        # as the source of an img tag: https://plotly.com/blog/dash-matplotlib/
+        buf = BytesIO()
+        fig.savefig(buf, format="png", bbox_inches="tight")
+        fig_b64 = base64.b64encode(buf.getbuffer()).decode("ascii")
+        fig_b64_s = f"data:image/png;base64,{fig_b64}"
+        logging.debug("  ...Done.")
+
+        return fig_b64_s

@@ -48,6 +48,12 @@ class SeqHolder(object):
         """Returns the number of nodes with sequences given."""
         return len(self.node_names_with_seqs)
 
+    def get_seq(self, seq_name):
+        if seq_name in self.node_names_with_seqs:
+            return self.f[seq_name]
+        else:
+            raise UIError(f'No sequence named "{seq_name}" in input FASTA.')
+
     def run_search(self, in_fasta, aligner=aln_config.MINIMAP2):
         if in_fasta is None:
             # can happen if the textarea is empty
