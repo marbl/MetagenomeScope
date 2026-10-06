@@ -87,8 +87,6 @@ dependencies = [
     "dash >= 3",
     "plotly",
     "wotplot >= 0.4.0",
-    # We don't use this directly (wotplot uses it), but we import it in order
-    # to set the backend to "agg" at one point.
     "matplotlib",
 ]
 # Matches Dash's min python version, as of March 2026:

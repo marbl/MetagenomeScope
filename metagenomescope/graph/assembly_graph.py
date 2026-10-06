@@ -3,6 +3,8 @@ import random
 import base64
 import logging
 import pandas as pd
+import matplotlib
+from matplotlib import pyplot
 from io import BytesIO
 from copy import deepcopy
 from collections import defaultdict
@@ -32,6 +34,9 @@ from .component import Component
 from .pattern import Pattern
 from .node import Node
 from .edge import Edge
+
+# turn off matplotlib warning: https://stackoverflow.com/a/74471578
+matplotlib.use("agg")
 
 
 class AssemblyGraph(object):
@@ -460,7 +465,6 @@ class AssemblyGraph(object):
                 "  ...Done. It contained "
                 f"{ui_utils.pluralize(len(self.seq_holder), 'sequence')}."
             )
-        self.matplotlib_backend_set = False
 
         # Process paths, if given.
         #
@@ -2933,15 +2937,6 @@ class AssemblyGraph(object):
         k,
         markersize,
     ):
-        # turn off matplotlib warning: https://stackoverflow.com/a/74471578
-        # (only bother doing this once, so that we don't need to repeatedly
-        # import matplotlib lol)
-        if not self.matplotlib_backend_set:
-            import matplotlib
-
-            matplotlib.use("agg")
-            self.matplotlib_backend_set = True
-
         logging.debug("  Getting sequences...")
 
         s1 = self._get_seq(type1, graphseq1, otherseq1, 1)
@@ -2955,7 +2950,11 @@ class AssemblyGraph(object):
         logging.debug("  ...Done. Drawing the matrix...")
 
         title = f"Dot plot ($k$ = {k:,})"
-        fig, ax = wp.viz_spy(m, title=title, markersize=markersize)
+        fig, ax = pyplot.subplots()
+        if len(s1) + len(s2) < 1000:
+            wp.viz_imshow(m, ax=ax, title=title)
+        else:
+            wp.viz_spy(m, ax=ax, title=title, markersize=markersize)
 
         # Convert matplotlib output to a base 64 string so that it can be used
         # as the source of an img tag: https://plotly.com/blog/dash-matplotlib/
@@ -2963,6 +2962,10 @@ class AssemblyGraph(object):
         fig.savefig(buf, format="png", bbox_inches="tight")
         fig_b64 = base64.b64encode(buf.getbuffer()).decode("ascii")
         fig_b64_s = f"data:image/png;base64,{fig_b64}"
+        # Prevent matplotlib from keeping old stuff in memory (if we don't do
+        # this, you'll see a warning after creating 20 images -- or at least
+        # that is what happens in october 2026 ._.)
+        pyplot.close("all")
         logging.debug("  ...Done.")
 
         return fig_b64_s
