@@ -2140,6 +2140,21 @@ def get_dot_plot_modal_body():
                                 ],
                                 size="sm",
                             ),
+                            ui_config.OPTIONS_SEP,
+                            dbc.InputGroup(
+                                [
+                                    dbc.InputGroupText(
+                                        "Marker size (big plots only)",
+                                    ),
+                                    dbc.Input(
+                                        type="text",
+                                        id="dotPlotMarkerSize",
+                                        value=0.1,
+                                        className="short-num-input",
+                                    ),
+                                ],
+                                size="sm",
+                            ),
                         ],
                         width=6,
                     ),

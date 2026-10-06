@@ -2921,7 +2921,15 @@ class AssemblyGraph(object):
             return other_seq
 
     def create_dot_plot(
-        self, k, type1, type2, graphseq1, otherseq1, graphseq2, otherseq2
+        self,
+        type1,
+        type2,
+        graphseq1,
+        otherseq1,
+        graphseq2,
+        otherseq2,
+        k,
+        markersize,
     ):
         # turn off matplotlib warning: https://stackoverflow.com/a/74471578
         # (only bother doing this once, so that we don't need to repeatedly
@@ -2945,10 +2953,7 @@ class AssemblyGraph(object):
         logging.debug("  ...Done. Drawing the matrix...")
 
         title = f"Dot plot ($k$ = {k:,})"
-        if len(s2) < 10000 / len(s1):
-            fig, ax = wp.viz_imshow(m, title=title)
-        else:
-            fig, ax = wp.viz_spy(m, title=title, markersize=0.01)
+        fig, ax = wp.viz_spy(m, title=title, markersize=markersize)
 
         # Convert matplotlib output to a base 64 string so that it can be used
         # as the source of an img tag: https://plotly.com/blog/dash-matplotlib/

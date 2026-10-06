@@ -3598,6 +3598,7 @@ def run(
             Output("dotPlotImg", "src"),
             State("toastHolder", "children"),
             State("dotPlotK", "value"),
+            State("dotPlotMarkerSize", "value"),
             State("dp1SeqType", "value"),
             State("dp2SeqType", "value"),
             State("dp1GraphSeq", "value"),
@@ -3611,13 +3612,24 @@ def run(
                 (Output("dotPlotRunButton", "disabled"), True, False),
             ],
         )
-        def create_dot_plot(curr_toasts, k, t1, t2, gs1, os1, gs2, os2, nc):
+        def create_dot_plot(
+            curr_toasts, k, ms, t1, t2, gs1, os1, gs2, os2, nc
+        ):
             k = ui_utils.get_num(
                 k, "k-mer size", integer=True, min_val=1, min_incl=True
             )
+            ms = ui_utils.get_num(
+                ms,
+                "marker size",
+                integer=False,
+                min_val=0,
+                min_incl=False,
+            )
             try:
                 logging.debug("Creating a dot plot...")
-                img_b64 = ag.create_dot_plot(k, t1, t2, gs1, os1, gs2, os2)
+                img_b64 = ag.create_dot_plot(
+                    t1, t2, gs1, os1, gs2, os2, k=k, markersize=ms
+                )
             except UIError as err:
                 logging.debug("...Ran into an error.")
                 return (
