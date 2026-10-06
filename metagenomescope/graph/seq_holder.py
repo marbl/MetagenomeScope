@@ -51,8 +51,11 @@ class SeqHolder(object):
     def get_seq(self, seq_name):
         if seq_name in self.node_names_with_seqs:
             return self.f[seq_name]
-        else:
-            raise UIError(f'No sequence named "{seq_name}" in input FASTA.')
+        elif name_utils.is_rev(seq_name):
+            fwd_name = name_utils.negate(seq_name)
+            if fwd_name in self.node_names_with_seqs:
+                return self.f[fwd_name].antisense
+        raise UIError(f'No sequence named "{seq_name}" in input FASTA.')
 
     def run_search(self, in_fasta, aligner=aln_config.MINIMAP2):
         if in_fasta is None:
