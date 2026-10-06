@@ -3569,6 +3569,30 @@ def run(
                 return not is_open
             return is_open
 
+        @callback(
+            Output("dp1GraphSeqUI", "className"),
+            Output("dp1OtherSeqUI", "className"),
+            Input("dp1SeqType", "value"),
+            prevent_initial_call=True,
+        )
+        def toggle_dot_plot_seq1_type(seq_type):
+            if seq_type == ui_config.GRAPH_SEQ:
+                return "", "removedEntirely"
+            else:
+                return "removedEntirely", ""
+
+        @callback(
+            Output("dp2GraphSeqUI", "className"),
+            Output("dp2OtherSeqUI", "className"),
+            Input("dp2SeqType", "value"),
+            prevent_initial_call=True,
+        )
+        def toggle_dot_plot_seq2_type(seq_type):
+            if seq_type == ui_config.GRAPH_SEQ:
+                return "", "removedEntirely"
+            else:
+                return "removedEntirely", ""
+
     clientside_callback(
         ClientsideFunction(
             namespace="selection", function_name="showSelectedNodes"

@@ -233,6 +233,15 @@ TREEMAP_SINGLE = "single"
 TREEMAP_DOUBLE = "double"
 
 ###############################################################################
+# Dot plot UI
+###############################################################################
+
+# Is the user specifying a sequence name in the FASTA file, or giving an
+# arbitrary sequence?
+GRAPH_SEQ = "graph"
+OTHER_SEQ = "other"
+
+###############################################################################
 # Component size rank selection
 ###############################################################################
 

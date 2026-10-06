@@ -2032,49 +2032,152 @@ def get_seq_search_results_html(inseq2graphseqs):
     return paras
 
 
-def get_dot_plot_modal_body():
+def get_dot_plot_seq_ui(seq_num):
+    idprefix = f"dp{seq_num}"
+    axis = "x" if seq_num == 1 else "y"
+    title = f"Sequence {seq_num} ({axis}-axis)"
     return html.Div(
-        # https://www.dash-bootstrap-components.com/docs/components/layout/
-        # basically the two dbc.Cols should add up to a total width of 12.
-        # setting 6 and 6 means they take up half of the total row width.
-        dbc.Row(
-            [
-                dbc.Col(
+        [
+            dbc.Row(
+                [
+                    dbc.Col(
+                        # H5 elements mess up the styling a bit due to
+                        # margins and junk so just kinda imitate this.
+                        # not ideallll but sufficient
+                        html.Span(title, style={"font-size": "1.25rem"}),
+                        width=6,
+                    ),
+                    dbc.Col(
+                        html.Div(
+                            dbc.RadioItems(
+                                options=[
+                                    {
+                                        "label": "Node",
+                                        "value": ui_config.GRAPH_SEQ,
+                                    },
+                                    {
+                                        "label": "Provide a sequence below",
+                                        "value": ui_config.OTHER_SEQ,
+                                    },
+                                ],
+                                value=ui_config.GRAPH_SEQ,
+                                className="btn-group",
+                                inputClassName="btn-check",
+                                labelClassName="btn btn-sm btn-outline-dark",
+                                labelCheckedClassName="active",
+                                id=f"{idprefix}SeqType",
+                            ),
+                            className="btn-opt-group",
+                            style={"text-align": "right"},
+                        ),
+                        width=6,
+                    ),
+                ],
+                style={"margin-bottom": "0.5em"},
+            ),
+            html.Div(
+                dbc.InputGroup(
                     [
-                        html.H5("Sequence 1 (x-axis)"),
-                        html.H5("Sequence 2 (y-axis)"),
-                        html.H5("Parameters"),
-                        dbc.InputGroup(
-                            [
-                                dbc.InputGroupText(
-                                    [
-                                        html.Span(
-                                            "k",
-                                            style={"font-style": "italic"},
-                                        ),
-                                        "-mer size",
-                                    ],
-                                ),
-                                dbc.Input(
-                                    type="text",
-                                    id="dotplotK",
-                                    value=21,
-                                    className="short-num-input",
-                                ),
-                            ],
-                            size="sm",
+                        dbc.InputGroupText("Node name"),
+                        dbc.Input(
+                            type="text",
+                            id=f"{idprefix}GraphSeq",
                         ),
                     ],
-                    width=6,
+                    size="sm",
                 ),
-                dbc.Col(
-                    [
-                        html.Div("Plot goes here :)"),
-                    ],
-                    width=6,
+                id=f"{idprefix}GraphSeqUI",
+            ),
+            html.Div(
+                dbc.Textarea(
+                    size="sm",
+                    placeholder="Single sequence, in FASTA format",
+                    style={"min-height": "10em"},
+                    className="font-monospace",
+                    spellcheck=False,
+                    id=f"{idprefix}OtherSeq",
                 ),
-            ]
-        ),
+                id=f"{idprefix}OtherSeqUI",
+                className="removedEntirely",
+            ),
+        ],
+        style={
+            "margin-bottom": "1em",
+        },
+    )
+
+
+def get_dot_plot_modal_body():
+    return html.Div(
+        [
+            # https://www.dash-bootstrap-components.com/docs/components/layout/
+            # basically the two dbc.Cols should add up to a total width of 12.
+            # setting 6 and 6 means they take up half of the total row width.
+            dbc.Row(
+                [
+                    dbc.Col(
+                        [
+                            get_dot_plot_seq_ui(1),
+                            get_dot_plot_seq_ui(2),
+                            html.H5("Parameters"),
+                            dbc.InputGroup(
+                                [
+                                    dbc.InputGroupText(
+                                        [
+                                            html.Span(
+                                                "k",
+                                                style={"font-style": "italic"},
+                                            ),
+                                            "-mer size",
+                                        ],
+                                    ),
+                                    dbc.Input(
+                                        type="text",
+                                        id="dotplotK",
+                                        value=21,
+                                        className="short-num-input",
+                                    ),
+                                ],
+                                size="sm",
+                            ),
+                        ],
+                        width=6,
+                    ),
+                    dbc.Col(
+                        [
+                            html.H5("Dot plot"),
+                        ],
+                        width=6,
+                    ),
+                ]
+            ),
+            html.Div(
+                [
+                    html.Span(
+                        "(No plot has been drawn yet.)",
+                        className="font-monospace",
+                        id="dotPlotStatus",
+                        style={
+                            "margin-right": "1em",
+                            "vertical-align": "middle",
+                        },
+                    ),
+                    html.Button(
+                        [
+                            html.I(className="bi bi-pencil-fill"),
+                            html.Span(
+                                "Draw dot plot",
+                                className="iconlbl",
+                            ),
+                        ],
+                        id="dotPlotRunButton",
+                        className="btn btn-success",
+                        type="button",
+                    ),
+                ],
+                style={"text-align": "right"},
+            ),
+        ]
     )
 
 
