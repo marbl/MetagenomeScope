@@ -3417,7 +3417,7 @@ def run(
         # (Not that that would really matter, anyway ... it would just perform
         # the same copying operation twice instead of once which wouldnt change
         # anything... but it is good we are efficient here)
-        return nc1 + 1 if nc1 is not None else 1
+        return ui_utils.update_n_clicks(nc1)
 
     @callback(
         Output("toastHolder", "children", allow_duplicate=True),
@@ -3611,6 +3611,7 @@ def run(
             running=[
                 (Output("dotPlotStatus", "children"), "Running...", "Done."),
                 (Output("dotPlotRunButton", "disabled"), True, False),
+                (Output("dotPlotGetTwoButton", "disabled"), True, False),
             ],
         )
         def create_dot_plot(
@@ -3646,12 +3647,14 @@ def run(
             Output("dp2SeqType", "value"),
             Output("dp1GraphSeq", "value"),
             Output("dp2GraphSeq", "value"),
+            Output("dotPlotRunButton", "n_clicks"),
             State("toastHolder", "children"),
+            State("dotPlotRunButton", "n_clicks"),
             State("selectedNodeAndPatternJSONFromJS", "data"),
             Input("dotPlotGetTwoButton", "n_clicks"),
             prevent_initial_call=True,
         )
-        def autofill_dotplot_nodes(curr_toasts, selected_nodes, nc):
+        def autofill_dotplot_nodes(curr_toasts, runbtn_nc, selected_nodes, nc):
             nids = []
             if selected_nodes is not None:
                 for n in selected_nodes:
@@ -3680,13 +3683,22 @@ def run(
                     ui_config.GRAPH_SEQ,
                     nx.basename,
                     ny.basename,
+                    # "click on" the run button by increasing its # clicks
+                    ui_utils.update_n_clicks(runbtn_nc),
                 )
             out_toasts = ui_utils.add_error_toast(
                 curr_toasts,
                 "Dot plot error",
                 f"{ui_utils.pluralize(len(nids), 'node')} selected.",
             )
-            return out_toasts, no_update, no_update, no_update, no_update
+            return (
+                out_toasts,
+                no_update,
+                no_update,
+                no_update,
+                no_update,
+                no_update,
+            )
 
     clientside_callback(
         ClientsideFunction(

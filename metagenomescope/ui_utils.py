@@ -2127,7 +2127,7 @@ def get_dot_plot_modal_body():
                                         ),
                                     ],
                                     id="dotPlotGetTwoButton",
-                                    color="primary",
+                                    color="success",
                                     style={"margin-bottom": "1em"},
                                 ),
                                 style={"text-align": "center"},
@@ -2257,3 +2257,7 @@ def fail_flush(curr_toasts, error_name, err):
         no_update,
         {"requestGood": False},
     )
+
+
+def update_n_clicks(nc):
+    return nc + 1 if nc is not None else 1
