@@ -26,6 +26,9 @@ def start_log(verbose, quiet):
     # in any case, stop logging every time a request or something happens:
     # https://community.plotly.com/t/logging-debug-messages-suppressed-in-callbacks/17854/4
     logging.getLogger("werkzeug").setLevel(logging.WARNING)
+    # creating a dot plot results in so much debug stuff being logged lol
+    logging.getLogger("matplotlib").setLevel(logging.WARNING)
+    logging.getLogger("PIL").setLevel(logging.WARNING)
     if verbose:
         if quiet:
             # verbose and quiet (these are mutually exclusive options, so ...)

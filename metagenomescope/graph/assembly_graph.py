@@ -1,10 +1,15 @@
 import math
 import random
+import base64
 import logging
 import pandas as pd
+import matplotlib
+from matplotlib import pyplot
+from io import BytesIO
 from copy import deepcopy
 from collections import defaultdict
 import networkx as nx
+import wotplot as wp
 from .. import (
     parsers,
     config,
@@ -20,14 +25,18 @@ from .. import (
     log_utils,
 )
 from ..gap import Gap
-from ..errors import WeirdError, GraphParsingError
+from ..errors import WeirdError, GraphParsingError, UIError
 from . import validators, graph_utils
+from .seq_holder import SeqHolder
 from .draw_results import DrawResults
 from .subgraph import Subgraph
 from .component import Component
 from .pattern import Pattern
 from .node import Node
 from .edge import Edge
+
+# turn off matplotlib warning: https://stackoverflow.com/a/74471578
+matplotlib.use("agg")
 
 
 class AssemblyGraph(object):
@@ -69,6 +78,7 @@ class AssemblyGraph(object):
     def __init__(
         self,
         graph_fp,
+        fasta_fp=None,
         agp_fp=None,
         verkko_tsv_fp=None,
         flye_info_fp=None,
@@ -82,6 +92,10 @@ class AssemblyGraph(object):
         ----------
         graph_fp: str
             Path to the assembly graph to be visualized.
+
+        fasta_fp: str or None
+            If specified, this should be a path to a FASTA file describing the
+            sequences of nodes in the graph.
 
         agp_fp: str or None
             If specified, this should be a path to an AGP file describing paths
@@ -135,6 +149,9 @@ class AssemblyGraph(object):
 
         self.filename = graph_fp
         self.basename = misc_utils.get_basename_if_fp(graph_fp)
+        self.fasta_filename = fasta_fp
+        self.fasta_basename = misc_utils.get_basename_if_fp(fasta_fp)
+        self.seq_holder = None
         self.agp_filename = agp_fp
         self.agp_basename = misc_utils.get_basename_if_fp(agp_fp)
         self.verkko_tsv_filename = verkko_tsv_fp
@@ -435,6 +452,20 @@ class AssemblyGraph(object):
                     f"{ui_utils.pluralize(len(self.st_cc_nums), 'strand-tangled component')}."
                 )
 
+        # Process sequences, if given.
+        if self.fasta_filename is not None:
+            logger.info(
+                "  Loading and (if needed) indexing input FASTA file "
+                f'"{self.fasta_basename}"...'
+            )
+            self.seq_holder = SeqHolder(
+                self.fasta_filename, self.nodename2objs
+            )
+            logger.info(
+                "  ...Done. It contained "
+                f"{ui_utils.pluralize(len(self.seq_holder), 'sequence')}."
+            )
+
         # Process paths, if given.
         #
         # Maps path names -> list of node or edge names in path
@@ -504,7 +535,7 @@ class AssemblyGraph(object):
         # If there were any paths at all, record info about them (and filter
         # out paths containing stuff not in the graph)
         if len(input_paths) > 0:
-            logger.debug("  Matching up paths to the graph...")
+            logger.info("  Matching up paths to the graph...")
             # TODO can update path lookup stuff to use nodename2objs - faster
             id2obj = self.nodeid2obj if self.node_centric else self.edgeid2obj
             self.objname2pathnames, self.pathname2ccnums = (
@@ -520,7 +551,7 @@ class AssemblyGraph(object):
                     n for n in input_paths[p] if type(n) is not Gap
                 ]
                 ccs_with_a_path |= ccnums
-            logger.debug(
+            logger.info(
                 "  ...Done. Found "
                 f"{ui_utils.pluralize(len(self.pathname2objnames), 'path')} "
                 "across "
@@ -2874,3 +2905,67 @@ class AssemblyGraph(object):
             xlatex,
             ylatex,
         )
+
+    def run_seq_search(self, in_fasta):
+        if self.seq_holder is not None:
+            return self.seq_holder.run_search(in_fasta)
+        else:
+            # if no seqs given, the UI elements for this should be hidden
+            raise WeirdError("No sequences given")
+
+    def _get_seq(self, seq_type, graph_seq, other_seq, seq_num):
+        if seq_type == ui_config.GRAPH_SEQ:
+            if graph_seq is None:
+                raise UIError(f"Sequence {seq_num}: No node name specified.")
+            return self.seq_holder.get_seq(graph_seq)
+
+        else:
+            if other_seq is None:
+                raise UIError(f"Sequence {seq_num}: No sequence given.")
+            # lazy hack to remove whitespace:
+            # https://stackoverflow.com/a/8270146
+            return "".join(other_seq.split())
+
+    def create_dot_plot(
+        self,
+        type1,
+        type2,
+        graphseq1,
+        otherseq1,
+        graphseq2,
+        otherseq2,
+        k,
+        markersize,
+    ):
+        logging.debug("  Getting sequences...")
+
+        s1 = self._get_seq(type1, graphseq1, otherseq1, 1)
+        s2 = self._get_seq(type2, graphseq2, otherseq2, 2)
+        logging.debug("  ...Done. Creating matrix...")
+
+        try:
+            m = wp.DotPlotMatrix(s1, s2, k)
+        except ValueError as ei:
+            raise UIError(str(ei))
+        logging.debug("  ...Done. Drawing the matrix...")
+
+        title = f"Dot plot ($k$ = {k:,})"
+        fig, ax = pyplot.subplots()
+        if len(s1) + len(s2) < 1000:
+            wp.viz_imshow(m, ax=ax, title=title)
+        else:
+            wp.viz_spy(m, ax=ax, title=title, markersize=markersize)
+
+        # Convert matplotlib output to a base 64 string so that it can be used
+        # as the source of an img tag: https://plotly.com/blog/dash-matplotlib/
+        buf = BytesIO()
+        fig.savefig(buf, format="png", bbox_inches="tight")
+        fig_b64 = base64.b64encode(buf.getbuffer()).decode("ascii")
+        fig_b64_s = f"data:image/png;base64,{fig_b64}"
+        # Prevent matplotlib from keeping old stuff in memory (if we don't do
+        # this, you'll see a warning after creating 20 images -- or at least
+        # that is what happens in october 2026 ._.)
+        pyplot.close("all")
+        logging.debug("  ...Done.")
+
+        return fig_b64_s
