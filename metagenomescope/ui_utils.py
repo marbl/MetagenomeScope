@@ -2120,7 +2120,9 @@ def get_dot_plot_modal_body():
                             html.Div(
                                 dbc.Button(
                                     [
-                                        html.I(className="bi bi-arrow-return-right"),
+                                        html.I(
+                                            className="bi bi-arrow-return-right"
+                                        ),
                                         html.Span(
                                             "Use two currently-selected nodes",
                                             className="iconlbl",
