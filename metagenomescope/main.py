@@ -3641,6 +3641,54 @@ def run(
             logging.debug("...Done.")
             return no_update, img_b64
 
+        @callback(
+            Output("toastHolder", "children", allow_duplicate=True),
+            Output("dp1SeqType", "value"),
+            Output("dp2SeqType", "value"),
+            Output("dp1GraphSeq", "value"),
+            Output("dp2GraphSeq", "value"),
+            State("toastHolder", "children"),
+            State("selectedNodeAndPatternJSONFromJS", "data"),
+            Input("dotPlotGetTwoButton", "n_clicks"),
+            prevent_initial_call=True,
+        )
+        def autofill_dotplot_nodes(curr_toasts, selected_nodes, nc):
+            nids = []
+            if selected_nodes is not None:
+                for n in selected_nodes:
+                    if n["ntype"] == cy_config.NODE_DATA_TYPE:
+                        nids.append(int(n["id"]))
+            if len(nids) == 2:
+                n0 = ag.nodeid2obj[nids[0]]
+                n1 = ag.nodeid2obj[nids[1]]
+                if "length" in n0.data and "length" in n1.data:
+                    # try to put longest node on x-axis
+                    if n0.data["length"] >= n1.data["length"]:
+                        nx = n0
+                        ny = n1
+                    else:
+                        nx = n1
+                        ny = n0
+                else:
+                    # silly bypass. this really shouldn't happen for now;
+                    # eventually these should be referring to edges, which will
+                    # also have lengths, so whatever
+                    nx = n0
+                    ny = n1
+                return (
+                    no_update,
+                    ui_config.GRAPH_SEQ,
+                    ui_config.GRAPH_SEQ,
+                    nx.basename,
+                    ny.basename,
+                )
+            out_toasts = ui_utils.add_error_toast(
+                curr_toasts,
+                "Dot plot error",
+                f"{ui_utils.pluralize(len(nids), 'node')} selected.",
+            )
+            return out_toasts, no_update, no_update, no_update, no_update
+
     clientside_callback(
         ClientsideFunction(
             namespace="selection", function_name="showSelectedNodes"

@@ -2117,6 +2117,23 @@ def get_dot_plot_modal_body():
                 [
                     dbc.Col(
                         [
+                            html.Div(
+                                dbc.Button(
+                                    [
+                                        html.I(
+                                            className="bi bi-arrow-down"
+                                        ),
+                                        html.Span(
+                                            "Use two currently-selected nodes",
+                                            className="iconlbl",
+                                        ),
+                                    ],
+                                    id="dotPlotGetTwoButton",
+                                    color="primary",
+                                    style={"margin-bottom": "1em"},
+                                ),
+                                style={"text-align": "center"},
+                            ),
                             get_dot_plot_seq_ui(1),
                             get_dot_plot_seq_ui(2),
                             html.H5("Parameters"),
