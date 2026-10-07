@@ -2145,12 +2145,47 @@ def get_dot_plot_modal_body():
                                             ),
                                             "-mer size",
                                         ],
+                                        className="input-group-text-next-to-radio-button-group",
+                                    ),
+                                    html.Div(
+                                        dbc.RadioItems(
+                                            options=[
+                                                {
+                                                    "label": "Autoselect",
+                                                    "value": ui_config.K_AUTO,
+                                                },
+                                                {
+                                                    "label": [
+                                                        html.Span(
+                                                            "Specify manually",
+                                                            style={
+                                                                "padding-right": "0.7em"
+                                                            },
+                                                        ),
+                                                        html.I(
+                                                            className="bi bi-arrow-right jank-icon-in-label",
+                                                            style={
+                                                                "-webkit-text-stroke": "0.5px",
+                                                            },
+                                                        ),
+                                                    ],
+                                                    "value": ui_config.K_MANUAL,
+                                                },
+                                            ],
+                                            value=ui_config.K_AUTO,
+                                            className="btn-group",
+                                            inputClassName="btn-check",
+                                            labelClassName="btn btn-sm btn-outline-dark",
+                                            labelCheckedClassName="active",
+                                            id="dotPlotKType",
+                                        ),
+                                        className="btn-opt-group",
                                     ),
                                     dbc.Input(
                                         type="text",
                                         id="dotPlotK",
-                                        value=21,
-                                        className="short-num-input",
+                                        value=ui_config.K_DEFAULT,
+                                        className="short-num-input input-group-text-next-to-radio-button-group",
                                     ),
                                 ],
                                 size="sm",
@@ -2164,7 +2199,7 @@ def get_dot_plot_modal_body():
                                     dbc.Input(
                                         type="text",
                                         id="dotPlotMarkerSize",
-                                        value=0.1,
+                                        value=ui_config.MARKERSIZE_DEFAULT,
                                         className="short-num-input",
                                     ),
                                 ],

@@ -2934,13 +2934,33 @@ class AssemblyGraph(object):
         otherseq1,
         graphseq2,
         otherseq2,
-        k,
-        markersize,
+        ktype=ui_config.K_AUTO,
+        k=ui_config.K_DEFAULT,
+        markersize=ui_config.MARKERSIZE_DEFAULT,
     ):
-        logging.debug("  Getting sequences...")
+        autoselect_k = False
+
+        logging.debug("  Reading parameters...")
+        if ktype == ui_config.K_MANUAL:
+            k = ui_utils.get_num(
+                k, "k-mer size", integer=True, min_val=1, min_incl=True
+            )
+        else:
+            autoselect_k = True
+
+        markersize = ui_utils.get_num(
+            markersize,
+            "marker size",
+            integer=False,
+            min_val=0,
+            min_incl=False,
+        )
+        logging.debug("  ...Done. Getting sequences...")
 
         s1 = self._get_seq(type1, graphseq1, otherseq1, 1)
         s2 = self._get_seq(type2, graphseq2, otherseq2, 2)
+        if autoselect_k:
+            k = seq_utils.autoselect_dotplot_k(len(s1), len(s2))
         logging.debug("  ...Done. Creating matrix...")
 
         try:

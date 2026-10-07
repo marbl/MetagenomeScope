@@ -50,3 +50,38 @@ def n50(seq_lengths):
         i += 1
     # Return length of shortest seq that was used in the running sum
     return sorted_lengths[i - 1]
+
+
+def autoselect_dotplot_k(m, n):
+    """Automatically chooses a k-mer size for a dot plot.
+
+    There are doubtlessly fancier ways to do this (e.g.
+    https://academic.oup.com/bioinformatics/article/30/1/31/235479)
+    but I just want something quick based on sequence lengths.
+    """
+    # note that it is possible for long and short to be equal
+    long = max(m, n)
+    short = min(m, n)
+    # Seriously this is so lazy
+    if short < 5:
+        if long < 5:
+            return 1
+        return short
+    elif short < 10:
+        return 3
+    elif short < 20:
+        return 5
+    elif short < 100:
+        return 9
+    elif short < 1000:
+        return 11
+    elif short < 10000:
+        return 13
+    elif short < 50000:
+        return 15
+    elif short < 100000:
+        return 17
+    elif short < 500000:
+        return 19
+    else:
+        return 21

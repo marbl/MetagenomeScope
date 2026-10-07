@@ -197,6 +197,15 @@ label:has(#fcoseAlgSpan).active {
     margin-bottom: -2px;
 }
 
+/* In the "Specify manually ->" Label used in the dot plot UI, the arrow is
+ * out of vertical alignment unless we do this. But if we apply this CSS to
+ * the entire <i> element including the icon then that increases the height
+ * of the label in an ugly way
+ */
+.jank-icon-in-label::before {
+    vertical-align: middle !important;
+}
+
 .short-num-input {
     max-width: 5em;
 }

@@ -241,6 +241,15 @@ TREEMAP_DOUBLE = "double"
 GRAPH_SEQ = "graph"
 OTHER_SEQ = "other"
 
+# Should we automatically select the k-mer size, or let the user specify it
+# manually?
+K_AUTO = "auto"
+K_MANUAL = "manual"
+
+# set to a reasonable approximation of nine plus ten
+K_DEFAULT = 21
+MARKERSIZE_DEFAULT = 0.1
+
 ###############################################################################
 # Component size rank selection
 ###############################################################################
