@@ -8,6 +8,7 @@ from .node_layout import NodeLayout
 from .invalidated_edge import InvalidatedEdge
 from .subgraph import Subgraph, DecoupledSubgraph
 from .component import Component
+from .seq_holder import SeqHolder
 from . import validators
 
 __all__ = [
@@ -22,5 +23,6 @@ __all__ = [
     "Subgraph",
     "DecoupledSubgraph",
     "Component",
+    "SeqHolder",
     "validators",
 ]

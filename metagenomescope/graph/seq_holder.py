@@ -21,20 +21,20 @@ class SeqHolder(object):
     LastGraph files; ...) but for now this is enough. Maybe.
     """
 
-    def __init__(self, fasta_fp, nodename2objs):
+    def __init__(self, fasta_fp, node_names):
         self.f = pf.Fasta(fasta_fp)
         self.fasta_fp = fasta_fp
         self.node_names_with_seqs = set()
-        self._record_seqs(nodename2objs)
+        self._record_seqs(node_names)
 
-    def _record_seqs(self, nodename2objs):
+    def _record_seqs(self, node_names):
         """Populates self.node_names_with_seqs based on the FASTA file."""
         for seq_name in self.f.keys():
             if name_utils.is_rev(seq_name):
                 raise SeqParsingError(f"FASTA contains - seq: {seq_name}")
             if name_utils.has_split_suffix(seq_name):
                 raise SeqParsingError(f"FASTA contains split seq: {seq_name}")
-            if seq_name not in nodename2objs:
+            if seq_name not in node_names:
                 raise SeqParsingError(
                     f"Sequence {seq_name} is not a node in the graph"
                 )
@@ -50,11 +50,11 @@ class SeqHolder(object):
 
     def get_seq(self, seq_name):
         if seq_name in self.node_names_with_seqs:
-            return self.f[seq_name]
+            return str(self.f[seq_name])
         elif name_utils.is_rev(seq_name):
             fwd_name = name_utils.negate(seq_name)
             if fwd_name in self.node_names_with_seqs:
-                return self.f[fwd_name].antisense
+                return str(self.f[fwd_name].antisense)
         raise UIError(f'No sequence named "{seq_name}" in input FASTA.')
 
     def run_search(self, in_fasta, aligner=aln_config.MINIMAP2):

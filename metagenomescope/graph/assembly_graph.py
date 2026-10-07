@@ -459,7 +459,7 @@ class AssemblyGraph(object):
                 f'"{self.fasta_basename}"...'
             )
             self.seq_holder = SeqHolder(
-                self.fasta_filename, self.nodename2objs
+                self.fasta_filename, self.nodename2objs.keys()
             )
             logger.info(
                 "  ...Done. It contained "
