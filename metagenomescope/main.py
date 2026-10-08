@@ -3611,7 +3611,7 @@ def run(
             running=[
                 (Output("dotPlotStatus", "children"), "Running...", "Done."),
                 (Output("dotPlotRunButton", "disabled"), True, False),
-                (Output("dotPlotGetTwoButton", "disabled"), True, False),
+                (Output("dotPlotAutoButton", "disabled"), True, False),
             ],
         )
         def create_dot_plot(
@@ -3651,7 +3651,7 @@ def run(
             State("toastHolder", "children"),
             State("dotPlotRunButton", "n_clicks"),
             State("selectedNodeAndPatternJSONFromJS", "data"),
-            Input("dotPlotGetTwoButton", "n_clicks"),
+            Input("dotPlotAutoButton", "n_clicks"),
             prevent_initial_call=True,
         )
         def autofill_dotplot_nodes(curr_toasts, runbtn_nc, selected_nodes, nc):
@@ -3660,8 +3660,14 @@ def run(
                 for n in selected_nodes:
                     if n["ntype"] == cy_config.NODE_DATA_TYPE:
                         nids.append(int(n["id"]))
-            if len(nids) == 2:
+            good = False
+            if len(nids) == 1:
+                nx = ny = ag.nodeid2obj[nids[0]]
+                good = True
+            elif len(nids) == 2:
                 nx, ny = ag.order_nodes_for_dot_plot(*nids)
+                good = True
+            if good:
                 return (
                     no_update,
                     ui_config.GRAPH_SEQ,
@@ -3674,7 +3680,12 @@ def run(
             out_toasts = ui_utils.add_error_toast(
                 curr_toasts,
                 "Dot plot error",
-                f"{ui_utils.pluralize(len(nids), 'node')} selected.",
+                (
+                    f"{ui_utils.pluralize(len(nids), 'node')} selected. "
+                    "Please select one node (if you want to draw a "
+                    "self dot plot of it) or two nodes (if you want to "
+                    "draw a dot plot of them)."
+                ),
             )
             return (
                 out_toasts,

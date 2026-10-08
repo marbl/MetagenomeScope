@@ -2124,11 +2124,11 @@ def get_dot_plot_modal_body():
                                             className="bi bi-arrow-return-right"
                                         ),
                                         html.Span(
-                                            "Use two currently-selected nodes",
+                                            "Autofill from one or two selected nodes",
                                             className="iconlbl",
                                         ),
                                     ],
-                                    id="dotPlotGetTwoButton",
+                                    id="dotPlotAutoButton",
                                     color="success",
                                     style={"margin-bottom": "1em"},
                                 ),
