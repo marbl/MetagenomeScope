@@ -2938,6 +2938,46 @@ class AssemblyGraph(object):
         k=ui_config.K_DEFAULT,
         markersize=ui_config.MARKERSIZE_DEFAULT,
     ):
+        """Creates a dot plot of two sequences.
+
+        Parameters
+        ----------
+        type1: str
+        type2: str
+            Indicates what type of sequence we are using for sequences 1
+            and 2, respectively. Used in conjunction with the graphseq*
+            and otherseq* parameters below by self._get_seq().
+
+        graphseq1: str
+        graphseq2: str
+            Value of the node name text input for sequences 1 and 2.
+
+        otherseq1: str
+        otherseq2: str
+            Value of the "other sequence" text input for sequences 1 and 2.
+
+        ktype: str
+            Indicates if we should determine k-mer size automatically, or
+            if the user specified it manually.
+
+        k: str
+            Value of the manual k-mer size input.
+
+        markersize: str
+            Value of the markersize input.
+
+        Returns
+        -------
+        str
+            Base 64 representation of the dot plot image.
+
+        Raises
+        ------
+        UIError
+            If something is wrong with the inputs (the user specifies
+            a node name that isn't in the graph, the k-mer size isn't
+            a number, ...)
+        """
         autoselect_k = False
 
         logging.debug("  Reading parameters...")
@@ -2991,6 +3031,27 @@ class AssemblyGraph(object):
         return fig_b64_s
 
     def order_nodes_for_dot_plot(self, i0, i1):
+        """Attempts to determine which axes two nodes go on in a dot plot.
+
+        Parameters
+        ----------
+        i0: int
+        i1: int
+            IDs of nodes in the graph.
+
+        Returns
+        -------
+        Node, Node
+            The first node should go on the x-axis, and the second node should
+            go on the y-axis. The order of these nodes does not necessarily
+            match the order of their corresponding input node IDs.
+
+        Notes
+        -----
+        The criteria used here are kind of ad hoc -- stuff like split nodes
+        and invalidated edges will mess with get_order() a bit. But this is
+        fine; this ordering functionality is just for user convenience.
+        """
         # If there exist direct edge(s) in only a single direction between
         # these nodes, then the "source" goes on the x-axis and the "target"
         # goes on the y-axis
