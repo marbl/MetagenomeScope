@@ -295,7 +295,7 @@ def get_treemap_title(treemap_type):
         return "Number of nodes per component (all components)"
 
 
-def trim_seq_name(n, is_seq=False, cutoff=6):
+def trim_seq_name(n, is_seq=False, cutoff=8):
     add_ellipsis = False
     if len(n) <= cutoff:
         t = n
