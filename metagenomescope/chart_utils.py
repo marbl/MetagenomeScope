@@ -295,10 +295,26 @@ def get_treemap_title(treemap_type):
         return "Number of nodes per component (all components)"
 
 
-def trim_name(n, cutoff=6):
+def trim_seq_name(n, is_seq=False, cutoff=6):
+    add_ellipsis = False
     if len(n) <= cutoff:
-        return n
+        t = n
     else:
         # note that names with a leading "-" due to representing negative
         # sequences will have the "-" count as a character
-        return n[:cutoff] + "..."
+        t = n[:cutoff]
+        add_ellipsis = True
+
+    if is_seq:
+        # to distinguish raw DNA sequences (or whatever, RNA sequences, if
+        # we end up supporting that eventually) from ordinary node names or
+        # whatever, we format raw sequence names in italics (or, like,
+        # technically using $$'s means using math mode in matplotlib, but I've
+        # been using this as a way to represent "italics" in my plots for
+        # multiple years now and nobody has stopped me yet)
+        t = f"${t}$"
+
+    if add_ellipsis:
+        t += "..."
+
+    return t

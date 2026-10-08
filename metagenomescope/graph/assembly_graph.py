@@ -2920,7 +2920,7 @@ class AssemblyGraph(object):
                 raise UIError(f"Sequence {seq_num}: No node name specified.")
             seq = self.seq_holder.get_seq(graph_seq)
             # Lazy way to remove split node suffixes
-            name = chart_utils.trim_name(
+            name = chart_utils.trim_seq_name(
                 self.nodename2objs[graph_seq][0].basename
             )
 
@@ -2930,7 +2930,7 @@ class AssemblyGraph(object):
             # lazy hack to remove whitespace:
             # https://stackoverflow.com/a/8270146
             seq = "".join(other_seq.split())
-            name = chart_utils.trim_name(seq)
+            name = chart_utils.trim_seq_name(seq, is_seq=True)
 
         return seq, name
 
