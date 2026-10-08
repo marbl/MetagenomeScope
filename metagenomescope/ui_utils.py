@@ -1943,14 +1943,20 @@ def get_style_options_tab(node_centric):
     )
 
 
-def get_seq_search_modal_body(aligner=aln_config.MINIMAP2):
+def get_seq_search_modal_body(ag, aligner=aln_config.MINIMAP2):
+    fspan = html.Span(ag.fasta_basename, className="font-monospace")
     return html.Div(
         [
             html.H5("Input sequence(s)"),
             html.P(
-                "Here, you can specify the sequence(s) to search for in the "
-                "graph. Your input should be in FASTA format."
+                [
+                    "Here, you can specify the sequence(s) to search for in ",
+                    "the graph (i.e. in the ",
+                    fspan,
+                    " file you provided).",
+                ],
             ),
+            html.P("Your input here should be in FASTA format."),
             html.P(
                 "Note that this functionality requires that you have "
                 f"{aligner} installed and available in your PATH!"
@@ -1994,7 +2000,11 @@ def get_seq_search_modal_body(aligner=aln_config.MINIMAP2):
                 },
             ),
             html.H5(
-                "Results: input sequences, and the graph sequences that mapped to them"
+                [
+                    "Results: input sequences, and the sequences in ",
+                    fspan,
+                    " that mapped to them",
+                ],
             ),
             html.Div(
                 html.P(

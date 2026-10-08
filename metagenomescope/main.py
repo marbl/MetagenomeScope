@@ -1849,7 +1849,7 @@ def run(
                             ),
                         ]
                     ),
-                    dbc.ModalBody(ui_utils.get_seq_search_modal_body()),
+                    dbc.ModalBody(ui_utils.get_seq_search_modal_body(ag)),
                 ],
                 id="seqSearchModal",
                 is_open=False,
