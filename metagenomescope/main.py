@@ -3696,6 +3696,22 @@ def run(
                 no_update,
             )
 
+        @callback(
+            Output("dotPlotKType", "value"),
+            Input("dotPlotK", "value"),
+            prevent_initial_call=True,
+        )
+        def switch_to_manual_k(k):
+            # minor quality of life thing: when the user starts typing
+            # in the manual k text input, assume that this means they
+            # want to use manual k and shift to that. Looking at the
+            # value of "dotPlotK" being changed is not ALWAYS an indicator
+            # of if the user is typing (since e.g. you could like type
+            # in "11", and then later on select the second 1 and then
+            # change it with a 1, which wouldn't change the value and thus
+            # wouldn't trigger this thing) but WHATEVERRRRR it's fine lol
+            return ui_config.K_MANUAL
+
     clientside_callback(
         ClientsideFunction(
             namespace="selection", function_name="showSelectedNodes"
