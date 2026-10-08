@@ -3661,22 +3661,7 @@ def run(
                     if n["ntype"] == cy_config.NODE_DATA_TYPE:
                         nids.append(int(n["id"]))
             if len(nids) == 2:
-                n0 = ag.nodeid2obj[nids[0]]
-                n1 = ag.nodeid2obj[nids[1]]
-                if "length" in n0.data and "length" in n1.data:
-                    # try to put longest node on x-axis
-                    if n0.data["length"] >= n1.data["length"]:
-                        nx = n0
-                        ny = n1
-                    else:
-                        nx = n1
-                        ny = n0
-                else:
-                    # silly bypass. this really shouldn't happen for now;
-                    # eventually these should be referring to edges, which will
-                    # also have lengths, so whatever
-                    nx = n0
-                    ny = n1
+                nx, ny = ag.order_nodes_for_dot_plot(*nids)
                 return (
                     no_update,
                     ui_config.GRAPH_SEQ,

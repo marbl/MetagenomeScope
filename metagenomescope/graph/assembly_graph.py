@@ -2989,3 +2989,31 @@ class AssemblyGraph(object):
         logging.debug("  ...Done.")
 
         return fig_b64_s
+
+    def order_nodes_for_dot_plot(self, i0, i1):
+        # If there exist direct edge(s) in only a single direction between
+        # these nodes, then the "source" goes on the x-axis and the "target"
+        # goes on the y-axis
+        order = graph_utils.get_order(self.graph, i0, i1)
+        if order == 0:
+            # 0 -> 1
+            x, y = i0, i1
+        elif order == 1:
+            # 1 -> 0
+            x, y = i1, i0
+        else:
+            # Either there are edges in both directions, or these nodes are
+            # not directly connected. Try to put longest node on x-axis.
+            n0 = self.nodeid2obj[i0]
+            n1 = self.nodeid2obj[i1]
+            if "length" in n0.data and "length" in n1.data:
+                if n0.data["length"] >= n1.data["length"]:
+                    x, y = i0, i1
+                else:
+                    x, y = i1, i0
+            else:
+                # If for some reason the user provided sequences for nodes
+                # that don't have lengths in the graph (???) then just default
+                # to this. shouldn't happen unless someone does something weird
+                x, y = i0, i1
+        return self.nodeid2obj[x], self.nodeid2obj[y]

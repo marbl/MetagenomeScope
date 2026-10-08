@@ -79,6 +79,39 @@ def get_only_connecting_edge_uid(g, src_id, tgt_id):
     return g.edges[src_id, tgt_id, 0]["uid"]
 
 
+def get_order(g, a, b):
+    """Returns a value describing any direct edges between two nodes.
+
+    Parameters
+    ----------
+    g: nx.MultiDiGraph
+    a: int
+    b: int
+        a and b are the IDs of nodes in the graph g.
+
+    Returns
+    -------
+    order: int or None
+        If there exist direct edge(s) from a -> b, but not from b -> a,
+        then this will be 0.
+
+        If there exist direct edge(s) from b -> a, but not from a -> b,
+        then this will be 1.
+
+        In all other cases (either there exist both a -> b and b -> a
+        edges, OR there exist neither types of edges), this will be None.
+    """
+    ab = b in g.adj[a]
+    ba = a in g.adj[b]
+    if ab:
+        if ba:
+            return None
+        return 0
+    if ba:
+        return 1
+    return None
+
+
 def get_counterpart_parent_id(node_id, nodeid2obj):
     """Returns the ID of the parent pattern of a split node's counterpart."""
     if node_id in nodeid2obj:

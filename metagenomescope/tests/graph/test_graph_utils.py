@@ -93,6 +93,37 @@ def test_get_only_connecting_edge_uid_multiple_edges():
     assert str(ei.value) == "> 1 edge from node ID 1 to node ID 2"
 
 
+def test_get_order():
+    g = nx.MultiDiGraph()
+    g.add_edge(1, 2, uid=5)
+    g.add_edge(3, 4, uid=1234)
+
+    assert gu.get_order(g, 1, 2) == 0
+    assert gu.get_order(g, 2, 1) == 1
+
+    # no direct edges btwn 3 and 2
+    assert gu.get_order(g, 2, 3) is None
+    assert gu.get_order(g, 3, 2) is None
+
+    # now there are direct edges in both directions btwn 1 and 2
+    g.add_edge(2, 1, uid=6)
+    assert gu.get_order(g, 1, 2) is None
+    assert gu.get_order(g, 2, 1) is None
+
+    # multiple edges in same direction are ok
+    g.add_edge(2, 3, uid=97)
+    g.add_edge(2, 3, uid=98)
+    g.add_edge(2, 3, uid=99)
+    assert gu.get_order(g, 2, 3) == 0
+    assert gu.get_order(g, 3, 2) == 1
+
+    # indirect edges don't matter (yet, at least)
+    assert gu.get_order(g, 1, 3) is None
+    assert gu.get_order(g, 3, 1) is None
+    assert gu.get_order(g, 1, 4) is None
+    assert gu.get_order(g, 4, 1) is None
+
+
 def test_get_counterpart_parent_id_simple():
     left = Node(0, "N", {})
     right = Node(1, "N", {}, split=config.SPLIT_RIGHT, counterpart_node=left)
