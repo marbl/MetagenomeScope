@@ -2914,17 +2914,25 @@ class AssemblyGraph(object):
             raise WeirdError("No sequences given")
 
     def _get_seq(self, seq_type, graph_seq, other_seq, seq_num):
+
         if seq_type == ui_config.GRAPH_SEQ:
             if graph_seq is None:
                 raise UIError(f"Sequence {seq_num}: No node name specified.")
-            return self.seq_holder.get_seq(graph_seq)
+            seq = self.seq_holder.get_seq(graph_seq)
+            # Lazy way to remove split node suffixes
+            name = chart_utils.trim_name(
+                self.nodename2objs[graph_seq][0].basename
+            )
 
         else:
             if other_seq is None:
                 raise UIError(f"Sequence {seq_num}: No sequence given.")
             # lazy hack to remove whitespace:
             # https://stackoverflow.com/a/8270146
-            return "".join(other_seq.split())
+            seq = "".join(other_seq.split())
+            name = chart_utils.trim_name(seq)
+
+        return seq, name
 
     def create_dot_plot(
         self,
@@ -2997,8 +3005,8 @@ class AssemblyGraph(object):
         )
         logging.debug("  ...Done. Getting sequences...")
 
-        s1 = self._get_seq(type1, graphseq1, otherseq1, 1)
-        s2 = self._get_seq(type2, graphseq2, otherseq2, 2)
+        s1, s1_name = self._get_seq(type1, graphseq1, otherseq1, 1)
+        s2, s2_name = self._get_seq(type2, graphseq2, otherseq2, 2)
         if autoselect_k:
             k = seq_utils.autoselect_dotplot_k(len(s1), len(s2))
         logging.debug("  ...Done. Creating matrix...")
@@ -3009,12 +3017,17 @@ class AssemblyGraph(object):
             raise UIError(str(ei))
         logging.debug("  ...Done. Drawing the matrix...")
 
-        title = f"Dot plot ($k$ = {k:,})"
         fig, ax = pyplot.subplots()
+        viz_params = {
+            "ax": ax,
+            "title": f"Dot plot ($k$ = {k:,})",
+            "s1_name": s1_name,
+            "s2_name": s2_name,
+        }
         if len(s1) + len(s2) < 1000:
-            wp.viz_imshow(m, ax=ax, title=title)
+            wp.viz_imshow(m, **viz_params)
         else:
-            wp.viz_spy(m, ax=ax, title=title, markersize=markersize)
+            wp.viz_spy(m, markersize=markersize, **viz_params)
 
         # Convert matplotlib output to a base 64 string so that it can be used
         # as the source of an img tag: https://plotly.com/blog/dash-matplotlib/

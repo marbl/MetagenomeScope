@@ -293,3 +293,12 @@ def get_treemap_title(treemap_type):
         return "Number of nodes per component (nonredundant and decoupled)"
     else:
         return "Number of nodes per component (all components)"
+
+
+def trim_name(n, cutoff=6):
+    if len(n) <= cutoff:
+        return n
+    else:
+        # note that names with a leading "-" due to representing negative
+        # sequences will have the "-" count as a character
+        return n[:cutoff] + "..."
