@@ -408,7 +408,11 @@ def create_dot_plot(
                     if len(seqs2) > 1:
                         # https://stackoverflow.com/questions/27671748#comment72696121_42743706
                         ax.set_ylabel(
-                            names2[yi], fontsize=8, rotation=0, ha="right"
+                            names2[yi],
+                            fontsize=8,
+                            rotation=0,
+                            ha="right",
+                            va="center",
                         )
                 else:
                     ax.set_ylabel("")
