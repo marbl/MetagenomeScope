@@ -407,7 +407,9 @@ def create_dot_plot(
                     # Get rid of length & arrow in dot plot grids, for now
                     if len(seqs2) > 1:
                         # https://stackoverflow.com/questions/27671748#comment72696121_42743706
-                        ax.set_ylabel(names2[yi], fontsize=8, rotation=0, ha="right")
+                        ax.set_ylabel(
+                            names2[yi], fontsize=8, rotation=0, ha="right"
+                        )
                 else:
                     ax.set_ylabel("")
                     fmt_internal_spine(ax.spines["left"])
