@@ -3677,6 +3677,7 @@ def run(
                     # "click on" the run button by increasing its # clicks
                     ui_utils.update_n_clicks(runbtn_nc),
                 )
+            # handles both the 0-nodes-selected and >2-nodes-selected cases
             out_toasts = ui_utils.add_error_toast(
                 curr_toasts,
                 "Dot plot error",

@@ -318,3 +318,8 @@ def trim_seq_name(n, is_seq=False, cutoff=8):
         t += "..."
 
     return t
+
+
+def fmt_internal_spine(s):
+    # https://stackoverflow.com/a/12059429
+    s.set_color("#bbb")

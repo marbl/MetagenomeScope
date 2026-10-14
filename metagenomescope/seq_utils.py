@@ -52,7 +52,7 @@ def n50(seq_lengths):
     return sorted_lengths[i - 1]
 
 
-def autoselect_dotplot_k(m, n):
+def autoselect_dotplot_k(lengths1, lengths2):
     """Automatically chooses a k-mer size for a dot plot.
 
     There are doubtlessly fancier ways to do this (e.g.
@@ -60,8 +60,8 @@ def autoselect_dotplot_k(m, n):
     but I just want something quick based on sequence lengths.
     """
     # note that it is possible for long and short to be equal
-    long = max(m, n)
-    short = min(m, n)
+    long = max(lengths1 + lengths2)
+    short = min(lengths1 + lengths2)
     # Seriously this is so lazy
     if short < 5:
         if long < 5:

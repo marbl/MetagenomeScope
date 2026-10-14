@@ -2913,26 +2913,65 @@ class AssemblyGraph(object):
             # if no seqs given, the UI elements for this should be hidden
             raise WeirdError("No sequences given")
 
-    def _get_seq(self, seq_type, graph_seq, other_seq, seq_num):
+    def _get_seqs(self, seq_type, graph_seq, other_seq, seq_num):
+        """Returns sequences for a dot plot.
 
+        Parameters
+        ----------
+        seq_type: str
+            One of {ui_config.GRAPH_SEQ, ui_config.OTHER_SEQ}.
+
+        graph_seq: str or None
+            If seq_type is GRAPH_SEQ, then we assume that this contains one or
+            more names of sequences in the graph. We'll extract these sequences
+            and return them and their names.
+
+        other_seq: str or None
+            If seq_type is OTHER_SEQ, then we assume that this contains an
+            arbitrary sequence. We'll remove whitespace from this sequence and
+            return it and a "name" for it.
+
+        seq_num: int
+            1 (x-axis) or 2 (y-axis). Currently just used for error messages.
+
+        Returns
+        -------
+        seqs, names: list of str, list of str
+            seqs is a list of sequences to plot along an axis.
+
+            names is a list of names of these sequences, with the same length
+            as seqs.
+
+            Both lists should have a length of at least 1.
+
+        Raises
+        ------
+        UIError
+            If something is wrong with the inputs.
+        """
         if seq_type == ui_config.GRAPH_SEQ:
-            if graph_seq is None:
-                raise UIError(f"Sequence {seq_num}: No node name specified.")
-            seq = self.seq_holder.get_seq(graph_seq)
-            # Lazy way to remove split node suffixes
-            name = chart_utils.trim_seq_name(
-                self.nodename2objs[graph_seq][0].basename
+            if graph_seq is None or len(graph_seq) == 0:
+                raise UIError(f"Axis {seq_num}: No node name(s) specified.")
+            # If the user specified a list of node names (e.g. "1,2,3"), split
+            # them up
+            untrimmed_names = ui_utils.get_node_names(
+                graph_seq, preserve_order=True
             )
-
+            seqs = [self.seq_holder.get_seq(n) for n in untrimmed_names]
+            # Lazy way to remove split node suffixes
+            names = [
+                chart_utils.trim_seq_name(self.nodename2objs[n][0].basename)
+                for n in untrimmed_names
+            ]
         else:
             if other_seq is None:
-                raise UIError(f"Sequence {seq_num}: No sequence given.")
+                raise UIError(f"Axis {seq_num}: No sequence given.")
             # lazy hack to remove whitespace:
             # https://stackoverflow.com/a/8270146
-            seq = "".join(other_seq.split())
-            name = chart_utils.trim_seq_name(seq, is_seq=True)
+            seqs = ["".join(other_seq.split())]
+            names = [chart_utils.trim_seq_name(seqs[0], is_seq=True)]
 
-        return seq, name
+        return seqs, names
 
     def create_dot_plot(
         self,
@@ -2954,7 +2993,7 @@ class AssemblyGraph(object):
         type2: str
             Indicates what type of sequence we are using for sequences 1
             and 2, respectively. Used in conjunction with the graphseq*
-            and otherseq* parameters below by self._get_seq().
+            and otherseq* parameters below by self._get_seqs().
 
         graphseq1: str
         graphseq2: str
@@ -3005,29 +3044,92 @@ class AssemblyGraph(object):
         )
         logging.debug("  ...Done. Getting sequences...")
 
-        s1, s1_name = self._get_seq(type1, graphseq1, otherseq1, 1)
-        s2, s2_name = self._get_seq(type2, graphseq2, otherseq2, 2)
+        seqs1, names1 = self._get_seqs(type1, graphseq1, otherseq1, 1)
+        seqs2, names2 = self._get_seqs(type2, graphseq2, otherseq2, 2)
+        lens1 = [len(s) for s in seqs1]
+        lens2 = [len(s) for s in seqs2]
         if autoselect_k:
-            k = seq_utils.autoselect_dotplot_k(len(s1), len(s2))
-        logging.debug("  ...Done. Creating matrix...")
+            k = seq_utils.autoselect_dotplot_k(lens1, lens2)
+        logging.debug("  ...Done. Creating and drawing matrices...")
+
+        # Figure out how much space, relatively, to allocate per sequence.
+        # Especially for small sequences, we need to account for the trailing
+        # k here -- otherwise the plots get messed up and things aren't
+        # perfectly flush with each other.
+        width_ratios = [seqlen - k + 1 for seqlen in lens1]
+        # the y = 0-th subplot is the top one! So we need to reverse the
+        # sequences here.
+        height_ratios = [seqlen - k + 1 for seqlen in lens2[::-1]]
+
+        fig, axes = pyplot.subplots(
+            len(seqs2),
+            len(seqs1),
+            gridspec_kw={
+                "hspace": 0,
+                "wspace": 0,
+                "height_ratios": height_ratios,
+                "width_ratios": width_ratios,
+            },
+            # Always return a 2D array of subplots, even if it's 1x1 or
+            # whatever. This makes accessing subplots programmatically easier
+            # when we don't know how many sequences there are going to be.
+            # See https://stackoverflow.com/a/72766334
+            squeeze=False,
+        )
 
         try:
-            m = wp.DotPlotMatrix(s1, s2, k)
-        except ValueError as ei:
-            raise UIError(str(ei))
-        logging.debug("  ...Done. Drawing the matrix...")
+            for xi, xs in enumerate(seqs1):
+                for yi, ys in enumerate(seqs2):
+                    ys = seqs2[yi]
+                    if len(xs) + len(ys) > 15e6:
+                        # see wotplot docs. slower, but uses less memory
+                        suff_only = True
+                    else:
+                        # for shorter sequences, this is fine
+                        suff_only = False
+                    m = wp.DotPlotMatrix(xs, ys, k, suff_only=suff_only)
 
-        fig, ax = pyplot.subplots()
-        viz_params = {
-            "ax": ax,
-            "title": f"Dot plot ($k$ = {k:,})",
-            "s1_name": s1_name,
-            "s2_name": s2_name,
-        }
-        if len(s1) + len(s2) < 1000:
-            wp.viz_imshow(m, **viz_params)
-        else:
-            wp.viz_spy(m, markersize=markersize, **viz_params)
+                    if len(xs) + len(ys) < 1000:
+                        viz_func = wp.viz_imshow
+                    else:
+                        viz_func = wp.viz_spy
+
+                    # When yi = 0, we are working with the first sequence in
+                    # seqs2 -- which will be drawn on the bottommost row of the
+                    # grid of plots. However, since matplotlib uses y = 0 for
+                    # the top row, we have to take this into account in how we
+                    # access the Axes object for this plot.
+                    ax = axes[len(seqs2) - 1 - yi, xi]
+                    viz_func(m, ax=ax, s1_name=names1[xi], s2_name=names2[yi])
+
+                    # Adjust labels, and hide / recolor certain plot boundaries
+                    # (aka spines)
+                    if xi == 0:
+                        ax.set_ylabel(names2[yi])
+                    else:
+                        ax.set_ylabel("")
+                        chart_utils.fmt_internal_spine(ax.spines["left"])
+
+                    if xi != len(seqs1) - 1:
+                        ax.spines["right"].set_visible(False)
+
+                    if yi == 0:
+                        ax.set_xlabel(names1[xi])
+                    else:
+                        ax.set_xlabel("")
+                        ax.spines["bottom"].set_visible(False)
+
+                    if yi != len(seqs2) - 1:
+                        chart_utils.fmt_internal_spine(ax.spines["top"])
+        except ValueError as ei:
+            # If wotplot throws an error (e.g. due to a sequence being
+            # shorter than a manually selected k-mer size, or containing
+            # invalid characters), show it to the user as a toast message.
+            raise UIError(str(ei))
+
+        whratio = sum(width_ratios) / sum(height_ratios)
+        width = 5
+        fig.set_size_inches(width * whratio, width)
 
         # Convert matplotlib output to a base 64 string so that it can be used
         # as the source of an img tag: https://plotly.com/blog/dash-matplotlib/

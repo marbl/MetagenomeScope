@@ -875,7 +875,7 @@ def get_curr_drawn_text(done_flushing, ag):
     return t
 
 
-def get_node_names(val):
+def get_node_names(val, preserve_order=False):
     """Returns a set of node names based on user input.
 
     This is kind of analogous to get_size_ranks() above -- the same idea, of
@@ -888,10 +888,17 @@ def get_node_names(val):
         Text input by the user. This should be a comma-separated list of node
         names (just a single node name is fine also).
 
+    preserve_order: bool
+        If False, remove duplicate names, and return a set of names.
+
+        If True, do not remove duplicates, and return a list of names with their
+        relative order in the input text preserved.
+
     Returns
     -------
-    set of str
-        Node names described by the input.
+    collection of str
+        Node names described by the input. This will be a set if preserve_order
+        is False, and a list otherwise.
 
     Raises
     ------
@@ -915,16 +922,20 @@ def get_node_names(val):
         raise nothing_err
 
     # As with get_size_ranks(), allow semicolons as delimiters
-    node_names = set(n.strip() for n in val.replace(";", ",").split(","))
+    node_names = [n.strip() for n in val.replace(";", ",").split(",")]
 
     # Ignore ""s resulting from inputs like "node1,,node2"
-    node_names.discard("")
+    node_names = [n for n in node_names if len(n) > 0]
 
     # catch the evil ",,," case
     if len(node_names) == 0:
         raise nothing_err
 
-    return node_names
+    if preserve_order:
+        return node_names
+    else:
+        # remove duplicates, at the cost of changing order
+        return set(node_names)
 
 
 def get_fancy_node_name_list(node_names, quote=True, bracket=False):
