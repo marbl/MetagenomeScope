@@ -3,6 +3,7 @@ import matplotlib
 import dash_bootstrap_components as dbc
 import wotplot as wp
 from io import BytesIO
+from statistics import mean
 from dash import html
 from matplotlib import pyplot
 from . import ui_config, seq_utils
@@ -375,6 +376,42 @@ def create_dot_plot(
         # sequences there are going to be. https://stackoverflow.com/a/72766334
         squeeze=False,
     )
+
+    # i don't ... really ... know why this works. It should just be 72???
+    points_per_inch = 72 / 1.3125
+
+    # Constrain the longest dimension of the plot to a fixed size, then
+    # adjust the other dimension in such a way that keeps the aspect ratio
+    # fixed. (Otherwise, the plot looks weird.)
+    #
+    # Eventually it would be nice to have the plot resize as needed...
+    w = sum(width_ratios)
+    h = sum(height_ratios)
+    long_dim_size = 7
+    if w > h:
+        width = long_dim_size
+        height = long_dim_size * (h / w)
+        if nonzero_space:
+            # compute the space between subplots, mirroring what matplotlib
+            # does: https://matplotlib.org/stable/api/_as_gen/matplotlib.gridspec.GridSpec.html
+            # If we don't account for this, then we will set a markersize
+            # that is too big.
+            space_in_cells = space * mean(width_ratios) * (len(seqs1) - 1)
+        else:
+            space_in_cells = 0
+        # (width in inches) * (points per inch), divided by total # cells
+        # on the x-axis.
+        ms = (width * points_per_inch) / (w + space_in_cells)
+    else:
+        height = long_dim_size
+        width = long_dim_size * (w / h)
+        if nonzero_space:
+            space_in_cells = space * mean(height_ratios) * (len(seqs2) - 1)
+        else:
+            space_in_cells = 0
+        ms = (height * points_per_inch) / (h + space_in_cells)
+    fig.set_size_inches(width, height)
+
     try:
         for xi, xs in enumerate(seqs1):
             for yi, ys in enumerate(seqs2):
@@ -398,7 +435,7 @@ def create_dot_plot(
                     ax=ax,
                     s1_name=names1[xi],
                     s2_name=names2[yi],
-                    markersize=markersize,
+                    markersize=ms,
                 )
 
                 # Adjust labels, and hide / recolor certain plot boundaries
@@ -441,22 +478,6 @@ def create_dot_plot(
         # shorter than a manually selected k-mer size, or containing
         # invalid characters), show it to the user as a toast message.
         raise UIError(str(ei))
-
-    # Constrain the longest dimension of the plot to a fixed size, then
-    # adjust the other dimension in such a way that keeps the aspect ratio
-    # fixed. (Otherwise, the plot looks weird.)
-    #
-    # Eventually it would be nice to have the plot resize as needed...
-    w = sum(width_ratios)
-    h = sum(height_ratios)
-    long_dim_size = 7
-    if w > h:
-        width = long_dim_size
-        height = long_dim_size * (h / w)
-    else:
-        height = long_dim_size
-        width = long_dim_size * (w / h)
-    fig.set_size_inches(width, height)
 
     # Convert matplotlib output to a base 64 string so that it can be used
     # as the source of an img tag: https://plotly.com/blog/dash-matplotlib/
