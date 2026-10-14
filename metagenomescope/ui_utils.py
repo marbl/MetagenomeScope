@@ -2053,10 +2053,23 @@ def get_seq_search_results_html(inseq2graphseqs):
     return paras
 
 
+def get_dot_plot_axis(seq_num):
+    if seq_num == 1:
+        return "x"
+    elif seq_num == 2:
+        return "y"
+    else:
+        raise WeirdError(
+            "yeah of course i'm going to implement 3D dot plots. just "
+            "stay right there and don't move, okay? i'm gonna come back "
+            "any minute now. just trust me."
+        )
+
+
 def get_dot_plot_seq_ui(seq_num):
     idprefix = f"dp{seq_num}"
-    axis = "x" if seq_num == 1 else "y"
-    title = f"Sequence {seq_num} ({axis}-axis)"
+    axis = get_dot_plot_axis(seq_num)
+    title = f"{axis}-axis"
     return html.Div(
         [
             dbc.Row(
@@ -2077,7 +2090,7 @@ def get_dot_plot_seq_ui(seq_num):
                                         "value": ui_config.GRAPH_SEQ,
                                     },
                                     {
-                                        "label": "Provide a sequence below",
+                                        "label": "Specify below",
                                         "value": ui_config.OTHER_SEQ,
                                     },
                                 ],
@@ -2132,8 +2145,7 @@ def get_dot_plot_modal_body():
     return html.Div(
         [
             # https://www.dash-bootstrap-components.com/docs/components/layout/
-            # basically the two dbc.Cols should add up to a total width of 12.
-            # setting 6 and 6 means they take up half of the total row width.
+            # basically the two dbc.Cols should add up to a total width of 12
             dbc.Row(
                 [
                     dbc.Col(
@@ -2229,12 +2241,12 @@ def get_dot_plot_modal_body():
                                 size="sm",
                             ),
                         ],
-                        width=6,
+                        width=5,
                     ),
                     dbc.Col(
                         html.Img(id="dotPlotImg"),
                         style={"text-align": "center"},
-                        width=6,
+                        width=7,
                     ),
                 ]
             ),

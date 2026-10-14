@@ -2949,9 +2949,10 @@ class AssemblyGraph(object):
         UIError
             If something is wrong with the inputs.
         """
+        axis = ui_utils.get_dot_plot_axis(seq_num)
         if seq_type == ui_config.GRAPH_SEQ:
             if graph_seq is None or len(graph_seq) == 0:
-                raise UIError(f"Axis {seq_num}: No node name(s) specified.")
+                raise UIError(f"{axis}-axis: No node name(s) specified.")
             # If the user specified a list of node names (e.g. "1,2,3"), split
             # them up
             untrimmed_names = ui_utils.get_node_names(
@@ -2965,7 +2966,7 @@ class AssemblyGraph(object):
             ]
         else:
             if other_seq is None:
-                raise UIError(f"Axis {seq_num}: No sequence given.")
+                raise UIError(f"{axis}-axis: No sequence given.")
             # lazy hack to remove whitespace:
             # https://stackoverflow.com/a/8270146
             seqs = ["".join(other_seq.split())]
@@ -3128,7 +3129,7 @@ class AssemblyGraph(object):
             raise UIError(str(ei))
 
         whratio = sum(width_ratios) / sum(height_ratios)
-        width = 5
+        width = 7
         fig.set_size_inches(width * whratio, width)
 
         # Convert matplotlib output to a base 64 string so that it can be used
