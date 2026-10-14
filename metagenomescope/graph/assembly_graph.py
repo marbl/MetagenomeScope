@@ -1,15 +1,10 @@
 import math
 import random
-import base64
 import logging
 import pandas as pd
-import matplotlib
-from matplotlib import pyplot
-from io import BytesIO
 from copy import deepcopy
 from collections import defaultdict
 import networkx as nx
-import wotplot as wp
 from .. import (
     parsers,
     config,
@@ -34,9 +29,6 @@ from .component import Component
 from .pattern import Pattern
 from .node import Node
 from .edge import Edge
-
-# turn off matplotlib warning: https://stackoverflow.com/a/74471578
-matplotlib.use("agg")
 
 
 class AssemblyGraph(object):
@@ -3050,7 +3042,6 @@ class AssemblyGraph(object):
             max_val=1,
             max_incl=True,
         )
-        nonzero_space = space > 0
         logging.debug("  ...Done. Getting sequences...")
 
         markersize = ui_utils.get_num(
@@ -3064,121 +3055,19 @@ class AssemblyGraph(object):
 
         seqs1, names1 = self._get_seqs(type1, graphseq1, otherseq1, 1)
         seqs2, names2 = self._get_seqs(type2, graphseq2, otherseq2, 2)
-        lens1 = [len(s) for s in seqs1]
-        lens2 = [len(s) for s in seqs2]
-        if autoselect_k:
-            k = seq_utils.autoselect_dotplot_k(lens1, lens2)
-        logging.debug("  ...Done. Creating and drawing matrices...")
+        logging.debug("  ...Done. Creating and drawing plot(s)...")
 
-        # Figure out how much space, relatively, to allocate per sequence.
-        # Especially for small sequences, we need to account for the trailing
-        # k here -- otherwise the plots get messed up and things aren't
-        # perfectly flush with each other.
-        width_ratios = [seqlen - k + 1 for seqlen in lens1]
-        # the y = 0-th subplot is the top one! So we need to reverse the
-        # sequences here.
-        height_ratios = [seqlen - k + 1 for seqlen in lens2[::-1]]
-
-        fig, axes = pyplot.subplots(
-            len(seqs2),
-            len(seqs1),
-            gridspec_kw={
-                "hspace": space,
-                "wspace": space,
-                "height_ratios": height_ratios,
-                "width_ratios": width_ratios,
-            },
-            # Always return a 2D array of subplots, even if it's 1x1 or
-            # whatever. This makes accessing subplots programmatically easier
-            # when we don't know how many sequences there are going to be.
-            # See https://stackoverflow.com/a/72766334
-            squeeze=False,
+        fig_b64_s = chart_utils.create_dot_plot(
+            seqs1,
+            seqs2,
+            names1,
+            names2,
+            k=k,
+            autoselect_k=autoselect_k,
+            space=space,
+            markersize=markersize,
         )
-
-        try:
-            for xi, xs in enumerate(seqs1):
-                for yi, ys in enumerate(seqs2):
-                    ys = seqs2[yi]
-                    if len(xs) + len(ys) > 15e6:
-                        # see wotplot docs. slower, but uses less memory
-                        suff_only = True
-                    else:
-                        # for shorter sequences, this is fine
-                        suff_only = False
-                    m = wp.DotPlotMatrix(xs, ys, k, suff_only=suff_only)
-
-                    if len(xs) + len(ys) < 1000:
-                        viz_func = wp.viz_imshow
-                    else:
-                        viz_func = wp.viz_spy
-
-                    # When yi = 0, we are working with the first sequence in
-                    # seqs2 -- which will be drawn on the bottommost row of the
-                    # grid of plots. However, since matplotlib uses y = 0 for
-                    # the top row, we have to take this into account in how we
-                    # access the Axes object for this plot.
-                    ax = axes[len(seqs2) - 1 - yi, xi]
-                    viz_func(m, ax=ax, s1_name=names1[xi], s2_name=names2[yi])
-
-                    # Adjust labels, and hide / recolor certain plot boundaries
-                    # (aka spines)
-                    if xi == 0:
-                        ax.set_ylabel(names2[yi])
-                    else:
-                        ax.set_ylabel("")
-                        chart_utils.fmt_internal_spine(ax.spines["left"])
-
-                    if xi != len(seqs1) - 1:
-                        if nonzero_space:
-                            chart_utils.fmt_internal_spine(ax.spines["right"])
-                        else:
-                            ax.spines["right"].set_visible(False)
-
-                    if yi == 0:
-                        ax.set_xlabel(names1[xi])
-                    else:
-                        ax.set_xlabel("")
-                        if nonzero_space:
-                            chart_utils.fmt_internal_spine(ax.spines["bottom"])
-                        else:
-                            ax.spines["bottom"].set_visible(False)
-
-                    if yi != len(seqs2) - 1:
-                        chart_utils.fmt_internal_spine(ax.spines["top"])
-        except ValueError as ei:
-            # If wotplot throws an error (e.g. due to a sequence being
-            # shorter than a manually selected k-mer size, or containing
-            # invalid characters), show it to the user as a toast message.
-            raise UIError(str(ei))
-
-        # Constrain the longest dimension of the plot to a fixed size, then
-        # adjust the other dimension in such a way that keeps the aspect ratio
-        # fixed. (Otherwise, the plot looks weird.)
-        #
-        # Eventually it would be nice to have the plot resize as needed...
-        w = sum(width_ratios)
-        h = sum(height_ratios)
-        long_dim_size = 7
-        if w > h:
-            width = long_dim_size
-            height = long_dim_size * (h / w)
-        else:
-            height = long_dim_size
-            width = long_dim_size * (w / h)
-        fig.set_size_inches(width, height)
-
-        # Convert matplotlib output to a base 64 string so that it can be used
-        # as the source of an img tag: https://plotly.com/blog/dash-matplotlib/
-        buf = BytesIO()
-        fig.savefig(buf, format="png", bbox_inches="tight")
-        fig_b64 = base64.b64encode(buf.getbuffer()).decode("ascii")
-        fig_b64_s = f"data:image/png;base64,{fig_b64}"
-        # Prevent matplotlib from keeping old stuff in memory (if we don't do
-        # this, you'll see a warning after creating 20 images -- or at least
-        # that is what happens in october 2026 ._.)
-        pyplot.close("all")
         logging.debug("  ...Done.")
-
         return fig_b64_s
 
     def order_nodes_for_dot_plot(self, i0, i1):
