@@ -403,7 +403,9 @@ def create_dot_plot(
                 # Adjust labels, and hide / recolor certain plot boundaries
                 # (aka spines)
                 if xi == 0:
-                    ax.set_ylabel(names2[yi])
+                    # Get rid of length & arrow in dot plot grids, for now
+                    if len(seqs2) > 1:
+                        ax.set_ylabel(names2[yi])
                 else:
                     ax.set_ylabel("")
                     fmt_internal_spine(ax.spines["left"])
@@ -415,7 +417,8 @@ def create_dot_plot(
                         ax.spines["right"].set_visible(False)
 
                 if yi == 0:
-                    ax.set_xlabel(names1[xi])
+                    if len(seqs1) > 1:
+                        ax.set_xlabel(names1[xi])
                 else:
                     ax.set_xlabel("")
                     if nonzero_space:
