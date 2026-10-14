@@ -2244,7 +2244,7 @@ def get_dot_plot_modal_body():
                             dbc.InputGroup(
                                 [
                                     dbc.InputGroupText(
-                                        "Marker size (big plots only)",
+                                        "Marker size",
                                     ),
                                     dbc.Input(
                                         type="text",

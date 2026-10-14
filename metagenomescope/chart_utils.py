@@ -387,25 +387,27 @@ def create_dot_plot(
                     suff_only = False
                 m = wp.DotPlotMatrix(xs, ys, k, suff_only=suff_only)
 
-                if len(xs) + len(ys) < 1000:
-                    viz_func = wp.viz_imshow
-                else:
-                    viz_func = wp.viz_spy
-
                 # When yi = 0, we are working with the first sequence in
                 # seqs2 -- which will be drawn on the bottommost row of the
                 # grid of plots. However, since matplotlib uses y = 0 for
                 # the top row, we have to take this into account in how we
                 # access the Axes object for this plot.
                 ax = axes[len(seqs2) - 1 - yi, xi]
-                viz_func(m, ax=ax, s1_name=names1[xi], s2_name=names2[yi])
+                wp.viz_spy(
+                    m,
+                    ax=ax,
+                    s1_name=names1[xi],
+                    s2_name=names2[yi],
+                    markersize=markersize,
+                )
 
                 # Adjust labels, and hide / recolor certain plot boundaries
                 # (aka spines)
                 if xi == 0:
                     # Get rid of length & arrow in dot plot grids, for now
                     if len(seqs2) > 1:
-                        ax.set_ylabel(names2[yi])
+                        # https://stackoverflow.com/questions/27671748#comment72696121_42743706
+                        ax.set_ylabel(names2[yi], fontsize=8, rotation=0, ha="right")
                 else:
                     ax.set_ylabel("")
                     fmt_internal_spine(ax.spines["left"])
@@ -418,7 +420,7 @@ def create_dot_plot(
 
                 if yi == 0:
                     if len(seqs1) > 1:
-                        ax.set_xlabel(names1[xi])
+                        ax.set_xlabel(names1[xi], fontsize=8, rotation=45)
                 else:
                     ax.set_xlabel("")
                     if nonzero_space:
