@@ -2984,6 +2984,7 @@ class AssemblyGraph(object):
         otherseq2,
         ktype=ui_config.K_AUTO,
         k=ui_config.K_DEFAULT,
+        space=ui_config.SPACE_DEFAULT,
         markersize=ui_config.MARKERSIZE_DEFAULT,
     ):
         """Creates a dot plot of two sequences.
@@ -3011,6 +3012,10 @@ class AssemblyGraph(object):
         k: str
             Value of the manual k-mer size input.
 
+        space: str
+            Value of the space input. (For now I'm consolidating hspace and
+            wspace into a single "space" UI element. Might change eventually.)
+
         markersize: str
             Value of the markersize input.
 
@@ -3036,9 +3041,21 @@ class AssemblyGraph(object):
         else:
             autoselect_k = True
 
+        space = ui_utils.get_num(
+            space,
+            "Space between plots",
+            integer=False,
+            min_val=0,
+            min_incl=True,
+            max_val=1,
+            max_incl=True,
+        )
+        nonzero_space = space > 0
+        logging.debug("  ...Done. Getting sequences...")
+
         markersize = ui_utils.get_num(
             markersize,
-            "marker size",
+            "Marker size",
             integer=False,
             min_val=0,
             min_incl=False,
@@ -3066,8 +3083,8 @@ class AssemblyGraph(object):
             len(seqs2),
             len(seqs1),
             gridspec_kw={
-                "hspace": 0,
-                "wspace": 0,
+                "hspace": space,
+                "wspace": space,
                 "height_ratios": height_ratios,
                 "width_ratios": width_ratios,
             },
@@ -3112,13 +3129,19 @@ class AssemblyGraph(object):
                         chart_utils.fmt_internal_spine(ax.spines["left"])
 
                     if xi != len(seqs1) - 1:
-                        ax.spines["right"].set_visible(False)
+                        if nonzero_space:
+                            chart_utils.fmt_internal_spine(ax.spines["right"])
+                        else:
+                            ax.spines["right"].set_visible(False)
 
                     if yi == 0:
                         ax.set_xlabel(names1[xi])
                     else:
                         ax.set_xlabel("")
-                        ax.spines["bottom"].set_visible(False)
+                        if nonzero_space:
+                            chart_utils.fmt_internal_spine(ax.spines["bottom"])
+                        else:
+                            ax.spines["bottom"].set_visible(False)
 
                     if yi != len(seqs2) - 1:
                         chart_utils.fmt_internal_spine(ax.spines["top"])
@@ -3128,9 +3151,21 @@ class AssemblyGraph(object):
             # invalid characters), show it to the user as a toast message.
             raise UIError(str(ei))
 
-        whratio = sum(width_ratios) / sum(height_ratios)
-        width = 7
-        fig.set_size_inches(width * whratio, width)
+        # Constrain the longest dimension of the plot to a fixed size, then
+        # adjust the other dimension in such a way that keeps the aspect ratio
+        # fixed. (Otherwise, the plot looks weird.)
+        #
+        # Eventually it would be nice to have the plot resize as needed...
+        w = sum(width_ratios)
+        h = sum(height_ratios)
+        long_dim_size = 7
+        if w > h:
+            width = long_dim_size
+            height = long_dim_size * (h / w)
+        else:
+            height = long_dim_size
+            width = long_dim_size * (w / h)
+        fig.set_size_inches(width, height)
 
         # Convert matplotlib output to a base 64 string so that it can be used
         # as the source of an img tag: https://plotly.com/blog/dash-matplotlib/

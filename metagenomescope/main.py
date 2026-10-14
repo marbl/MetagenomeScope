@@ -3605,6 +3605,7 @@ def run(
             State("dp2OtherSeq", "value"),
             State("dotPlotKType", "value"),
             State("dotPlotK", "value"),
+            State("dotPlotSpace", "value"),
             State("dotPlotMarkerSize", "value"),
             Input("dotPlotRunButton", "n_clicks"),
             prevent_initial_call=True,
@@ -3615,7 +3616,7 @@ def run(
             ],
         )
         def create_dot_plot(
-            curr_toasts, t1, t2, gs1, os1, gs2, os2, ktype, k, ms, nc
+            curr_toasts, t1, t2, gs1, os1, gs2, os2, ktype, k, space, ms, nc
         ):
             try:
                 logging.debug("Creating a dot plot...")
@@ -3628,6 +3629,7 @@ def run(
                     os2,
                     ktype=ktype,
                     k=k,
+                    space=space,
                     markersize=ms,
                 )
             except UIError as err:

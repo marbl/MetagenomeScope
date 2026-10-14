@@ -248,6 +248,7 @@ K_MANUAL = "manual"
 
 # set to a reasonable approximation of nine plus ten
 K_DEFAULT = 21
+SPACE_DEFAULT = 0
 MARKERSIZE_DEFAULT = 0.1
 
 ###############################################################################

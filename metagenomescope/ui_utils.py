@@ -2229,6 +2229,21 @@ def get_dot_plot_modal_body():
                             dbc.InputGroup(
                                 [
                                     dbc.InputGroupText(
+                                        "Space between plots",
+                                    ),
+                                    dbc.Input(
+                                        type="text",
+                                        id="dotPlotSpace",
+                                        value=ui_config.SPACE_DEFAULT,
+                                        className="short-num-input",
+                                    ),
+                                ],
+                                size="sm",
+                            ),
+                            ui_config.OPTIONS_SEP,
+                            dbc.InputGroup(
+                                [
+                                    dbc.InputGroupText(
                                         "Marker size (big plots only)",
                                     ),
                                     dbc.Input(
