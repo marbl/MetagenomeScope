@@ -396,6 +396,13 @@ def create_dot_plot(
     lens2 = [len(s) for s in seqs2]
     if autoselect_k:
         k = seq_utils.autoselect_dotplot_k(lens1, lens2)
+    else:
+        # wotplot would catch this eventually, but best to catch this
+        # up front. This way we can (1) show a nice custom error message
+        # and (2) use k to compute exact plot sizes without having to worry
+        # about "seqlen - k + 1" being less than 1.
+        seq_utils.check_seq_lengths_wrt_k(lens1, names1, k)
+        seq_utils.check_seq_lengths_wrt_k(lens2, names2, k)
 
     nonzero_space = space > 0
 

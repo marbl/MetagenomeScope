@@ -3658,6 +3658,7 @@ def run(
                         curr_toasts, "Dot plot error", str(err)
                     ),
                     no_update,
+                    no_update,
                 )
             logging.debug("...Done.")
             return no_update, img_b64, param_html

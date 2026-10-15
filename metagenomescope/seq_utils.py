@@ -1,4 +1,4 @@
-from .errors import WeirdError
+from .errors import WeirdError, UIError
 
 
 def gc_content(dna_string):
@@ -85,3 +85,14 @@ def autoselect_dotplot_k(lengths1, lengths2):
         return 19
     else:
         return 21
+
+
+def check_seq_lengths_wrt_k(lens, names, k):
+    if len(lens) != len(names):
+        raise WeirdError("Seq length and seq name lists have diff lengths?")
+    for m, n in zip(lens, names):
+        if m < k:
+            raise UIError(
+                f"Sequence {n} has length {m:,}, which is < the selected "
+                f"k-mer size of {k:,}."
+            )
