@@ -2173,13 +2173,7 @@ def get_dot_plot_modal_body():
                             dbc.InputGroup(
                                 [
                                     dbc.InputGroupText(
-                                        [
-                                            html.Span(
-                                                "k",
-                                                style={"font-style": "italic"},
-                                            ),
-                                            "-mer size",
-                                        ],
+                                        ui_config.KMER_TEXT,
                                         className="input-group-text-next-to-radio-button-group",
                                     ),
                                     html.Div(
@@ -2239,6 +2233,10 @@ def get_dot_plot_modal_body():
                                     ),
                                 ],
                                 size="sm",
+                            ),
+                            html.Div(
+                                id="dotPlotParameterNotes",
+                                style={"margin-top": "1em"},
                             ),
                         ],
                         width=5,

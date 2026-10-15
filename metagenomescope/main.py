@@ -3596,6 +3596,7 @@ def run(
         @callback(
             Output("toastHolder", "children", allow_duplicate=True),
             Output("dotPlotImg", "src"),
+            Output("dotPlotParameterNotes", "children"),
             State("toastHolder", "children"),
             State("dp1SeqType", "value"),
             State("dp2SeqType", "value"),
@@ -3639,7 +3640,7 @@ def run(
         ):
             try:
                 logging.debug("Creating a dot plot...")
-                img_b64 = ag.create_dot_plot(
+                img_b64, param_html = ag.create_dot_plot(
                     t1,
                     t2,
                     gs1,
@@ -3659,7 +3660,7 @@ def run(
                     no_update,
                 )
             logging.debug("...Done.")
-            return no_update, img_b64
+            return no_update, img_b64, param_html
 
         @callback(
             Output("toastHolder", "children", allow_duplicate=True),

@@ -375,8 +375,11 @@ def compute_dot_plot_size(wcells, hcells, space):
     )
     # When the sequences get really big, these marks can become hard to see;
     # bump them up
-    markersize = max(markersize, ui_config.MIN_MARKERSIZE)
-    return width, height, markersize
+    markersize_clamped = False
+    if markersize < ui_config.MIN_MARKERSIZE:
+        markersize = ui_config.MIN_MARKERSIZE
+        markersize_clamped = True
+    return width, height, markersize, markersize_clamped
 
 
 def create_dot_plot(
@@ -421,7 +424,9 @@ def create_dot_plot(
         squeeze=False,
     )
 
-    w, h, ms = compute_dot_plot_size(width_ratios, height_ratios, space)
+    w, h, ms, msclamped = compute_dot_plot_size(
+        width_ratios, height_ratios, space
+    )
     fig.set_size_inches(w, h)
 
     try:
@@ -510,4 +515,45 @@ def create_dot_plot(
     # that is what happens in october 2026 ._.)
     pyplot.close("all")
 
-    return fig_b64_s
+    mstitle = "Cell size"
+    if msclamped:
+        mstitle += " (rounded up)"
+
+    param_html = [
+        html.H5("Parameters used for this plot"),
+        html.Div(
+            [
+                html.Span(
+                    [
+                        html.Span(
+                            [ui_config.KMER_TEXT, ":"],
+                            style={"font-weight": "bold"},
+                        ),
+                        f" {k:,}",
+                    ]
+                ),
+                ui_config.OPTIONS_SEP,
+                html.Span(
+                    [
+                        html.Span(
+                            "Space between plots:",
+                            style={"font-weight": "bold"},
+                        ),
+                        f" {space:.4f}",
+                    ]
+                ),
+                ui_config.OPTIONS_SEP,
+                html.Span(
+                    [
+                        html.Span(
+                            f"{mstitle}:", style={"font-weight": "bold"}
+                        ),
+                        f" {ms:.4f}",
+                    ]
+                ),
+            ],
+            className="font-monospace",
+        ),
+    ]
+
+    return fig_b64_s, param_html

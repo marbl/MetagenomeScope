@@ -3009,8 +3009,12 @@ class AssemblyGraph(object):
 
         Returns
         -------
-        str
-            Base 64 representation of the dot plot image.
+        (fig_b64_s, param_html): (str, html)
+            fig_b64_s is a string base 64 representation of the dot plot image.
+
+            param_html describes some parameters that may have been
+            automatically set during dot plot creation (it is useful to show
+            these to the user).
 
         Raises
         ------
@@ -3044,7 +3048,7 @@ class AssemblyGraph(object):
         seqs2, names2 = self._get_seqs(type2, graphseq2, otherseq2, 2)
         logging.debug("  ...Done. Creating and drawing plot(s)...")
 
-        fig_b64_s = chart_utils.create_dot_plot(
+        fig_b64_s, param_html = chart_utils.create_dot_plot(
             seqs1,
             seqs2,
             names1,
@@ -3054,7 +3058,7 @@ class AssemblyGraph(object):
             space=space,
         )
         logging.debug("  ...Done.")
-        return fig_b64_s
+        return fig_b64_s, param_html
 
     def order_nodes_for_dot_plot(self, i0, i1):
         """Attempts to determine which axes two nodes go on in a dot plot.

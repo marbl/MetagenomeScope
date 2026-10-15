@@ -236,6 +236,12 @@ TREEMAP_DOUBLE = "double"
 # Dot plot UI
 ###############################################################################
 
+# html used to represent this parameter, because of course i gotta italicize
+# the "k" who do you think i am
+KMER_TEXT = html.Span(
+    [html.Span("k", style={"font-style": "italic"}), "-mer size"]
+)
+
 # Is the user specifying a sequence name in the FASTA file, or giving an
 # arbitrary sequence?
 GRAPH_SEQ = "graph"
