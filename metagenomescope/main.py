@@ -3606,14 +3606,12 @@ def run(
             State("dotPlotKType", "value"),
             State("dotPlotK", "value"),
             State("dotPlotSpace", "value"),
-            State("dotPlotMarkerSize", "value"),
             # if the user presses enter on any of these text inputs, update the
             # plot. this limits the need to manually click on stuff
             Input("dp1GraphSeq", "n_submit"),
             Input("dp2GraphSeq", "n_submit"),
             Input("dotPlotK", "n_submit"),
             Input("dotPlotSpace", "n_submit"),
-            Input("dotPlotMarkerSize", "n_submit"),
             Input("dotPlotRunButton", "n_clicks"),
             prevent_initial_call=True,
             running=[
@@ -3633,12 +3631,10 @@ def run(
             ktype,
             k,
             space,
-            ms,
             nsg1,
             nsg2,
             nsk,
             nss,
-            nsms,
             nc,
         ):
             try:
@@ -3653,7 +3649,6 @@ def run(
                     ktype=ktype,
                     k=k,
                     space=space,
-                    markersize=ms,
                 )
             except UIError as err:
                 logging.debug("...Ran into an error.")

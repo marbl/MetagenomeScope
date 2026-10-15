@@ -334,6 +334,51 @@ def fmt_internal_spine(s):
     s.set_color("#bbb")
 
 
+def compute_space_in_cells(cell_sizes, space):
+    # compute the space between subplots, mirroring what matplotlib
+    # does: https://matplotlib.org/stable/api/_as_gen/matplotlib.gridspec.GridSpec.html
+    # If we don't account for this, then this would mean assuming that
+    # the amount of space available to draw the plot is bigger than it
+    # actually is -- resulting in us drawing markers that are too big.
+    if space > 0:
+        # If there are N plots along this axis, then there are (N - 1)
+        # gaps between them. Just like how you have 5 fingers on one of your
+        # hands, but 4 gaps between each of these fingers. Um, probably.
+        # Anyway that's why the - 1.
+        return space * mean(cell_sizes) * (len(cell_sizes) - 1)
+    return 0
+
+
+def compute_dot_plot_size(wcells, hcells, space):
+
+    # i don't ... really ... know why this works. It should just be 72???
+    POINTS_PER_INCH = 72 / 1.3125
+
+    wcelltotal = sum(wcells)
+    hcelltotal = sum(hcells)
+
+    # Constrain the longest dimension of the plot to a fixed size, then
+    # adjust the other dimension in such a way that keeps the aspect ratio
+    # fixed. (Otherwise, the plot looks weird.)
+    # TODO: Eventually would be nice to allow the plot to get bigger as needed
+    long_dim_size = 7
+    if wcelltotal > hcelltotal:
+        width = long_dim_size
+        height = long_dim_size * (hcelltotal / wcelltotal)
+        space_in_cells = compute_space_in_cells(wcells, space)
+    else:
+        height = long_dim_size
+        width = long_dim_size * (wcelltotal / hcelltotal)
+        space_in_cells = compute_space_in_cells(hcells, space)
+
+    # (Longest axis length) * (points per inch), divided by total # cells
+    # along this axis.
+    markersize = (long_dim_size * POINTS_PER_INCH) / (
+        space_in_cells + max(wcelltotal, hcelltotal)
+    )
+    return width, height, markersize
+
+
 def create_dot_plot(
     seqs1,
     seqs2,
@@ -342,7 +387,6 @@ def create_dot_plot(
     k=ui_config.K_DEFAULT,
     autoselect_k=True,
     space=ui_config.SPACE_DEFAULT,
-    markersize=ui_config.MARKERSIZE_DEFAULT,
 ):
 
     lens1 = [len(s) for s in seqs1]
@@ -377,40 +421,8 @@ def create_dot_plot(
         squeeze=False,
     )
 
-    # i don't ... really ... know why this works. It should just be 72???
-    points_per_inch = 72 / 1.3125
-
-    # Constrain the longest dimension of the plot to a fixed size, then
-    # adjust the other dimension in such a way that keeps the aspect ratio
-    # fixed. (Otherwise, the plot looks weird.)
-    #
-    # Eventually it would be nice to have the plot resize as needed...
-    w = sum(width_ratios)
-    h = sum(height_ratios)
-    long_dim_size = 7
-    if w > h:
-        width = long_dim_size
-        height = long_dim_size * (h / w)
-        if nonzero_space:
-            # compute the space between subplots, mirroring what matplotlib
-            # does: https://matplotlib.org/stable/api/_as_gen/matplotlib.gridspec.GridSpec.html
-            # If we don't account for this, then we will set a markersize
-            # that is too big.
-            space_in_cells = space * mean(width_ratios) * (len(seqs1) - 1)
-        else:
-            space_in_cells = 0
-        # (width in inches) * (points per inch), divided by total # cells
-        # on the x-axis.
-        ms = (width * points_per_inch) / (w + space_in_cells)
-    else:
-        height = long_dim_size
-        width = long_dim_size * (w / h)
-        if nonzero_space:
-            space_in_cells = space * mean(height_ratios) * (len(seqs2) - 1)
-        else:
-            space_in_cells = 0
-        ms = (height * points_per_inch) / (h + space_in_cells)
-    fig.set_size_inches(width, height)
+    w, h, ms = compute_dot_plot_size(width_ratios, height_ratios, space)
+    fig.set_size_inches(w, h)
 
     try:
         for xi, xs in enumerate(seqs1):

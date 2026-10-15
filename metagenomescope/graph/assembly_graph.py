@@ -2977,7 +2977,6 @@ class AssemblyGraph(object):
         ktype=ui_config.K_AUTO,
         k=ui_config.K_DEFAULT,
         space=ui_config.SPACE_DEFAULT,
-        markersize=ui_config.MARKERSIZE_DEFAULT,
     ):
         """Creates a dot plot of two sequences.
 
@@ -3007,9 +3006,6 @@ class AssemblyGraph(object):
         space: str
             Value of the space input. (For now I'm consolidating hspace and
             wspace into a single "space" UI element. Might change eventually.)
-
-        markersize: str
-            Value of the markersize input.
 
         Returns
         -------
@@ -3044,15 +3040,6 @@ class AssemblyGraph(object):
         )
         logging.debug("  ...Done. Getting sequences...")
 
-        markersize = ui_utils.get_num(
-            markersize,
-            "Marker size",
-            integer=False,
-            min_val=0,
-            min_incl=False,
-        )
-        logging.debug("  ...Done. Getting sequences...")
-
         seqs1, names1 = self._get_seqs(type1, graphseq1, otherseq1, 1)
         seqs2, names2 = self._get_seqs(type2, graphseq2, otherseq2, 2)
         logging.debug("  ...Done. Creating and drawing plot(s)...")
@@ -3065,7 +3052,6 @@ class AssemblyGraph(object):
             k=k,
             autoselect_k=autoselect_k,
             space=space,
-            markersize=markersize,
         )
         logging.debug("  ...Done.")
         return fig_b64_s
