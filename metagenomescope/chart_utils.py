@@ -403,10 +403,10 @@ def create_dot_plot(
     # Especially for small sequences, we need to account for the trailing
     # k here -- otherwise the plots get messed up and things aren't
     # perfectly flush with each other.
-    width_ratios = [seqlen - k + 1 for seqlen in lens1]
+    wcells = [seqlen - k + 1 for seqlen in lens1]
     # the y = 0-th subplot is the top one! So we need to reverse the
     # sequences here.
-    height_ratios = [seqlen - k + 1 for seqlen in lens2[::-1]]
+    hcells = [seqlen - k + 1 for seqlen in lens2[::-1]]
 
     fig, axes = pyplot.subplots(
         len(seqs2),
@@ -414,8 +414,8 @@ def create_dot_plot(
         gridspec_kw={
             "hspace": space,
             "wspace": space,
-            "height_ratios": height_ratios,
-            "width_ratios": width_ratios,
+            "height_ratios": hcells,
+            "width_ratios": wcells,
         },
         # Make subplots() always return a 2D array of Axes objects, even if
         # only one sequence is given the x- and/or y-axis. This makes accessing
@@ -424,9 +424,7 @@ def create_dot_plot(
         squeeze=False,
     )
 
-    w, h, ms, msclamped = compute_dot_plot_size(
-        width_ratios, height_ratios, space
-    )
+    w, h, ms, msclamped = compute_dot_plot_size(wcells, hcells, space)
     fig.set_size_inches(w, h)
 
     try:
