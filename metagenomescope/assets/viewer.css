@@ -602,11 +602,14 @@ input {
     overflow-x: auto;
 }
 
-.drawing-option-topnote {
+.modal-topnote {
     font-style: italic;
     text-align: center;
-    margin-top: 1em;
     margin-bottom: 1em;
+}
+
+.drawing-option-topnote {
+    margin-top: 1em;
 }
 
 .progress {

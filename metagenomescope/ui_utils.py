@@ -1588,7 +1588,7 @@ def get_layout_options_tab(
                     "These settings will take "
                     "effect when you redraw the graph."
                 ),
-                className="drawing-option-topnote",
+                className="modal-topnote drawing-option-topnote",
             ),
             html.H5("What should we draw?"),
             # Eventually we can add other stuff here, e.g. "filter
@@ -1859,7 +1859,7 @@ def get_style_options_tab(node_centric):
                     ),
                     '" to make these settings take effect.',
                 ],
-                className="drawing-option-topnote",
+                className="modal-topnote drawing-option-topnote",
             ),
             html.H5("When a node is selected..."),
             html.Div(
@@ -2144,6 +2144,13 @@ def get_dot_plot_seq_ui(seq_num):
 def get_dot_plot_modal_body():
     return html.Div(
         [
+            html.Div(
+                (
+                    "This functionality is designed for comparing sequences "
+                    "up to ~10 Mbp each. It may struggle for longer sequences."
+                ),
+                className="modal-topnote",
+            ),
             # https://www.dash-bootstrap-components.com/docs/components/layout/
             # basically the two dbc.Cols should add up to a total width of 12
             dbc.Row(
