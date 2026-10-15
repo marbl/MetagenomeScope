@@ -475,7 +475,15 @@ def create_dot_plot(
 
                 if yi == 0:
                     if len(seqs1) > 1:
-                        ax.set_xlabel(names1[xi], fontsize=8, rotation=45)
+                        # Align the endpoint of the label with the center of
+                        # the subplot: https://stackoverflow.com/a/67459618
+                        ax.set_xlabel(
+                            names1[xi],
+                            fontsize=8,
+                            rotation=45,
+                            ha="right",
+                            rotation_mode="anchor",
+                        )
                 else:
                     ax.set_xlabel("")
                     if nonzero_space:
