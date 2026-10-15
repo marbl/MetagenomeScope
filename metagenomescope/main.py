@@ -3607,12 +3607,15 @@ def run(
             State("dotPlotKType", "value"),
             State("dotPlotK", "value"),
             State("dotPlotSpace", "value"),
+            State("dotPlotMarkerSizeType", "value"),
+            State("dotPlotMarkerSize", "value"),
             # if the user presses enter on any of these text inputs, update the
             # plot. this limits the need to manually click on stuff
             Input("dp1GraphSeq", "n_submit"),
             Input("dp2GraphSeq", "n_submit"),
             Input("dotPlotK", "n_submit"),
             Input("dotPlotSpace", "n_submit"),
+            Input("dotPlotMarkerSize", "n_submit"),
             Input("dotPlotRunButton", "n_clicks"),
             prevent_initial_call=True,
             running=[
@@ -3632,10 +3635,13 @@ def run(
             ktype,
             k,
             space,
+            mstype,
+            ms,
             nsg1,
             nsg2,
             nsk,
             nss,
+            nsms,
             nc,
         ):
             try:
@@ -3650,6 +3656,8 @@ def run(
                     ktype=ktype,
                     k=k,
                     space=space,
+                    mstype=mstype,
+                    ms=ms,
                 )
             except UIError as err:
                 logging.debug("...Ran into an error.")
@@ -3734,6 +3742,14 @@ def run(
             # change it with a 1, which wouldn't change the value and thus
             # wouldn't trigger this thing) but WHATEVERRRRR it's fine lol
             return ui_config.K_MANUAL
+
+        @callback(
+            Output("dotPlotMarkerSizeType", "value"),
+            Input("dotPlotMarkerSize", "value"),
+            prevent_initial_call=True,
+        )
+        def switch_to_manual_ms(k):
+            return ui_config.MARKERSIZE_MANUAL
 
     clientside_callback(
         ClientsideFunction(

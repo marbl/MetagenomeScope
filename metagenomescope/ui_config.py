@@ -252,9 +252,14 @@ OTHER_SEQ = "other"
 K_AUTO = "auto"
 K_MANUAL = "manual"
 
+# same deal for marker size
+MARKERSIZE_AUTO = "auto"
+MARKERSIZE_MANUAL = "manual"
+
 # set to a reasonable approximation of nine plus ten
 K_DEFAULT = 21
 SPACE_DEFAULT = 0
+MARKERSIZE_DEFAULT = 0.1
 
 # There is some witchcraft associated with this; see the commit message for
 # https://github.com/marbl/MetagenomeScope/commit/89678c470b58facb8ac69a9824a8654730128dcb

@@ -390,6 +390,8 @@ def create_dot_plot(
     k=ui_config.K_DEFAULT,
     autoselect_k=True,
     space=ui_config.SPACE_DEFAULT,
+    ms=ui_config.MARKERSIZE_DEFAULT,
+    autoselect_ms=True,
 ):
 
     lens1 = [len(s) for s in seqs1]
@@ -431,8 +433,14 @@ def create_dot_plot(
         squeeze=False,
     )
 
-    w, h, ms, msclamped = compute_dot_plot_size(wcells, hcells, space)
+    w, h, automs, msclamped = compute_dot_plot_size(wcells, hcells, space)
     fig.set_size_inches(w, h)
+    if autoselect_ms:
+        ms = automs
+    else:
+        # leave ms as what the user specified. this means that it can never be
+        # automatically clamped, since um. it was not selected automatically
+        msclamped = False
 
     try:
         for xi, xs in enumerate(seqs1):
@@ -520,7 +528,7 @@ def create_dot_plot(
     # that is what happens in october 2026 ._.)
     pyplot.close("all")
 
-    mstitle = "Cell size"
+    mstitle = "Marker size"
     if msclamped:
         mstitle += " (rounded up)"
 
@@ -541,19 +549,19 @@ def create_dot_plot(
                 html.Span(
                     [
                         html.Span(
-                            "Space between plots:",
-                            style={"font-weight": "bold"},
+                            f"{mstitle}:", style={"font-weight": "bold"}
                         ),
-                        f" {space:.4f}",
+                        f" {ms:.4f}",
                     ]
                 ),
                 ui_config.OPTIONS_SEP,
                 html.Span(
                     [
                         html.Span(
-                            f"{mstitle}:", style={"font-weight": "bold"}
+                            "Space between plots:",
+                            style={"font-weight": "bold"},
                         ),
-                        f" {ms:.4f}",
+                        f" {space:.4f}",
                     ]
                 ),
             ],

@@ -2146,7 +2146,7 @@ def get_dot_plot_modal_body():
         [
             html.Div(
                 (
-                    "This functionality is designed for comparing sequences "
+                    "This interface is designed for comparing sequences "
                     "up to ~10 Mbp each. It may struggle for longer sequences."
                 ),
                 className="modal-topnote",
@@ -2221,6 +2221,56 @@ def get_dot_plot_modal_body():
                                         type="text",
                                         id="dotPlotK",
                                         value=ui_config.K_DEFAULT,
+                                        className="short-num-input input-group-text-next-to-radio-button-group",
+                                    ),
+                                ],
+                                size="sm",
+                            ),
+                            ui_config.OPTIONS_SEP,
+                            dbc.InputGroup(
+                                [
+                                    dbc.InputGroupText(
+                                        "Marker size",
+                                        className="input-group-text-next-to-radio-button-group",
+                                    ),
+                                    html.Div(
+                                        dbc.RadioItems(
+                                            options=[
+                                                {
+                                                    "label": "Autoselect",
+                                                    "value": ui_config.MARKERSIZE_AUTO,
+                                                },
+                                                {
+                                                    "label": [
+                                                        html.Span(
+                                                            "Specify manually",
+                                                            style={
+                                                                "padding-right": "0.7em"
+                                                            },
+                                                        ),
+                                                        html.I(
+                                                            className="bi bi-arrow-right jank-icon-in-label",
+                                                            style={
+                                                                "-webkit-text-stroke": "0.5px",
+                                                            },
+                                                        ),
+                                                    ],
+                                                    "value": ui_config.MARKERSIZE_MANUAL,
+                                                },
+                                            ],
+                                            value=ui_config.MARKERSIZE_AUTO,
+                                            className="btn-group",
+                                            inputClassName="btn-check",
+                                            labelClassName="btn btn-sm btn-outline-dark",
+                                            labelCheckedClassName="active",
+                                            id="dotPlotMarkerSizeType",
+                                        ),
+                                        className="btn-opt-group",
+                                    ),
+                                    dbc.Input(
+                                        type="text",
+                                        id="dotPlotMarkerSize",
+                                        value=ui_config.MARKERSIZE_DEFAULT,
                                         className="short-num-input input-group-text-next-to-radio-button-group",
                                     ),
                                 ],
