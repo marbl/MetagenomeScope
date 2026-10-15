@@ -351,9 +351,6 @@ def compute_space_in_cells(cell_sizes, space):
 
 def compute_dot_plot_size(wcells, hcells, space):
 
-    # i don't ... really ... know why this works. It should just be 72???
-    POINTS_PER_INCH = 72 / 1.3125
-
     wcelltotal = sum(wcells)
     hcelltotal = sum(hcells)
 
@@ -373,9 +370,12 @@ def compute_dot_plot_size(wcells, hcells, space):
 
     # (Longest axis length) * (points per inch), divided by total # cells
     # along this axis.
-    markersize = (long_dim_size * POINTS_PER_INCH) / (
+    markersize = (long_dim_size * ui_config.POINTS_PER_INCH_MATPLOTLIB) / (
         space_in_cells + max(wcelltotal, hcelltotal)
     )
+    # When the sequences get really big, these marks can become hard to see;
+    # bump them up
+    markersize = max(markersize, ui_config.MIN_MARKERSIZE)
     return width, height, markersize
 
 

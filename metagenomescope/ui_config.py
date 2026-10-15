@@ -249,7 +249,15 @@ K_MANUAL = "manual"
 # set to a reasonable approximation of nine plus ten
 K_DEFAULT = 21
 SPACE_DEFAULT = 0
-MARKERSIZE_DEFAULT = 0.1
+
+# There is some witchcraft associated with this; see the commit message for
+# https://github.com/marbl/MetagenomeScope/commit/89678c470b58facb8ac69a9824a8654730128dcb
+POINTS_PER_INCH_MATPLOTLIB = 72 / 1.3125
+
+# If the automatically-set marker size would be less than this, then bump it
+# up to this. Seems to be necessary for drawing e.g. the E. coli K-12 vs. O157
+# dot plot from the wotplot docs (at least at default DPIs).
+MIN_MARKERSIZE = 0.01
 
 ###############################################################################
 # Component size rank selection
