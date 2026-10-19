@@ -270,6 +270,16 @@ POINTS_PER_INCH_MATPLOTLIB = 72 / 1.3125
 # dot plot from the wotplot docs (at least at default DPIs).
 MIN_MARKERSIZE = 0.01
 
+# Make the internal spines of subplots appear colored gray
+INTERNAL_SPINE_COLOR = "#bbb"
+
+# We want the internal spines of subplots to be below the other spines (i.e.
+# the ones on the boundary of the ENTIRE plot, that remain colored black), but
+# we also want these spines to be above the markers drawn by spy(). As of
+# writing matplotlib reports the z-order of the outer spines as 2.5, so this
+# value seems to work well.
+INTERNAL_SPINE_ZORDER = 2.2
+
 ###############################################################################
 # Component size rank selection
 ###############################################################################

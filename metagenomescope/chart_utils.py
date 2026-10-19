@@ -331,7 +331,8 @@ def trim_seq_name(n, is_seq=False, cutoff=8):
 
 def fmt_internal_spine(s):
     # https://stackoverflow.com/a/12059429
-    s.set_color("#bbb")
+    s.set_color(ui_config.INTERNAL_SPINE_COLOR)
+    s.set_zorder(ui_config.INTERNAL_SPINE_ZORDER)
 
 
 def compute_space_in_cells(cell_sizes, space):
