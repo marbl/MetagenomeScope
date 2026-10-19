@@ -2086,7 +2086,7 @@ def get_dot_plot_seq_ui(seq_num):
                             dbc.RadioItems(
                                 options=[
                                     {
-                                        "label": "Node",
+                                        "label": "Node(s)",
                                         "value": ui_config.GRAPH_SEQ,
                                     },
                                     {
@@ -2112,7 +2112,7 @@ def get_dot_plot_seq_ui(seq_num):
             html.Div(
                 dbc.InputGroup(
                     [
-                        dbc.InputGroupText("Node name"),
+                        dbc.InputGroupText("Node name(s)"),
                         dbc.Input(
                             type="text",
                             id=f"{idprefix}GraphSeq",
