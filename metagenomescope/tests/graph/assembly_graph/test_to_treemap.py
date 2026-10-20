@@ -39,7 +39,7 @@ def test_to_treemap_aggregation():
 def test_to_treemap_single_no_aggregation_no_decoupling():
     ag = AssemblyGraph("metagenomescope/tests/input/sample1.gfa")
     assert ag.to_treemap(
-        treemap_type=ui_config.TREEMAP_SINGLE, min_large_cc_ct=100
+        treemap_type=ui_config.CHART_SINGLE, min_large_cc_ct=100
     ) == (
         [
             "Components",
@@ -57,7 +57,7 @@ def test_to_treemap_single_no_aggregation_decoupling():
         "metagenomescope/tests/input/strand-tangled-with-other-ccs.gfa"
     )
     assert ag.to_treemap(
-        treemap_type=ui_config.TREEMAP_SINGLE, min_large_cc_ct=100
+        treemap_type=ui_config.CHART_SINGLE, min_large_cc_ct=100
     ) == (
         [
             "Components",
@@ -78,7 +78,7 @@ def test_to_treemap_single_aggregation_and_also_decoupling():
         "metagenomescope/tests/input/strand-tangled-with-other-ccs.gfa"
     )
     assert ag.to_treemap(
-        treemap_type=ui_config.TREEMAP_SINGLE, min_large_cc_ct=1
+        treemap_type=ui_config.CHART_SINGLE, min_large_cc_ct=1
     ) == (
         [
             "Components",

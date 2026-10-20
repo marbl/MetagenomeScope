@@ -2693,7 +2693,7 @@ class AssemblyGraph(object):
 
     def to_treemap(
         self,
-        treemap_type=ui_config.TREEMAP_DOUBLE,
+        treemap_type=ui_config.CHART_DOUBLE,
         min_large_cc_ct=ui_config.MIN_LARGE_CC_COUNT,
     ):
         """Creates data describing the graph's components for use in a treemap.
@@ -2701,15 +2701,15 @@ class AssemblyGraph(object):
         Parameters
         ----------
         treemap_type: str
-            ui_config.DOUBLE is the old way of doing this: get the full node
-            counts from all components, ignoring nonredundant components and
-            decoupling.
+            ui_config.CHART_DOUBLE is the old way of doing this: get the full
+            node counts from all components, ignoring nonredundant components
+            and decoupling.
 
-            ui_config.SINGLE is the new way of doing this: only get counts from
-            nonredundant components, and if a component has been decoupled then
-            just use its number of shown full nodes in the decoupling. (Of
-            course, not all graphs will support this - hence why this function
-            defaults to DOUBLE.)
+            ui_config.CHART_SINGLE is the new way of doing this: only get
+            counts from nonredundant components, and if a component has been
+            decoupled then just use its number of shown full nodes in the
+            decoupling. (Of course, not all graphs will support this - hence
+            why this function defaults to DOUBLE.)
 
         min_large_cc_ct: int
             We will aggregate components with the same number of nodes together
@@ -2744,7 +2744,7 @@ class AssemblyGraph(object):
         cc_sizes = []
         cc_aggs = [False]
 
-        single = treemap_type == ui_config.TREEMAP_SINGLE
+        single = treemap_type == ui_config.CHART_SINGLE
 
         if single:
             ccs = [self.get_cc_by_num(i) for i in self.nr_cc_nums]

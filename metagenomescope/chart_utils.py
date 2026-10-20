@@ -255,13 +255,13 @@ def get_scatterplot_options(x_scale_id, y_scale_id):
 
 def get_treemap_options(ag):
     if ag.orientation_in_name and not ag.is_flye_dot:
-        default = ui_config.TREEMAP_SINGLE
+        default = ui_config.CHART_SINGLE
         ig_classes = ""
     else:
         # MetaCarvel GML and Flye DOT files don't support decoupling (and
         # MetaCarvel GMLs don't even support the notion of "nonredundant"
         # components), so hide the option for these graphs.
-        default = ui_config.TREEMAP_DOUBLE
+        default = ui_config.CHART_DOUBLE
         ig_classes = " removedEntirely"
 
     return dbc.InputGroup(
@@ -275,11 +275,11 @@ def get_treemap_options(ag):
                     options=[
                         {
                             "label": "Yes",
-                            "value": ui_config.TREEMAP_SINGLE,
+                            "value": ui_config.CHART_SINGLE,
                         },
                         {
                             "label": "No",
-                            "value": ui_config.TREEMAP_DOUBLE,
+                            "value": ui_config.CHART_DOUBLE,
                         },
                     ],
                     value=default,
@@ -298,7 +298,7 @@ def get_treemap_options(ag):
 
 
 def get_treemap_title(treemap_type):
-    if treemap_type == ui_config.TREEMAP_SINGLE:
+    if treemap_type == ui_config.CHART_SINGLE:
         return "Number of nodes per component (nonredundant and decoupled)"
     else:
         return "Number of nodes per component (all components)"

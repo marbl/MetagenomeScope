@@ -424,7 +424,7 @@ def validate_multiple_ccs(ag):
 
 
 def validate_treemap_type(ag, treemap_type):
-    if treemap_type == ui_config.TREEMAP_SINGLE:
+    if treemap_type == ui_config.CHART_SINGLE:
         if not ag.orientation_in_name or ag.is_flye_dot:
             raise WeirdError("Graph does not support 'single' treemap")
 

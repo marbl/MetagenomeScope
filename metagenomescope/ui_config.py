@@ -219,18 +219,14 @@ SCALE_LOG = "log"
 NODES_HIST = "nodes"
 EDGES_HIST = "edges"
 
-###############################################################################
-# Treemap in the graph info dialog
-###############################################################################
+# single means "only show NR components and decouple strand-tangled components"
+# double means "show all components, and do not take into account decoupling"
+CHART_SINGLE = "single"
+CHART_DOUBLE = "double"
 
 # if a graph has < this many components, then don't bother aggregating its
 # components in the treemap
 MIN_LARGE_CC_COUNT = 100
-
-# single means "only show NR components and decouple strand-tangled components"
-# double means "show all components, and do not take into account decoupling"
-TREEMAP_SINGLE = "single"
-TREEMAP_DOUBLE = "double"
 
 ###############################################################################
 # Dot plot UI
