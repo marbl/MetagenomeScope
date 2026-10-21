@@ -417,12 +417,12 @@ def validate_multiple_ccs(ag):
     function is intended to be called after we have already observed that
     it contains multiple components -- it's just a sanity check.
     """
-    if not ag.multiple_ccs:
-        raise WeirdError("Graph has multiple_ccs set to False?")
     if len(ag.components) == 1:
         raise WeirdError("Graph has only a single component")
     elif len(ag.components) < 1:
         raise WeirdError("Graph has < 1 components? Something is busted.")
+    elif not ag.multiple_ccs:
+        raise WeirdError("Graph has multiple_ccs set to False?")
 
 
 def validate_treemap_type(ag, treemap_type):
