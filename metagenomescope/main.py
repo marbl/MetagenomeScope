@@ -29,6 +29,7 @@ from . import (
     chart_utils,
     color_utils,
     path_utils,
+    modals,
 )
 from .graph import AssemblyGraph, graph_utils
 from .errors import UIError, WeirdError
@@ -1228,7 +1229,7 @@ def run(
                         dbc.Tabs(
                             [
                                 dbc.Tab(
-                                    ui_utils.get_info_overview_tab(ag),
+                                    modals.graph_info.get_overview_tab(ag),
                                     label="Overview",
                                 ),
                                 dbc.Tab(
