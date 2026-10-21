@@ -83,3 +83,40 @@ def get_overview_tab(ag):
             ),
         ]
     )
+
+
+def get_components_tab(ag):
+    inner_tabs = [
+        dbc.Tab(
+            label="Treemap of nodes",
+        ),
+        dbc.Tab(
+            label="Histograms of nodes / edges",
+        ),
+        dbc.Tab(
+            label="Length \u00d7 Coverage",
+        ),
+    ]
+    return dbc.Tabs(inner_tabs)
+
+
+def get_modal_body(ag):
+    # TODO don't incl components tab if not multi ccs
+    return dbc.Tabs(
+        [
+            dbc.Tab(
+                get_overview_tab(ag),
+                label="Overview",
+            ),
+            dbc.Tab(
+                get_components_tab(ag),
+                label="Components",
+            ),
+            dbc.Tab(
+                label="Lengths",
+            ),
+            dbc.Tab(
+                label="Coverages",
+            ),
+        ]
+    )

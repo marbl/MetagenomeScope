@@ -159,9 +159,8 @@ def run(
     #
     # This is all useless and confusing if the graph only has one component, so
     # this flag lets us figure out if we should show or hide this kinda stuff
-    multiple_ccs = len(ag.components) > 1
     cc_ct_desc = ui_utils.pluralize(len(ag.components), "component")
-    all_cc_desc = "all components" if multiple_ccs else "one component"
+    all_cc_desc = "all components" if ag.multiple_ccs else "one component"
 
     # Options for drawing components
     # If there is only one cc in the graph, we'll disable the "one component"
@@ -194,13 +193,13 @@ def run(
         ],
     }
     DEFAULT_CC_SELECTION_METHOD = (
-        "ccDrawingSizeRank" if multiple_ccs else "ccDrawingAll"
+        "ccDrawingSizeRank" if ag.multiple_ccs else "ccDrawingAll"
     )
     DEFAULT_CC_SELECTION_A_CLASSES = "dropdown-item"
     DEFAULT_CC_SELECTION_A_ATTRS = {}
     CC_SELECTION_A_CLASSES_MULTIPLE_CCS = DEFAULT_CC_SELECTION_A_CLASSES
     CC_SELECTION_A_ATTRS_MULTIPLE_CCS = DEFAULT_CC_SELECTION_A_ATTRS
-    if not multiple_ccs:
+    if not ag.multiple_ccs:
         # https://getbootstrap.com/docs/5.3/components/dropdowns/#disabled
         # thankfully this seems to prevent dash from noticing click events on
         # the disabled <a>s in question :)
@@ -1225,25 +1224,7 @@ def run(
                             className="modal-title fs-5",
                         )
                     ),
-                    dbc.ModalBody(
-                        dbc.Tabs(
-                            [
-                                dbc.Tab(
-                                    modals.graph_info.get_overview_tab(ag),
-                                    label="Overview",
-                                ),
-                                dbc.Tab(
-                                    label="Components",
-                                ),
-                                dbc.Tab(
-                                    label="Lengths",
-                                ),
-                                dbc.Tab(
-                                    label="Coverages",
-                                ),
-                            ]
-                        ),
-                    ),
+                    dbc.ModalBody(modals.graph_info.get_modal_body(ag)),
                 ],
                 id="graphInfoModal",
                 is_open=False,
@@ -1264,26 +1245,9 @@ def run(
                         ),
                     ),
                     dbc.ModalBody(
-                        dbc.Tabs(
-                            [
-                                dbc.Tab(
-                                    modals.drawing_options.get_layout_tab(
-                                        ag.node_centric,
-                                        ag.orientation_in_name,
-                                        ag.is_flye_dot,
-                                        multiple_ccs,
-                                        default_dot_alg_desc,
-                                    ),
-                                    label="Layout",
-                                ),
-                                dbc.Tab(
-                                    modals.drawing_options.get_style_tab(
-                                        ag.node_centric
-                                    ),
-                                    label="Style",
-                                ),
-                            ]
-                        ),
+                        modals.drawing_options.get_modal_body(
+                            ag, default_dot_alg_desc
+                        )
                     ),
                 ],
                 id="drawingOptionsModal",
@@ -1456,7 +1420,7 @@ def run(
         ],
     )
 
-    if multiple_ccs:
+    if ag.multiple_ccs:
 
         @callback(
             Output("toastHolder", "children", allow_duplicate=True),

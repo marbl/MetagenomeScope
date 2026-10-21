@@ -385,6 +385,7 @@ class AssemblyGraph(object):
         # this method's docstring for details.
         logger.debug("  Recording information about the graph's components...")
         self._record_connected_components()
+        self.multiple_ccs = len(self.components) > 1
         logger.debug(
             "  ...Done. The graph has "
             f"{ui_utils.pluralize(len(self.components), 'component')}."

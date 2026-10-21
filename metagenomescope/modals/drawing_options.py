@@ -4,14 +4,7 @@ from dash import html, dcc
 from .. import ui_utils, misc_utils, ui_config, css_config
 
 
-def get_layout_tab(
-    node_centric,
-    orientation_in_name,
-    is_flye_dot,
-    multiple_ccs,
-    default_dot_alg_desc,
-):
-
+def get_layout_tab(ag, default_dot_alg_desc):
     JS_ALG_WARNING = html.P(
         [
             html.Span("Note:", style={"font-weight": "bold"}),
@@ -66,16 +59,16 @@ def get_layout_tab(
     # If this is NOT the case, then let's just turn off (and disable) the
     # "just show nonredundant ccs" option here. We COULD hide it entirely but
     # I think disabling gives a clearer user experience.
-    if not (orientation_in_name and multiple_ccs):
+    if not (ag.orientation_in_name and ag.multiple_ccs):
         ui_utils.disable_dcc_checklist_option(scope_options, ui_config.NR_CCS)
         # Go a step further: ensure that this option is turned off entirely for
         # these kinds of graphs.
         misc_utils.safe_list_discard(default_scope_settings, ui_config.NR_CCS)
 
     # Similar deal for decoupling. It makes no sense for graphs where
-    # orientation_in_name is false, and -- furthermore -- Flye DOT files where
-    # the nodes do not have orientations mean the algorithm gets funky.
-    if not (orientation_in_name and not is_flye_dot):
+    # ag.orientation_in_name is false, and -- furthermore -- Flye DOT files
+    # where the nodes do not have orientations mean the algorithm gets funky.
+    if not (ag.orientation_in_name and not ag.is_flye_dot):
         ui_utils.disable_dcc_checklist_option(
             scope_options, ui_config.DECOUPLE
         )
@@ -290,7 +283,7 @@ def get_layout_tab(
                                 type="text",
                                 id="dotRanksep",
                                 value=ui_config.NODECENTRIC_2_DEFAULT_DOT_RANKSEP[
-                                    node_centric
+                                    ag.node_centric
                                 ],
                                 className="short-num-input",
                             ),
@@ -461,6 +454,24 @@ def get_style_tab(node_centric):
                     type="button",
                 ),
                 style={"text-align": "right", "margin-top": "1em"},
+            ),
+        ]
+    )
+
+
+def get_modal_body(ag, default_dot_alg_desc):
+    return dbc.Tabs(
+        [
+            dbc.Tab(
+                get_layout_tab(
+                    ag,
+                    default_dot_alg_desc,
+                ),
+                label="Layout",
+            ),
+            dbc.Tab(
+                get_style_tab(ag.node_centric),
+                label="Style",
             ),
         ]
     )
