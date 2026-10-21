@@ -84,7 +84,9 @@ def get_layout_tab(
     # Finally, we don't support recursive layout when patterns are not drawn
     # and/or when decoupling is selected.
     if not ui_utils.recursive_layout_enabled(default_scope_settings):
-        ui_utils.disable_dcc_checklist_option(modifier_options, ui_config.RECURSIVE)
+        ui_utils.disable_dcc_checklist_option(
+            modifier_options, ui_config.RECURSIVE
+        )
         misc_utils.safe_list_discard(
             default_modifier_settings, ui_config.RECURSIVE
         )
@@ -460,6 +462,3 @@ def get_style_tab(node_centric):
             ),
         ]
     )
-
-
-

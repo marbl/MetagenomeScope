@@ -83,4 +83,3 @@ def get_overview_tab(ag):
             ),
         ]
     )
-

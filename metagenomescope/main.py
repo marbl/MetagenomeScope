@@ -1306,7 +1306,7 @@ def run(
                             ),
                         ]
                     ),
-                    dbc.ModalBody(ui_utils.get_seq_search_modal_body(ag)),
+                    dbc.ModalBody(modals.seq_search.get_modal_body(ag)),
                 ],
                 id="seqSearchModal",
                 is_open=False,
@@ -1329,7 +1329,7 @@ def run(
                             ),
                         ]
                     ),
-                    dbc.ModalBody(ui_utils.get_dot_plot_modal_body()),
+                    dbc.ModalBody(modals.dot_plot.get_modal_body()),
                 ],
                 id="dotPlotModal",
                 is_open=False,
@@ -3026,11 +3026,9 @@ def run(
                     ),
                     no_update,
                 )
-            seq_search_results = ui_utils.get_seq_search_results_html(
-                inseq2graphseqs
-            )
+            results = modals.seq_search.get_results_html(inseq2graphseqs)
             logging.debug("...Done.")
-            return no_update, seq_search_results
+            return no_update, results
 
         @callback(
             Output("dotPlotModal", "is_open"),

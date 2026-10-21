@@ -2941,7 +2941,7 @@ class AssemblyGraph(object):
         UIError
             If something is wrong with the inputs.
         """
-        axis = ui_utils.get_dot_plot_axis(seq_num)
+        axis = chart_utils.get_dot_plot_axis(seq_num)
         if seq_type == ui_config.GRAPH_SEQ:
             if graph_seq is None or len(graph_seq) == 0:
                 raise UIError(f"{axis}-axis: No node name(s) specified.")
