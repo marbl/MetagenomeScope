@@ -206,16 +206,6 @@ def run(
         CC_SELECTION_A_CLASSES_MULTIPLE_CCS += " disabled"
         CC_SELECTION_A_ATTRS_MULTIPLE_CCS = {"aria-disabled": "true"}
 
-    NO_COMPONENTS_SELECTED_MSG = html.Span(
-        [
-            "No components selected. You can use the ",
-            html.Span("Box / Lasso Select", style={"font-weight": "bold"}),
-            " tools in the plot above to select components, which will show "
-            "their size ranks here. You could then copy and paste them into "
-            "the controls for drawing components.",
-        ]
-    )
-
     # If the user specified, show an interface for that
     seqs_given = ag.seq_holder is not None
     seq_html = []
@@ -1420,13 +1410,50 @@ def run(
         ],
     )
 
+    @callback(
+        Output("gim_cc_TreemapButton", "n_clicks"),
+        Output("gim_cc_HistButton", "n_clicks"),
+        Output("gim_cc_CovLenScatterButton", "n_clicks"),
+        Output("gim_len_HistButton", "n_clicks"),
+        Output("gim_cov_HistButton", "n_clicks"),
+        Output("gim_covlenele_ScatterButton", "n_clicks"),
+        Input("graphInfoModalTabs", "active_tab"),
+        Input("graphInfoModalCCTabs", "active_tab"),
+    )
+    def switch_graph_info_tab(outer_active_tab, cc_active_tab):
+        outs = [no_update] * 6
+        print(outs, outer_active_tab, cc_active_tab)
+        if outer_active_tab == "graphInfoComponentsTab":
+            if cc_active_tab == "graphInfoCCTreemapTab":
+                outs[0] = 1
+            elif cc_active_tab == "graphInfoCCHistTab":
+                outs[1] = 1
+            elif cc_active_tab == "graphInfoCCCovLenTab":
+                outs[2] = 1
+            else:
+                raise WeirdError(f"Unrecognized cc tab: {cc_active_tab}")
+        elif outer_active_tab == "graphInfoLengthsTab":
+            outs[3] = 1
+        elif outer_active_tab == "graphInfoCoveragesTab":
+            outs[4] = 1
+        elif outer_active_tab == "graphInfoCovLenElesTab":
+            outs[5] = 1
+        elif (
+            outer_active_tab == "graphInfoOverviewTab"
+            or outer_active_tab is None
+        ):
+            pass
+        else:
+            raise WeirdError(f"Unrecognized outer tab: {outer_active_tab}")
+        return outs
+
     if ag.multiple_ccs:
 
         @callback(
             Output("toastHolder", "children", allow_duplicate=True),
             Output("ccHistContainer", "children"),
             State("toastHolder", "children"),
-            Input("ccNestHistTab", "n_clicks"),
+            Input("gim_cc_HistButton", "n_clicks"),
             State("ccHistNumBins", "value"),
             Input("ccHistNumBins", "n_submit"),
             Input("ccHistNumBinsApply", "n_clicks"),
@@ -1495,7 +1522,7 @@ def run(
         @callback(
             Output("ccTreemapContainer", "children"),
             Input("ccTreemapType", "value"),
-            Input("ccTab", "n_clicks"),
+            Input("gim_cc_TreemapButton", "n_clicks"),
             prevent_initial_call=True,
         )
         def plot_cc_treemap(treemap_type, n_clicks):
@@ -1553,7 +1580,7 @@ def run(
         Output("toastHolder", "children", allow_duplicate=True),
         Output("seqLenHistContainer", "children"),
         State("toastHolder", "children"),
-        Input("seqLenTab", "n_clicks"),
+        Input("gim_len_HistButton", "n_clicks"),
         State("seqLenHistNumBins", "value"),
         Input("seqLenHistNumBins", "n_submit"),
         Input("seqLenHistNumBinsApply", "n_clicks"),
@@ -1565,7 +1592,7 @@ def run(
     )
     def plot_seqlen_hist(
         curr_toasts,
-        tab_n_clicks,
+        btn_n_clicks,
         nbinsx,
         nbins_n_submit,
         nbins_n_clicks,
@@ -1614,7 +1641,7 @@ def run(
             Output("covHistContainer", "children"),
             Output("covHistMissingInfo", "children"),
             State("toastHolder", "children"),
-            Input("covNestHistTab", "n_clicks"),
+            Input("gim_cov_HistButton", "n_clicks"),
             State("covHistNumBins", "value"),
             Input("covHistNumBins", "n_submit"),
             Input("covHistNumBinsApply", "n_clicks"),
@@ -1626,7 +1653,7 @@ def run(
         )
         def plot_cov_hist(
             curr_toasts,
-            tab_n_clicks,
+            btn_n_clicks,
             nbinsx,
             nbins_n_submit,
             nbins_n_clicks,
@@ -1682,18 +1709,12 @@ def run(
             Output("covlenCCScatterGraph", "figure"),
             Output("covlenCCScatterMissingInfo", "children"),
             Output("covlenCCScatterMissingInfo", "style"),
-            Input("covNestCCTab", "n_clicks"),
-            Input("covTab", "n_clicks"),
+            Input("gim_cc_CovLenScatterButton", "n_clicks"),
             Input("covlenCCScatterXScale", "value"),
             Input("covlenCCScatterYScale", "value"),
             prevent_initial_call=True,
         )
-        def plot_cov_cc_scatter(
-            parent_tab_nclicks, grandparent_tab_nclicks, xscale, yscale
-        ):
-            # if we don't redo (?) the fig on clicking the covnestcctab then
-            # the y-axis label can get knocked off the top part of the plot
-            # partially when you go from another sibling tab to this one
+        def plot_cov_cc_scatter(btn_nclicks, xscale, yscale):
             fig = go.Figure()
             (
                 cc_names,
@@ -1795,14 +1816,14 @@ def run(
                 # If the user selected no point, then nums will be [].
                 if len(nums) > 0:
                     return ui_utils.fmt_num_ranges(nums, thousands_seps=False)
-            return NO_COMPONENTS_SELECTED_MSG
+            return ui_config.NO_COMPONENTS_SELECTED_MSG
 
     if ag.has_covlens:
 
         @callback(
             Output("covlenEleScatterContainer", "children"),
             Output("covlenEleScatterMissingInfo", "children"),
-            Input("covNestEleTab", "n_clicks"),
+            Input("gim_covlenele_ScatterButton", "n_clicks"),
             Input("covlenEleScatterXScale", "value"),
             Input("covlenEleScatterYScale", "value"),
             prevent_initial_call=True,

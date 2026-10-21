@@ -228,6 +228,18 @@ CHART_DOUBLE = "double"
 # components in the treemap
 MIN_LARGE_CC_COUNT = 100
 
+# Used for the cov / len component scatterplot
+NO_COMPONENTS_SELECTED_MSG = html.Span(
+    [
+        "No components selected. You can use the ",
+        html.Span("Box / Lasso Select", style={"font-weight": "bold"}),
+        " tools in the plot above to select components, which will show "
+        "their size ranks here. You could then copy and paste them into "
+        "the controls for drawing components.",
+    ]
+)
+
+
 ###############################################################################
 # Dot plot UI
 ###############################################################################
