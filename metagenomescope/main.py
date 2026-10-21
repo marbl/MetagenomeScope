@@ -1267,7 +1267,7 @@ def run(
                         dbc.Tabs(
                             [
                                 dbc.Tab(
-                                    ui_utils.get_layout_options_tab(
+                                    modals.drawing_options.get_layout_tab(
                                         ag.node_centric,
                                         ag.orientation_in_name,
                                         ag.is_flye_dot,
@@ -1277,7 +1277,7 @@ def run(
                                     label="Layout",
                                 ),
                                 dbc.Tab(
-                                    ui_utils.get_style_options_tab(
+                                    modals.drawing_options.get_style_tab(
                                         ag.node_centric
                                     ),
                                     label="Style",
