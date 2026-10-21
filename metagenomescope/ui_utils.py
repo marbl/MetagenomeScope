@@ -5,8 +5,8 @@ import statistics
 import dash_bootstrap_components as dbc
 import dash_ag_grid as dag
 from collections import defaultdict
-from dash import html, dcc, no_update
-from . import css_config, ui_config, aln_config, config, name_utils, misc_utils
+from dash import html, no_update
+from . import css_config, ui_config, config, name_utils
 from .errors import UIError, WeirdError
 from .gap import Gap
 
@@ -1494,7 +1494,6 @@ def get_dot_alg_descriptions(scope_settings, modifier_settings):
     else:
         dot_alg_desc_used = DOT_ALG_DESC
     return DOT_ALG_DESC, DOT_ALG_DESC_PATTS, dot_alg_desc_used
-
 
 
 def fail_flush(curr_toasts, error_name, err):

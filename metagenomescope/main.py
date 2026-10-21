@@ -1952,7 +1952,7 @@ def run(
         State("graphInfoModal", "is_open"),
         prevent_initial_call=True,
     )
-    def toggle_modal(nc, is_open):
+    def toggle_graph_info_modal(nc, is_open):
         # from https://www.dash-bootstrap-components.com/docs/components/modal/
         if nc:
             return not is_open
@@ -1964,7 +1964,7 @@ def run(
         State("drawingOptionsModal", "is_open"),
         prevent_initial_call=True,
     )
-    def toggle_modal(nc, is_open):
+    def toggle_drawing_options_modal(nc, is_open):
         if nc:
             return not is_open
         return is_open

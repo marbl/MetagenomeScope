@@ -1,7 +1,6 @@
 import dash_bootstrap_components as dbc
 from dash import html
 from .. import ui_config, chart_utils
-from ..errors import WeirdError
 
 
 def get_dot_plot_seq_ui(seq_num):

@@ -349,6 +349,7 @@ def compute_space_in_cells(cell_sizes, space):
         return space * mean(cell_sizes) * (len(cell_sizes) - 1)
     return 0
 
+
 def get_dot_plot_axis(seq_num):
     if seq_num == 1:
         return "x"

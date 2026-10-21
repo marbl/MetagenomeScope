@@ -67,7 +67,7 @@ def get_layout_tab(
     # "just show nonredundant ccs" option here. We COULD hide it entirely but
     # I think disabling gives a clearer user experience.
     if not (orientation_in_name and multiple_ccs):
-        disable_dcc_checklist_option(scope_options, ui_config.NR_CCS)
+        ui_utils.disable_dcc_checklist_option(scope_options, ui_config.NR_CCS)
         # Go a step further: ensure that this option is turned off entirely for
         # these kinds of graphs.
         misc_utils.safe_list_discard(default_scope_settings, ui_config.NR_CCS)
@@ -76,7 +76,9 @@ def get_layout_tab(
     # orientation_in_name is false, and -- furthermore -- Flye DOT files where
     # the nodes do not have orientations mean the algorithm gets funky.
     if not (orientation_in_name and not is_flye_dot):
-        disable_dcc_checklist_option(scope_options, ui_config.DECOUPLE)
+        ui_utils.disable_dcc_checklist_option(
+            scope_options, ui_config.DECOUPLE
+        )
         misc_utils.safe_list_discard(
             default_scope_settings, ui_config.DECOUPLE
         )
