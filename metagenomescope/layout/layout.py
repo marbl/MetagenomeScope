@@ -372,6 +372,7 @@ class Layout(object):
                         edge.new_src_id,
                         edge.new_tgt_id,
                     )
+            cg.clear()
 
     def to_abs_coords(self, dx=0, dy=0):
         """Returns the absolute coordinates of descendant nodes and edges.
