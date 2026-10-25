@@ -106,6 +106,11 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   ([#431](https://github.com/marbl/MetagenomeScope/issues/431),
   [#433](https://github.com/marbl/MetagenomeScope/issues/433)).
 
+- Clear `pygraphviz.AGraph` objects created during the layout process after
+  they are no longer needed; this seems to improve performance when drawing
+  many components
+  ([NetworkX PR 4070](https://github.com/networkx/networkx/pull/4070)).
+
 - Disallow the identification of cyclic bulges, for the sake of simplicity
   ([#439](https://github.com/marbl/MetagenomeScope/issues/439)).
 
@@ -407,7 +412,7 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 
 - There are extremely rare cases where Graphviz can "lose" an edge and not
   draw it ([#394](https://github.com/marbl/MetagenomeScope/issues/394),
-  [issue 1323 on Graphviz' repository](https://gitlab.com/graphviz/graphviz/-/work_items/1323)).
+  [Graphviz issue 1323](https://gitlab.com/graphviz/graphviz/-/work_items/1323)).
   Detect these cases, log them
   ([#400](https://github.com/marbl/MetagenomeScope/issues/400)),
   and ensure they are at least drawn as a straight line -- so that all
