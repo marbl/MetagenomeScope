@@ -1410,50 +1410,13 @@ def run(
         ],
     )
 
-    @callback(
-        Output("gim_cc_TreemapButton", "n_clicks"),
-        Output("gim_cc_HistButton", "n_clicks"),
-        Output("gim_cc_CovLenScatterButton", "n_clicks"),
-        Output("gim_len_HistButton", "n_clicks"),
-        Output("gim_cov_HistButton", "n_clicks"),
-        Output("gim_covlenele_ScatterButton", "n_clicks"),
-        Input("graphInfoModalTabs", "active_tab"),
-        Input("graphInfoModalCCTabs", "active_tab"),
-    )
-    def switch_graph_info_tab(outer_active_tab, cc_active_tab):
-        outs = [no_update] * 6
-        print(outs, outer_active_tab, cc_active_tab)
-        if outer_active_tab == "graphInfoComponentsTab":
-            if cc_active_tab == "graphInfoCCTreemapTab":
-                outs[0] = 1
-            elif cc_active_tab == "graphInfoCCHistTab":
-                outs[1] = 1
-            elif cc_active_tab == "graphInfoCCCovLenTab":
-                outs[2] = 1
-            else:
-                raise WeirdError(f"Unrecognized cc tab: {cc_active_tab}")
-        elif outer_active_tab == "graphInfoLengthsTab":
-            outs[3] = 1
-        elif outer_active_tab == "graphInfoCoveragesTab":
-            outs[4] = 1
-        elif outer_active_tab == "graphInfoCovLenElesTab":
-            outs[5] = 1
-        elif (
-            outer_active_tab == "graphInfoOverviewTab"
-            or outer_active_tab is None
-        ):
-            pass
-        else:
-            raise WeirdError(f"Unrecognized outer tab: {outer_active_tab}")
-        return outs
-
     if ag.multiple_ccs:
 
         @callback(
             Output("toastHolder", "children", allow_duplicate=True),
             Output("ccHistContainer", "children"),
             State("toastHolder", "children"),
-            Input("gim_cc_HistButton", "n_clicks"),
+            Input("graphInfoCCHistTab", "n_clicks"),
             State("ccHistNumBins", "value"),
             Input("ccHistNumBins", "n_submit"),
             Input("ccHistNumBinsApply", "n_clicks"),
@@ -1522,7 +1485,7 @@ def run(
         @callback(
             Output("ccTreemapContainer", "children"),
             Input("ccTreemapType", "value"),
-            Input("gim_cc_TreemapButton", "n_clicks"),
+            Input("graphInfoCCTreemapTab", "n_clicks"),
             prevent_initial_call=True,
         )
         def plot_cc_treemap(treemap_type, n_clicks):
@@ -1580,7 +1543,7 @@ def run(
         Output("toastHolder", "children", allow_duplicate=True),
         Output("seqLenHistContainer", "children"),
         State("toastHolder", "children"),
-        Input("gim_len_HistButton", "n_clicks"),
+        Input("infoLengthsTab", "n_clicks"),
         State("seqLenHistNumBins", "value"),
         Input("seqLenHistNumBins", "n_submit"),
         Input("seqLenHistNumBinsApply", "n_clicks"),
@@ -1641,7 +1604,7 @@ def run(
             Output("covHistContainer", "children"),
             Output("covHistMissingInfo", "children"),
             State("toastHolder", "children"),
-            Input("gim_cov_HistButton", "n_clicks"),
+            Input("infoCoveragesTab", "n_clicks"),
             State("covHistNumBins", "value"),
             Input("covHistNumBins", "n_submit"),
             Input("covHistNumBinsApply", "n_clicks"),
@@ -1709,7 +1672,7 @@ def run(
             Output("covlenCCScatterGraph", "figure"),
             Output("covlenCCScatterMissingInfo", "children"),
             Output("covlenCCScatterMissingInfo", "style"),
-            Input("gim_cc_CovLenScatterButton", "n_clicks"),
+            Input("graphInfoCCCovLenTab", "n_clicks"),
             Input("covlenCCScatterXScale", "value"),
             Input("covlenCCScatterYScale", "value"),
             prevent_initial_call=True,
@@ -1823,7 +1786,7 @@ def run(
         @callback(
             Output("covlenEleScatterContainer", "children"),
             Output("covlenEleScatterMissingInfo", "children"),
-            Input("gim_covlenele_ScatterButton", "n_clicks"),
+            Input("infoCovLenElesTab", "n_clicks"),
             Input("covlenEleScatterXScale", "value"),
             Input("covlenEleScatterYScale", "value"),
             prevent_initial_call=True,

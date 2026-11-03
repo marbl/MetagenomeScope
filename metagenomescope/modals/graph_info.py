@@ -3,86 +3,163 @@ from dash import html, dcc
 from .. import chart_utils, ui_utils, ui_config, css_config
 
 
-def get_overview_tab(ag):
+def get_pane_id(tab_id):
+    return f"{tab_id}Pane"
+
+
+def get_nav(title, tab_id, selected=False):
+    btn_classes = "nav-link"
+    if selected:
+        btn_classes += " active"
+    pane_id = get_pane_id(tab_id)
+    return html.Li(
+        html.Button(
+            title,
+            className=btn_classes,
+            id=tab_id,
+            type="button",
+            role="tab",
+            **{
+                "data-bs-toggle": "tab",
+                "data-bs-target": f"#{pane_id}",
+                "aria-controls": pane_id,
+                "aria-selected": "true" if selected else "false",
+            },
+        ),
+        className="nav-item",
+        role="presentation",
+    )
+
+
+def get_pane(content, tab_id, selected=False):
+    classes = "tab-pane fade"
+    if selected:
+        classes += " show active"
     return html.Div(
-        [
-            html.Table(
-                html.Tbody(
-                    [
-                        html.Tr(
-                            [
-                                html.Th("Filename"),
-                                html.Th(
-                                    "Filetype",
-                                ),
-                                html.Th("# nodes"),
-                                html.Th("# edges"),
-                                html.Th("# components"),
-                            ]
-                        ),
-                        html.Tr(
-                            [
-                                html.Td(
-                                    ag.basename,
-                                    className="font-monospace",
-                                ),
-                                html.Td(
-                                    ag.filetype,
-                                    className="font-monospace",
-                                ),
-                                html.Td(
-                                    f"{ag.node_ct:,}",
-                                ),
-                                html.Td(
-                                    f"{ag.edge_ct:,}",
-                                ),
-                                html.Td(f"{len(ag.components):,}"),
-                            ]
-                        ),
-                    ]
-                ),
-                className=css_config.INFO_DIALOG_TABLE_CLASSES,
-            ),
-            html.P(
-                "Note that, as of writing, these counts include "
-                "both + and - copies of nodes / edges / components."
-            ),
-            html.P(
+        content,
+        className=classes,
+        id=get_pane_id(tab_id),
+        role="tabpanel",
+        tabIndex="0",
+        **{"aria-labelledby": tab_id},
+    )
+
+
+def get_tabs(navs, panes):
+    """Returns Dash HTML elements representing a Bootstrap tabbed UI.
+
+    Parameters
+    ----------
+    navs: list of Dash html elements
+        Should be a list where each entry was produced by get_nav(). These
+        correspond to the "headers" you can click on to switch between panes.
+
+    panes: list of Dash html elements
+        Should be a list where each entry was produced by get_pane(). These
+        correspond to the "bodies" that contain the actual content you are
+        switching between.
+
+    Returns
+    -------
+    list of Dash html elements
+        As of writing, this will contain two things: a html.Ul element
+        wrapping the navs, and a html.Div element wrapping the panes.
+
+    Notes
+    -----
+    So, okay, ideally we would use dbc.Tabs to structure this nicely.
+    This is implemented in commit 95aafe6e7ac559e6bd772eaa07a7160d6b10c8c7.
+    However, Dash's tabs become super slow when there are a lot of them (?)
+    so for now I am just going back to the old approach based on
+    https://getbootstrap.com/docs/5.3/components/navs-tabs/#javascript-behavior
+
+    This approach involves splitting up navs (the buttons at the top) and the
+    actual content that clicking on these navs opens. We just say "navs" and
+    "panes" here, I guess.
+    """
+    return [
+        html.Ul(navs, className="nav nav-tabs", role="tablist"),
+        html.Div(panes, className="tab-content")
+    ]
+
+
+
+def get_overview_tab_content(ag):
+    return [
+        html.Table(
+            html.Tbody(
                 [
-                    "Based on the input graph's filetype, we "
-                    "assume its sequences are stored on its ",
-                    html.Span(
-                        ag.seq_noun + "s",
-                        className="fw-bold",
+                    html.Tr(
+                        [
+                            html.Th("Filename"),
+                            html.Th(
+                                "Filetype",
+                            ),
+                            html.Th("# nodes"),
+                            html.Th("# edges"),
+                            html.Th("# components"),
+                        ]
                     ),
-                    ".",
+                    html.Tr(
+                        [
+                            html.Td(
+                                ag.basename,
+                                className="font-monospace",
+                            ),
+                            html.Td(
+                                ag.filetype,
+                                className="font-monospace",
+                            ),
+                            html.Td(
+                                f"{ag.node_ct:,}",
+                            ),
+                            html.Td(
+                                f"{ag.edge_ct:,}",
+                            ),
+                            html.Td(f"{len(ag.components):,}"),
+                        ]
+                    ),
                 ]
             ),
-            ui_utils.get_approx_length_disclaimer_if_needed(ag),
-            ui_utils.get_length_info(ag),
-            *ui_utils.get_cov_info(ag),
-            *ui_utils.get_patt_info(ag),
-            html.Div(
-                dbc.Button(
-                    [
-                        html.I(
-                            className="bi bi-file-earmark-spreadsheet-fill"
-                        ),
-                        html.Span(
-                            "Save node, edge and pattern counts per component (TSV)",
-                            className="iconlbl",
-                        ),
-                    ],
-                    id="tsvButton",
-                    color="success",
-                    # it looks like google sheets :3
-                    # ^^^ things a fundamentally unwell person (me) would say
-                    outline=True,
+            className=css_config.INFO_DIALOG_TABLE_CLASSES,
+        ),
+        html.P(
+            "Note that, as of writing, these counts include "
+            "both + and - copies of nodes / edges / components."
+        ),
+        html.P(
+            [
+                "Based on the input graph's filetype, we "
+                "assume its sequences are stored on its ",
+                html.Span(
+                    ag.seq_noun + "s",
+                    className="fw-bold",
                 ),
-                style={"text-align": "center"},
+                ".",
+            ]
+        ),
+        ui_utils.get_approx_length_disclaimer_if_needed(ag),
+        ui_utils.get_length_info(ag),
+        *ui_utils.get_cov_info(ag),
+        *ui_utils.get_patt_info(ag),
+        html.Div(
+            dbc.Button(
+                [
+                    html.I(className="bi bi-file-earmark-spreadsheet-fill"),
+                    html.Span(
+                        "Save node, edge and pattern counts per component (TSV)",
+                        className="iconlbl",
+                    ),
+                ],
+                id="tsvButton",
+                color="success",
+                # it looks like google sheets :3
+                # ^^^ things a fundamentally unwell person (me) would say
+                outline=True,
             ),
-        ]
-    )
+            style={"text-align": "center"},
+        ),
+    ]
 
 
 def get_cc_treemap_tab(ag):
@@ -181,24 +258,17 @@ def get_cc_covlen_tab():
 
 
 def get_components_tab(ag):
-    inner_tabs = [
-        dbc.Tab(
-            get_cc_treemap_tab(ag),
-            label="Treemap of nodes",
-            tab_id="graphInfoCCTreemapTab",
-        ),
-        dbc.Tab(
-            get_cc_hist_tab(),
-            label="Histograms of nodes / edges",
-            tab_id="graphInfoCCHistTab",
-        ),
-        dbc.Tab(
-            get_cc_covlen_tab(),
-            label="Length \u00d7 Coverage",
-            tab_id="graphInfoCCCovLenTab",
-        ),
+    navs = [
+        get_nav("Treemap of nodes", "graphInfoCCTreemapTab", selected=True),
+        get_nav("Histograms of nodes / edges", "graphInfoCCHistTab"),
+        get_nav("Length \u00d7 Coverage", "graphInfoCCCovLenTab"),
     ]
-    return dbc.Tabs(inner_tabs, id="graphInfoModalCCTabs")
+    panes = [
+        get_pane(get_cc_treemap_tab(ag), "graphInfoCCHistTab", selected=True),
+        get_pane(get_cc_hist_tab(), "graphInfoCCHistTab"),
+        get_pane(get_cc_covlen_tab(), "graphInfoCCCovLenTab"),
+    ]
+    return get_tabs(navs, panes)
 
 
 def get_lengths_tab():
@@ -227,6 +297,7 @@ def get_coverages_tab():
                 "covHistMaxXApply",
                 "covHistYScale",
             ),
+            ui_config.OPTIONS_SEP,
             html.Div(id="covHistMissingInfo"),
         ],
     )
@@ -246,59 +317,47 @@ def get_covlen_eles_tab():
 
 
 def get_modal_body(ag):
-    # Creates the outer layer of the modal dialog. Note that some tabs will
-    # not be shown, depending on the input graph (e.g. if the graph has only 1
-    # component then we'll hide the "Components" tab and the stuff within it)
-    inner_tabs = [
-        dbc.Tab(
-            get_overview_tab(ag),
-            label="Overview",
-            tab_id="graphInfoOverviewTab",
-        ),
+    """Creates the body of the graph info modal dialog.
+
+    This will hide some parts of the dialog depending on the input graph. For
+    example, if the graph only consists of one component, then we'll hide the
+    "Components" tab and the stuff within it.
+
+    Parameters
+    ----------
+    ag: metagenomescope.graph.AssemblyGraph
+
+    Returns
+    -------
+    list of Dash html elements or whatever
+        (i'm sure there is a formal way to specify this return type but also:
+        i don't really think it matters atp)
+    """
+    # Mark the overview nav as selected because it's the first one
+    navs = [get_nav("Overview", "infoStatsTab", selected=True)]
+    panes = [
+        get_pane(get_overview_tab_content(ag), "infoStatsTab", selected=True)
     ]
-    if ag.multiple_ccs:
-        inner_tabs.append(
-            dbc.Tab(
-                get_components_tab(ag),
-                label="Components",
-                tab_id="graphInfoComponentsTab",
-            )
-        )
-    inner_tabs.append(
-        dbc.Tab(
-            get_lengths_tab(),
-            label="Lengths",
-            tab_id="graphInfoLengthsTab",
-        )
-    )
+
+    # TODO: why does including this freeze the entire UI????
+    # if ag.multiple_ccs:
+    #     navs.append(get_nav("Components", "infoCCTab"))
+    #     panes.append(get_pane(get_components_tab(ag), "infoCCTab"))
+
+    navs.append(get_nav("Lengths", "infoLengthsTab"))
+    panes.append(get_pane(get_lengths_tab(), "infoLengthsTab"))
+
     if ag.has_covs:
-        inner_tabs.append(
-            dbc.Tab(
-                get_coverages_tab(),
-                label="Coverages",
-                tab_id="graphInfoCoveragesTab",
-            )
-        )
+        navs.append(get_nav("Coverages", "infoCoveragesTab"))
+        panes.append(get_pane(get_coverages_tab(), "infoCoveragesTab"))
+
         if ag.has_covlens:
-            inner_tabs.append(
-                dbc.Tab(
-                    get_covlen_eles_tab(),
-                    label=f"Length \u00d7 Coverage ({ag.cov_source}s)",
-                    tab_id="graphInfoCovLenElesTab",
+            navs.append(
+                get_nav(
+                    f"Length \u00d7 Coverage ({ag.cov_source}s)",
+                    "infoCovLenElesTab",
                 )
             )
-    return [
-        dbc.Tabs(inner_tabs, id="graphInfoModalTabs"),
-        # invisible buttons used to trigger callbacks
-        html.Div(
-            [
-                html.Button(id="gim_cc_TreemapButton"),
-                html.Button(id="gim_cc_HistButton"),
-                html.Button(id="gim_cc_CovLenScatterButton"),
-                html.Button(id="gim_len_HistButton"),
-                html.Button(id="gim_cov_HistButton"),
-                html.Button(id="gim_covlenele_ScatterButton"),
-            ],
-            className="removedEntirely",
-        ),
-    ]
+            panes.append(get_pane(get_covlen_eles_tab(), "infoCovLenElesTab"))
+
+    return get_tabs(navs, panes)
