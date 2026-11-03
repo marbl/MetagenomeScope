@@ -264,7 +264,7 @@ def get_components_tab(ag):
         get_nav("Length \u00d7 Coverage", "graphInfoCCCovLenTab"),
     ]
     panes = [
-        get_pane(get_cc_treemap_tab(ag), "graphInfoCCHistTab", selected=True),
+        get_pane(get_cc_treemap_tab(ag), "graphInfoCCTreemapTab", selected=True),
         get_pane(get_cc_hist_tab(), "graphInfoCCHistTab"),
         get_pane(get_cc_covlen_tab(), "graphInfoCCCovLenTab"),
     ]
@@ -339,10 +339,9 @@ def get_modal_body(ag):
         get_pane(get_overview_tab_content(ag), "infoStatsTab", selected=True)
     ]
 
-    # TODO: why does including this freeze the entire UI????
-    # if ag.multiple_ccs:
-    #     navs.append(get_nav("Components", "infoCCTab"))
-    #     panes.append(get_pane(get_components_tab(ag), "infoCCTab"))
+    if ag.multiple_ccs:
+        navs.append(get_nav("Components", "infoCCTab"))
+        panes.append(get_pane(get_components_tab(ag), "infoCCTab"))
 
     navs.append(get_nav("Lengths", "infoLengthsTab"))
     panes.append(get_pane(get_lengths_tab(), "infoLengthsTab"))

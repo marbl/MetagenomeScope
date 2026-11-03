@@ -1485,7 +1485,7 @@ def run(
         @callback(
             Output("ccTreemapContainer", "children"),
             Input("ccTreemapType", "value"),
-            Input("graphInfoCCTreemapTab", "n_clicks"),
+            Input("infoCCTab", "n_clicks"),
             prevent_initial_call=True,
         )
         def plot_cc_treemap(treemap_type, n_clicks):
