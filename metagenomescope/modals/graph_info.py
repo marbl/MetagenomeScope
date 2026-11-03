@@ -79,9 +79,8 @@ def get_tabs(navs, panes):
     """
     return [
         html.Ul(navs, className="nav nav-tabs", role="tablist"),
-        html.Div(panes, className="tab-content")
+        html.Div(panes, className="tab-content"),
     ]
-
 
 
 def get_overview_tab_content(ag):
@@ -264,7 +263,9 @@ def get_components_tab(ag):
         get_nav("Length \u00d7 Coverage", "graphInfoCCCovLenTab"),
     ]
     panes = [
-        get_pane(get_cc_treemap_tab(ag), "graphInfoCCTreemapTab", selected=True),
+        get_pane(
+            get_cc_treemap_tab(ag), "graphInfoCCTreemapTab", selected=True
+        ),
         get_pane(get_cc_hist_tab(), "graphInfoCCHistTab"),
         get_pane(get_cc_covlen_tab(), "graphInfoCCCovLenTab"),
     ]
