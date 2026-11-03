@@ -482,6 +482,10 @@ def run(
                                     id="graphInfoButton",
                                     className="btn btn-light",
                                     type="button",
+                                    **{
+                                        "data-bs-toggle": "modal",
+                                        "data-bs-target": "#infoDialog",
+                                    },
                                 ),
                             ],
                         ),
@@ -1200,26 +1204,7 @@ def run(
                 id="floatingButtonsBottomRight",
             ),
             # Graph info modal
-            dbc.Modal(
-                [
-                    dbc.ModalHeader(
-                        html.H1(
-                            [
-                                html.I(className="bi bi-grid-1x2-fill"),
-                                html.Span(
-                                    "Graph information",
-                                    className="iconlbl",
-                                ),
-                            ],
-                            className="modal-title fs-5",
-                        )
-                    ),
-                    dbc.ModalBody(modals.graph_info.get_modal_body(ag)),
-                ],
-                id="graphInfoModal",
-                is_open=False,
-                size="xl",
-            ),
+            modals.graph_info.get_modal(ag),
             # Drawing options modal
             dbc.Modal(
                 [
@@ -1889,22 +1874,10 @@ def run(
                 cy_div_style,
             )
 
-    # Callbacks for some of the modal dialogs (these are the ones that will
-    # always be available, regardless of what data the user passed in).
+    # Callbacks for some of the modal dialogs
     # TODO: avoid duplicating these and just use pattern-matching callbacks
     # (https://dash.plotly.com/pattern-matching-callbacks,
     # https://community.plotly.com/t/39481) for all the modals
-    @callback(
-        Output("graphInfoModal", "is_open"),
-        Input("graphInfoButton", "n_clicks"),
-        State("graphInfoModal", "is_open"),
-        prevent_initial_call=True,
-    )
-    def toggle_graph_info_modal(nc, is_open):
-        # from https://www.dash-bootstrap-components.com/docs/components/modal/
-        if nc:
-            return not is_open
-        return is_open
 
     @callback(
         Output("drawingOptionsModal", "is_open"),

@@ -361,3 +361,54 @@ def get_modal_body(ag):
             panes.append(get_pane(get_covlen_eles_tab(), "infoCovLenElesTab"))
 
     return get_tabs(navs, panes)
+
+
+def get_modal(ag):
+    # https://getbootstrap.com/docs/5.3/components/modal/#live-demo
+    return html.Div(
+        html.Div(
+            html.Div(
+                [
+                    html.Div(
+                        [
+                            html.H1(
+                                [
+                                    html.I(className="bi bi-grid-1x2-fill"),
+                                    html.Span(
+                                        "Graph information",
+                                        className="iconlbl",
+                                    ),
+                                ],
+                                className="modal-title fs-5",
+                                id="infoDialogLabel",
+                            ),
+                            html.Button(
+                                className="btn-close",
+                                type="button",
+                                **{
+                                    "data-bs-dismiss": "modal",
+                                    "aria-label": "Close",
+                                },
+                            ),
+                        ],
+                        className="modal-header",
+                    ),
+                    html.Div(
+                        get_modal_body(ag),
+                        className="modal-body",
+                    ),
+                ],
+                className="modal-content",
+            ),
+            className="modal-dialog modal-xl",
+        ),
+        id="infoDialog",
+        className="modal fade",
+        # additional accessibility things from bootstrap examples that
+        # may not be necessary for a visualization tool like this atm
+        **{
+            "aria-hidden": "true",
+            "aria-labelledby": "infoDialogLabel",
+            "tabIndex": "-1",
+        },
+    )
