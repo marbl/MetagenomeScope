@@ -23,7 +23,7 @@ from ..gap import Gap
 from ..errors import WeirdError, GraphParsingError, UIError
 from . import validators, graph_utils
 from .seq_holder import SeqHolder
-from .draw_results import combine_draw_results
+from .draw_results import draw_and_merge
 from .subgraph import Subgraph
 from .component import Component
 from .pattern import Pattern
@@ -2644,7 +2644,7 @@ class AssemblyGraph(object):
 
         # Actually call .to_cyjs() on each Subgraph, and combine the results
         # into a single DrawResults object
-        dr = combine_draw_results(
+        dr = draw_and_merge(
             sgs,
             scope_settings,
             modifier_settings,

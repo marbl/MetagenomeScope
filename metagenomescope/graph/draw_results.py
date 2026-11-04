@@ -445,7 +445,7 @@ class DrawResults(object):
         return eles
 
 
-def combine_draw_results(
+def draw_and_merge(
     subgraphs, scope_settings, modifier_settings, layout_alg, layout_params
 ):
     """Calls .to_cyjs() on multiple Subgraphs, merging the results.
