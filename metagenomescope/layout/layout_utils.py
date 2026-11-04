@@ -639,12 +639,25 @@ def get_node_dot(
     cs = ""
     if color is not None:
         cs = f',fillcolor="{color}"'
+
+    # If you want to show node labels in the DOT file, then uncomment and
+    # add this line to the below output (probably after the "height" line or
+    # smth, but it shouldn't matter as long as the commas are ok).
+    #
+    # Showing node labels in the DOT file is useful if you are actually
+    # going in and debugging layouts, but - at least as of writing - it can
+    # trigger a bunch of warnings from Graphviz of the form "size too small for
+    # label". This is why I've disabled this by default.
+    #
+    # (Note that I've set fixedsize=true for all nodes in layout_config.py,
+    # hence why using node labels triggers these warnings.)
+    #
+    # f'label="{lbl}",'
     return (
         f"{indent}{nid} "
         f"[width={w},"
         f"height={h},"
-        f"shape={shape},"
-        f'label="{lbl}"'
+        f"shape={shape}"
         f"{cs}];\n"
     )
 

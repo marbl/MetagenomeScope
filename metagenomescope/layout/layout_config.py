@@ -84,12 +84,17 @@ PROG2GRAPHSTYLE = {"dot": "rankdir=LR", "sfdp": "overlap=prism"}
 # to be resized. Might trigger some warnings from Graphviz but oh well, better
 # that than nodes getting assigned the wrong sizes.
 #
+# 'label=""' turns off node labels anyway to avoid the aforementioned warnings.
+# If you DO choose to turn on node labels later (by modifying
+# layout_utils.get_node_dot()), then the fixedsize thing above should protect
+# you from the labels expanding nodes willy nilly.
+#
 # "orientation=90" is needed in order to get nodes to be correctly
 # rotated (to point in the left --> right direction), which makes the graph
 # look as intended when rankdir=LR. Shoutouts to
 # https://stackoverflow.com/a/45431027 for the wisdom that the node
 # "orientation" attr existed.
-GLOBALNODE_STYLE = "fixedsize=true,orientation=90"
+GLOBALNODE_STYLE = 'fixedsize=true,label="",orientation=90'
 
 # Colors in nodes in the drawings produced by dot (without having an effect on
 # the interactive visualization in Cy.js, which doesn't care what colors dot
