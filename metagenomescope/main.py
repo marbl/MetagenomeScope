@@ -479,7 +479,6 @@ def run(
                                             className="iconlbl",
                                         ),
                                     ],
-                                    id="graphInfoButton",
                                     className="btn btn-light",
                                     type="button",
                                     **{
@@ -693,6 +692,10 @@ def run(
                                     className="btn btn-light",
                                     type="button",
                                     style={"margin-right": "1em"},
+                                    **{
+                                        "data-bs-toggle": "modal",
+                                        "data-bs-target": "#drawingOptionsDialog",
+                                    },
                                 ),
                                 html.Button(
                                     [
@@ -1206,28 +1209,7 @@ def run(
             # Graph info modal
             modals.graph_info.get_modal(ag),
             # Drawing options modal
-            dbc.Modal(
-                [
-                    dbc.ModalHeader(
-                        html.H1(
-                            [
-                                html.I(className="bi bi-gear-fill"),
-                                html.Span(
-                                    "Drawing options", className="iconlbl"
-                                ),
-                            ],
-                            className="modal-title fs-5",
-                        ),
-                    ),
-                    dbc.ModalBody(
-                        modals.drawing_options.get_modal_body(
-                            ag, default_dot_alg_desc
-                        )
-                    ),
-                ],
-                id="drawingOptionsModal",
-                is_open=False,
-            ),
+            modals.drawing_options.get_modal(ag, default_dot_alg_desc),
             # Search-by-sequence modal
             dbc.Modal(
                 [
@@ -1873,22 +1855,6 @@ def run(
                 CONTROLS_TOGGLER_ICON_CLASSES + " darkToggler",
                 cy_div_style,
             )
-
-    # Callbacks for some of the modal dialogs
-    # TODO: avoid duplicating these and just use pattern-matching callbacks
-    # (https://dash.plotly.com/pattern-matching-callbacks,
-    # https://community.plotly.com/t/39481) for all the modals
-
-    @callback(
-        Output("drawingOptionsModal", "is_open"),
-        Input("drawingOptionsButton", "n_clicks"),
-        State("drawingOptionsModal", "is_open"),
-        prevent_initial_call=True,
-    )
-    def toggle_drawing_options_modal(nc, is_open):
-        if nc:
-            return not is_open
-        return is_open
 
     # By default, bootstrap's dropdowns don't change the button element (i.e.
     # the thing showing the name of the dropdown), as an ordinary HTML <select>

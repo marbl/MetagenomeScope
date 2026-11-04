@@ -1,6 +1,7 @@
 import copy
 import dash_bootstrap_components as dbc
 from dash import html, dcc
+from . import modal_utils
 from .. import ui_utils, misc_utils, ui_config, css_config
 
 
@@ -460,18 +461,26 @@ def get_style_tab(node_centric):
 
 
 def get_modal_body(ag, default_dot_alg_desc):
-    return dbc.Tabs(
-        [
-            dbc.Tab(
-                get_layout_tab(
-                    ag,
-                    default_dot_alg_desc,
-                ),
-                label="Layout",
-            ),
-            dbc.Tab(
-                get_style_tab(ag.node_centric),
-                label="Style",
-            ),
-        ]
+    navs = [
+        modal_utils.get_nav("Layout", "layoutTab", selected=True),
+        modal_utils.get_nav("Style", "styleTab"),
+    ]
+    panes = [
+        modal_utils.get_pane(
+            get_layout_tab(ag, default_dot_alg_desc),
+            "layoutTab",
+            selected=True,
+        ),
+        modal_utils.get_pane(get_style_tab(ag.node_centric), "styleTab"),
+    ]
+    return modal_utils.get_tabs(navs, panes)
+
+
+def get_modal(ag, default_dot_alg_desc):
+    return modal_utils.get_modal(
+        get_modal_body(ag, default_dot_alg_desc),
+        "Drawing options",
+        "bi-gear-fill",
+        "drawingOptionsDialog",
+        size_class="",
     )

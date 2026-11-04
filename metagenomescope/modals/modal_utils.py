@@ -81,7 +81,7 @@ def get_tabs(navs, panes):
     ]
 
 
-def get_modal(modal_body, title, bi_icon, modal_id):
+def get_modal(modal_body, title, bi_icon, modal_id, size_class="modal-xl"):
     """Returns Dash HTML element representing a modal dialog.
 
     For some reason, doing the modal "manually" (without just using dbc.Modal)
@@ -123,7 +123,7 @@ def get_modal(modal_body, title, bi_icon, modal_id):
                 ],
                 className="modal-content",
             ),
-            className="modal-dialog modal-xl",
+            className=f"modal-dialog {size_class}",
         ),
         id=modal_id,
         className="modal fade",
