@@ -213,6 +213,10 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 - Clean up the logging messages made when starting layout (e.g. only show
   layout parameters relevant to the currently selected algorithm).
 
+- Tidy up some of the modal dialogs' code and UI
+  ([#269](https://github.com/marbl/MetagenomeScope/issues/269),
+  [#496](https://github.com/marbl/MetagenomeScope/issues/496)).
+
 - Emit logging messages in the browser developer console when the "Draw"
   button is clicked, and when a Cytoscape.js rendering event happens.
   (Useful for benchmarking.)
