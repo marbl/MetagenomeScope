@@ -2,7 +2,6 @@ import math
 from collections import defaultdict
 from .. import ui_utils
 from ..layout import layout_utils
-from ..errors import WeirdError
 from . import graph_utils
 
 
@@ -75,41 +74,6 @@ class DrawResults(object):
             for e in r.edges:
                 edgeids.append(e.unique_id)
         return nodeids, edgeids
-
-    def __add__(self, other):
-        """Adds two DrawResults objects and does some validation.
-
-        We can add two DrawResults objects together if they have:
-
-        1. identical scope settings (e.g. "show patterns").
-        2. identical modifier settings (e.g. "horizontally center rows").
-        3. no overlapping regions (i.e. no subgraphs represented by both
-           DrawResults objects for some reason).
-
-        You could probably make an argument for relaxing any of these criteria,
-        but these should always hold in practice (... as of writing) so whatevs
-        """
-        if self.scope_settings != other.scope_settings:
-            raise WeirdError(f"Incompatible scope settings: {self}, {other}")
-
-        if self.modifier_settings != other.modifier_settings:
-            raise WeirdError(
-                f"Incompatible modifier settings: {self}, {other}"
-            )
-
-        if set(self.region2layout) & set(other.region2layout):
-            raise WeirdError(
-                "Regions present in multiple DrawResults: "
-                f"{self.region2layout}, {other.region2layout}"
-            )
-
-        # we could MAYBE do self.region2layout.update(other.region2layout) but
-        # i worry about jank side effects from modifying self in __add__(). so,
-        # safety first
-        d = self.region2layout.copy()
-        for r, lay in other.region2layout.items():
-            d[r] = lay
-        return DrawResults(d, self.scope_settings, self.modifier_settings)
 
     def get_sorted_regions(self):
         """Sorts all of the regions represented here.
