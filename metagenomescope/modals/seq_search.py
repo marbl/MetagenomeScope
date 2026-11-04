@@ -1,6 +1,32 @@
 import dash_bootstrap_components as dbc
 from dash import html
+from . import modal_utils
 from .. import aln_config
+
+
+def get_results_html(inseq2graphseqs):
+    paras = []
+    if len(inseq2graphseqs) > 0:
+        # TODO would be nice to match the ordering in the input FASTA
+        for s in sorted(inseq2graphseqs):
+            paras.append(
+                html.P(
+                    [
+                        html.Span(f"{s}:", style={"font-weight": "bold"}),
+                        " ",
+                        ", ".join(inseq2graphseqs[s]),
+                    ]
+                )
+            )
+    else:
+        paras.append(
+            html.P(
+                "No sequences in the graph mapped to any of the input "
+                "sequence(s).",
+                style={"font-weight": "bold"},
+            )
+        )
+    return paras
 
 
 def get_modal_body(ag, aligner=aln_config.MINIMAP2):
@@ -77,26 +103,10 @@ def get_modal_body(ag, aligner=aln_config.MINIMAP2):
     )
 
 
-def get_results_html(inseq2graphseqs):
-    paras = []
-    if len(inseq2graphseqs) > 0:
-        # TODO would be nice to match the ordering in the input FASTA
-        for s in sorted(inseq2graphseqs):
-            paras.append(
-                html.P(
-                    [
-                        html.Span(f"{s}:", style={"font-weight": "bold"}),
-                        " ",
-                        ", ".join(inseq2graphseqs[s]),
-                    ]
-                )
-            )
-    else:
-        paras.append(
-            html.P(
-                "No sequences in the graph mapped to any of the input "
-                "sequence(s).",
-                style={"font-weight": "bold"},
-            )
-        )
-    return paras
+def get_modal(ag):
+    return modal_utils.get_modal(
+        get_modal_body(ag),
+        "Search by sequence",
+        "bi-filter-left",
+        "seqSearchDialog",
+    )

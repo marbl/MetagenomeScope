@@ -224,6 +224,10 @@ def run(
                 id="seqSearchButton",
                 className="btn btn-light",
                 type="button",
+                **{
+                    "data-bs-toggle": "modal",
+                    "data-bs-target": "#seqSearchDialog",
+                },
             ),
             ctrl_sep_invis,
             html.Button(
@@ -237,6 +241,10 @@ def run(
                 id="dotPlotButton",
                 className="btn btn-light",
                 type="button",
+                **{
+                    "data-bs-toggle": "modal",
+                    "data-bs-target": "#dotPlotDialog",
+                },
             ),
         ]
 
@@ -1206,56 +1214,11 @@ def run(
                 ],
                 id="floatingButtonsBottomRight",
             ),
-            # Graph info modal
+            # Modal dialogs
             modals.graph_info.get_modal(ag),
-            # Drawing options modal
             modals.drawing_options.get_modal(ag, default_dot_alg_desc),
-            # Search-by-sequence modal
-            dbc.Modal(
-                [
-                    dbc.ModalHeader(
-                        [
-                            html.H1(
-                                [
-                                    html.I(className="bi bi-filter-left"),
-                                    html.Span(
-                                        "Search by sequence",
-                                        className="iconlbl",
-                                    ),
-                                ],
-                                className="modal-title fs-5",
-                            ),
-                        ]
-                    ),
-                    dbc.ModalBody(modals.seq_search.get_modal_body(ag)),
-                ],
-                id="seqSearchModal",
-                is_open=False,
-                size="xl",
-            ),
-            # Dot plots modal
-            dbc.Modal(
-                [
-                    dbc.ModalHeader(
-                        [
-                            html.H1(
-                                [
-                                    html.I(className="bi bi-graph-up"),
-                                    html.Span(
-                                        "Dot plots of sequences",
-                                        className="iconlbl",
-                                    ),
-                                ],
-                                className="modal-title fs-5",
-                            ),
-                        ]
-                    ),
-                    dbc.ModalBody(modals.dot_plot.get_modal_body()),
-                ],
-                id="dotPlotModal",
-                is_open=False,
-                size="xl",
-            ),
+            modals.seq_search.get_modal(ag),
+            modals.dot_plot.get_modal(),
             # toast messages will go here. you can change top-0 to bottom-0 to
             # position these in the bottom right of the window; see
             # https://getbootstrap.com/docs/5.3/components/toasts/#live-example
@@ -2878,18 +2841,6 @@ def run(
     if seqs_given:
 
         @callback(
-            Output("seqSearchModal", "is_open"),
-            Input("seqSearchButton", "n_clicks"),
-            State("seqSearchModal", "is_open"),
-            prevent_initial_call=True,
-        )
-        def toggle_seq_search_modal(nc, is_open):
-            # https://www.dash-bootstrap-components.com/docs/components/modal/
-            if nc:
-                return not is_open
-            return is_open
-
-        @callback(
             Output("toastHolder", "children", allow_duplicate=True),
             Output("seqSearchResults", "children"),
             State("toastHolder", "children"),
@@ -2916,17 +2867,6 @@ def run(
             results = modals.seq_search.get_results_html(inseq2graphseqs)
             logging.debug("...Done.")
             return no_update, results
-
-        @callback(
-            Output("dotPlotModal", "is_open"),
-            Input("dotPlotButton", "n_clicks"),
-            State("dotPlotModal", "is_open"),
-            prevent_initial_call=True,
-        )
-        def toggle_dot_plot_modal(nc, is_open):
-            if nc:
-                return not is_open
-            return is_open
 
         @callback(
             Output("dp1GraphSeqUI", "className"),

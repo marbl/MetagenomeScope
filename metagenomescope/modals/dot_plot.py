@@ -1,5 +1,6 @@
 import dash_bootstrap_components as dbc
 from dash import html
+from . import modal_utils
 from .. import ui_config, chart_utils
 
 
@@ -269,4 +270,13 @@ def get_modal_body():
                 style={"text-align": "right"},
             ),
         ]
+    )
+
+
+def get_modal():
+    return modal_utils.get_modal(
+        get_modal_body(),
+        "Dot plots of sequences",
+        "bi-graph-up",
+        "dotPlotDialog",
     )
