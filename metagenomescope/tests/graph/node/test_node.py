@@ -88,9 +88,7 @@ def test_set_cc_num():
 def test_to_dot_non_split():
     b = Node(0, "B", {})
     b.layout.width = b.layout.height = 3
-    assert (
-        b.to_dot(indent=" ") == ' 0 [width=3,height=3,shape=rect,label="B"];\n'
-    )
+    assert b.to_dot(indent=" ") == " 0 [width=3,height=3,shape=rect];\n"
 
 
 def test_to_dot_split():
@@ -100,14 +98,8 @@ def test_to_dot_split():
     )
     b.layout.width = b.layout.height = 3
     c.layout.width = c.layout.height = 1
-    assert (
-        c.to_dot(indent=" ")
-        == ' 1 [width=1,height=1,shape=rect,label="C-L"];\n'
-    )
-    assert (
-        b.to_dot(indent=" ")
-        == ' 0 [width=3,height=3,shape=rect,label="B-R"];\n'
-    )
+    assert c.to_dot(indent=" ") == " 1 [width=1,height=1,shape=rect];\n"
+    assert b.to_dot(indent=" ") == " 0 [width=3,height=3,shape=rect];\n"
 
 
 def test_to_cyjs_unoriented_simple():

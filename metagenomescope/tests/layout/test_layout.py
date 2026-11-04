@@ -77,6 +77,5 @@ def test_layout_to_solid_dot():
     w = lay.width / layout_config.POINTS_PER_INCH
     h = lay.height / layout_config.POINTS_PER_INCH
     assert lay.to_solid_dot() == (
-        f"  {cc.unique_id} [width={w},height={h},shape=rectangle,"
-        f'label="cc{cc.cc_num}_id{cc.unique_id}"];\n'
+        f"  {cc.unique_id} [width={w},height={h},shape=rectangle];\n"
     )
