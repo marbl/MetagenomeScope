@@ -106,6 +106,10 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   ([#431](https://github.com/marbl/MetagenomeScope/issues/431),
   [#433](https://github.com/marbl/MetagenomeScope/issues/433)).
 
+- Dramatically speed up drawing multiple subgraphs at once by adjusting how
+  the drawing results are merged
+  ([#497](https://github.com/marbl/MetagenomeScope/issues/497)).
+
 - Clear `pygraphviz.AGraph` objects created during the layout process after
   they are no longer needed; this seems to improve performance when drawing
   many components

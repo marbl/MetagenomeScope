@@ -443,3 +443,35 @@ class DrawResults(object):
                 eles.extend(p.to_cyjs() for p in r.patterns)
 
         return eles
+
+
+def combine_draw_results(
+    subgraphs, scope_settings, modifier_settings, layout_alg, layout_params
+):
+    """Calls .to_cyjs() on multiple Subgraphs, merging the results.
+
+    This is useful when laying out a bunch of different components or
+    whatever.
+
+    Notes
+    -----
+    - If we go overboard with validation, this can make things extremely
+      inefficient: see https://github.com/marbl/MetagenomeScope/issues/497.
+      Hence why I am moving this to its own function here.
+
+    - Ideally this would go in graph_utils, but then we get a circular import
+      problem since DrawResults needs to access graph_utils and this function
+      needs to access DrawResults. The lazy solution is just putting this
+      function here, as a sibling to DrawResults. Don't worry about it, okay?
+    """
+    region2layout = {}
+    for sg in subgraphs:
+        dr = sg.to_cyjs(
+            scope_settings, modifier_settings, layout_alg, layout_params
+        )
+        # We *could* verify that this subgraph is not already in
+        # region2layout, but that should never be the case and I don't
+        # want to waste time verifying it thousands of times when drawing
+        # many components at once
+        region2layout.update(dr.region2layout)
+    return DrawResults(region2layout, scope_settings, modifier_settings)

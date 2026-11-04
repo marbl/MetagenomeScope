@@ -23,7 +23,7 @@ from ..gap import Gap
 from ..errors import WeirdError, GraphParsingError, UIError
 from . import validators, graph_utils
 from .seq_holder import SeqHolder
-from .draw_results import DrawResults
+from .draw_results import combine_draw_results
 from .subgraph import Subgraph
 from .component import Component
 from .pattern import Pattern
@@ -2577,28 +2577,6 @@ class AssemblyGraph(object):
             )
         return sgs
 
-    def _to_cyjs_around_nodes(
-        self,
-        node_ids,
-        dist,
-        scope_settings,
-        modifier_settings,
-        layout_alg,
-        layout_params,
-    ):
-        """Produces Cytoscape.js elements only "around" certain nodes."""
-        sgs = self.get_neighborhood_ccs(node_ids, dist, scope_settings)
-        dr = DrawResults({}, scope_settings, modifier_settings)
-        for sg in sgs:
-            # NOTE: For now, we do not perform decoupling on these subgraphs.
-            # See https://github.com/marbl/MetagenomeScope/issues/459.
-            # if ui_utils.decouple(scope_settings):
-            #     sg.decouple(self.graph, self.nodename2objs)
-            dr += sg.to_cyjs(
-                scope_settings, modifier_settings, layout_alg, layout_params
-            )
-        return dr
-
     def to_cyjs(self, done_flushing):
         """Converts the graph's elements to a Cytoscape.js-compatible format.
 
@@ -2637,55 +2615,42 @@ class AssemblyGraph(object):
 
         if draw_type == config.DRAW_ALL:
             # draw all component(s)
-            dr = DrawResults({}, scope_settings, modifier_settings)
-            for cc in self.components:
-                dr += cc.to_cyjs(
-                    scope_settings,
-                    modifier_settings,
-                    layout_alg,
-                    layout_params,
-                )
-
-        elif draw_type == config.DRAW_CCS:
-            # draw certain component(s)
-            dr = DrawResults({}, scope_settings, modifier_settings)
-            for ccn in done_flushing["cc_nums"]:
-                cc = self.get_cc_by_num(ccn)
-                dr += cc.to_cyjs(
-                    scope_settings,
-                    modifier_settings,
-                    layout_alg,
-                    layout_params,
-                )
+            sgs = self.components
 
         elif draw_type == config.DRAW_NR:
             # draw all component(s), but only the nonredundant ones (so for
-            # each pair of perfectly reverse-complementary components, we'll
-            # just draw one of these)
-            dr = DrawResults({}, scope_settings, modifier_settings)
-            for ccn in self.get_nr_cc_nums():
-                cc = self.get_cc_by_num(ccn)
-                dr += cc.to_cyjs(
-                    scope_settings,
-                    modifier_settings,
-                    layout_alg,
-                    layout_params,
-                )
+            # each pair of perfectly reverse-complementary components,
+            # we'll just draw one of these)
+            sgs = [self.get_cc_by_num(n) for n in self.get_nr_cc_nums()]
+
+        elif draw_type == config.DRAW_CCS:
+            # draw certain component(s)
+            sgs = [self.get_cc_by_num(n) for n in done_flushing["cc_nums"]]
 
         elif draw_type == config.DRAW_AROUND:
             # draw around certain node(s)
-            dr = self._to_cyjs_around_nodes(
+            #
+            # NOTE: For now, we do not perform decoupling on these subgraphs.
+            # See https://github.com/marbl/MetagenomeScope/issues/459.
+            sgs = self.get_neighborhood_ccs(
                 done_flushing["around_node_ids"],
                 done_flushing["around_dist"],
                 scope_settings,
-                modifier_settings,
-                layout_alg,
-                layout_params,
             )
 
         else:
             # believe it or not, straight to jail
             raise WeirdError(f"Unrecognized draw type: {draw_type}")
+
+        # Actually call .to_cyjs() on each Subgraph, and combine the results
+        # into a single DrawResults object
+        dr = combine_draw_results(
+            sgs,
+            scope_settings,
+            modifier_settings,
+            layout_alg,
+            layout_params,
+        )
 
         if doing_layout:
             logging.debug("  ...Done with layout!")
