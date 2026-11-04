@@ -29,6 +29,7 @@ from . import (
     chart_utils,
     color_utils,
     path_utils,
+    modals,
 )
 from .graph import AssemblyGraph, graph_utils
 from .errors import UIError, WeirdError
@@ -158,9 +159,8 @@ def run(
     #
     # This is all useless and confusing if the graph only has one component, so
     # this flag lets us figure out if we should show or hide this kinda stuff
-    multiple_ccs = len(ag.components) > 1
     cc_ct_desc = ui_utils.pluralize(len(ag.components), "component")
-    all_cc_desc = "all components" if multiple_ccs else "one component"
+    all_cc_desc = "all components" if ag.multiple_ccs else "one component"
 
     # Options for drawing components
     # If there is only one cc in the graph, we'll disable the "one component"
@@ -193,28 +193,18 @@ def run(
         ],
     }
     DEFAULT_CC_SELECTION_METHOD = (
-        "ccDrawingSizeRank" if multiple_ccs else "ccDrawingAll"
+        "ccDrawingSizeRank" if ag.multiple_ccs else "ccDrawingAll"
     )
     DEFAULT_CC_SELECTION_A_CLASSES = "dropdown-item"
     DEFAULT_CC_SELECTION_A_ATTRS = {}
     CC_SELECTION_A_CLASSES_MULTIPLE_CCS = DEFAULT_CC_SELECTION_A_CLASSES
     CC_SELECTION_A_ATTRS_MULTIPLE_CCS = DEFAULT_CC_SELECTION_A_ATTRS
-    if not multiple_ccs:
+    if not ag.multiple_ccs:
         # https://getbootstrap.com/docs/5.3/components/dropdowns/#disabled
         # thankfully this seems to prevent dash from noticing click events on
         # the disabled <a>s in question :)
         CC_SELECTION_A_CLASSES_MULTIPLE_CCS += " disabled"
         CC_SELECTION_A_ATTRS_MULTIPLE_CCS = {"aria-disabled": "true"}
-
-    NO_COMPONENTS_SELECTED_MSG = html.Span(
-        [
-            "No components selected. You can use the ",
-            html.Span("Box / Lasso Select", style={"font-weight": "bold"}),
-            " tools in the plot above to select components, which will show "
-            "their size ranks here. You could then copy and paste them into "
-            "the controls for drawing components.",
-        ]
-    )
 
     # If the user specified, show an interface for that
     seqs_given = ag.seq_holder is not None
@@ -234,6 +224,10 @@ def run(
                 id="seqSearchButton",
                 className="btn btn-light",
                 type="button",
+                **{
+                    "data-bs-toggle": "modal",
+                    "data-bs-target": "#seqSearchDialog",
+                },
             ),
             ctrl_sep_invis,
             html.Button(
@@ -247,6 +241,10 @@ def run(
                 id="dotPlotButton",
                 className="btn btn-light",
                 type="button",
+                **{
+                    "data-bs-toggle": "modal",
+                    "data-bs-target": "#dotPlotDialog",
+                },
             ),
         ]
 
@@ -489,7 +487,6 @@ def run(
                                             className="iconlbl",
                                         ),
                                     ],
-                                    id="infoButton",
                                     className="btn btn-light",
                                     type="button",
                                     **{
@@ -703,6 +700,10 @@ def run(
                                     className="btn btn-light",
                                     type="button",
                                     style={"margin-right": "1em"},
+                                    **{
+                                        "data-bs-toggle": "modal",
+                                        "data-bs-target": "#drawingOptionsDialog",
+                                    },
                                 ),
                                 html.Button(
                                     [
@@ -1213,670 +1214,11 @@ def run(
                 ],
                 id="floatingButtonsBottomRight",
             ),
-            # Graph info modal dialog
-            # https://getbootstrap.com/docs/5.3/components/modal/#live-demo
-            html.Div(
-                html.Div(
-                    html.Div(
-                        [
-                            html.Div(
-                                [
-                                    html.H1(
-                                        [
-                                            html.I(
-                                                className="bi bi-grid-1x2-fill"
-                                            ),
-                                            html.Span(
-                                                "Graph information",
-                                                className="iconlbl",
-                                            ),
-                                        ],
-                                        className="modal-title fs-5",
-                                        id="infoDialogLabel",
-                                    ),
-                                    html.Button(
-                                        className="btn-close",
-                                        type="button",
-                                        **{
-                                            "data-bs-dismiss": "modal",
-                                            "aria-label": "Close",
-                                        },
-                                    ),
-                                ],
-                                className="modal-header",
-                            ),
-                            html.Div(
-                                [
-                                    # navigation adapted from
-                                    # https://getbootstrap.com/docs/5.3/components/navs-tabs/#javascript-behavior
-                                    html.Ul(
-                                        [
-                                            html.Li(
-                                                html.Button(
-                                                    "Overview",
-                                                    className="nav-link active",
-                                                    id="statsTab",
-                                                    type="button",
-                                                    role="tab",
-                                                    **{
-                                                        "data-bs-toggle": "tab",
-                                                        "data-bs-target": "#statsTabPane",
-                                                        "aria-controls": "statsTabPane",
-                                                        "aria-selected": "true",
-                                                    },
-                                                ),
-                                                className="nav-item",
-                                                role="presentation",
-                                            ),
-                                            (
-                                                html.Li(
-                                                    html.Button(
-                                                        "Components",
-                                                        className="nav-link",
-                                                        id="ccTab",
-                                                        type="button",
-                                                        role="tab",
-                                                        **{
-                                                            "data-bs-toggle": "tab",
-                                                            "data-bs-target": "#ccTabPane",
-                                                            "aria-controls": "ccTabPane",
-                                                            "aria-selected": "false",
-                                                        },
-                                                    ),
-                                                    className="nav-item",
-                                                    role="presentation",
-                                                )
-                                                if multiple_ccs
-                                                else None
-                                            ),
-                                            html.Li(
-                                                html.Button(
-                                                    "Lengths",
-                                                    className="nav-link",
-                                                    id="seqLenTab",
-                                                    type="button",
-                                                    role="tab",
-                                                    **{
-                                                        "data-bs-toggle": "tab",
-                                                        "data-bs-target": "#seqLenTabPane",
-                                                        "aria-controls": "seqLenTabPane",
-                                                        "aria-selected": "false",
-                                                    },
-                                                ),
-                                                className="nav-item",
-                                                role="presentation",
-                                            ),
-                                            (
-                                                html.Li(
-                                                    html.Button(
-                                                        "Coverages",
-                                                        className="nav-link",
-                                                        id="covTab",
-                                                        type="button",
-                                                        role="tab",
-                                                        **{
-                                                            "data-bs-toggle": "tab",
-                                                            "data-bs-target": "#covTabPane",
-                                                            "aria-controls": "covTabPane",
-                                                            "aria-selected": "false",
-                                                        },
-                                                    ),
-                                                    className="nav-item",
-                                                    role="presentation",
-                                                )
-                                                if ag.has_covs
-                                                else None
-                                            ),
-                                        ],
-                                        id="infoDialogTabs",
-                                        role="tablist",
-                                        className="nav nav-tabs",
-                                    ),
-                                    html.Div(
-                                        [
-                                            html.Div(
-                                                [
-                                                    html.Table(
-                                                        html.Tbody(
-                                                            [
-                                                                html.Tr(
-                                                                    [
-                                                                        html.Th(
-                                                                            "Filename"
-                                                                        ),
-                                                                        html.Th(
-                                                                            "Filetype",
-                                                                        ),
-                                                                        html.Th(
-                                                                            "# nodes"
-                                                                        ),
-                                                                        html.Th(
-                                                                            "# edges"
-                                                                        ),
-                                                                        html.Th(
-                                                                            "# components"
-                                                                        ),
-                                                                    ]
-                                                                ),
-                                                                html.Tr(
-                                                                    [
-                                                                        html.Td(
-                                                                            ag.basename,
-                                                                            className="font-monospace",
-                                                                        ),
-                                                                        html.Td(
-                                                                            ag.filetype,
-                                                                            className="font-monospace",
-                                                                        ),
-                                                                        html.Td(
-                                                                            f"{ag.node_ct:,}",
-                                                                        ),
-                                                                        html.Td(
-                                                                            f"{ag.edge_ct:,}",
-                                                                        ),
-                                                                        html.Td(
-                                                                            f"{len(ag.components):,}"
-                                                                        ),
-                                                                    ]
-                                                                ),
-                                                            ]
-                                                        ),
-                                                        className=css_config.INFO_DIALOG_TABLE_CLASSES,
-                                                    ),
-                                                    html.P(
-                                                        "Note that, as of writing, these counts include "
-                                                        "both + and - copies of nodes / edges / components."
-                                                    ),
-                                                    html.P(
-                                                        [
-                                                            "Based on the input graph's filetype, we "
-                                                            "assume its sequences are stored on its ",
-                                                            html.Span(
-                                                                ag.seq_noun
-                                                                + "s",
-                                                                className="fw-bold",
-                                                            ),
-                                                            ".",
-                                                        ]
-                                                    ),
-                                                    ui_utils.get_approx_length_disclaimer_if_needed(
-                                                        ag
-                                                    ),
-                                                    ui_utils.get_length_info(
-                                                        ag
-                                                    ),
-                                                    *ui_utils.get_cov_info(ag),
-                                                    *ui_utils.get_patt_info(
-                                                        ag
-                                                    ),
-                                                    html.Div(
-                                                        dbc.Button(
-                                                            [
-                                                                html.I(
-                                                                    className="bi bi-file-earmark-spreadsheet-fill"
-                                                                ),
-                                                                html.Span(
-                                                                    "Save node, edge and pattern counts per component (TSV)",
-                                                                    className="iconlbl",
-                                                                ),
-                                                            ],
-                                                            id="tsvButton",
-                                                            color="success",
-                                                            # it looks like google sheets :3
-                                                            # ^^^ things a fundamentally unwell person (me) would say
-                                                            outline=True,
-                                                        ),
-                                                        style={
-                                                            "text-align": "center"
-                                                        },
-                                                    ),
-                                                ],
-                                                id="statsTabPane",
-                                                className="tab-pane fade show active",
-                                                role="tabpanel",
-                                                tabIndex="0",
-                                                **{
-                                                    "aria-labelledby": "statsTab"
-                                                },
-                                            ),
-                                            (
-                                                html.Div(
-                                                    [
-                                                        html.Ul(
-                                                            [
-                                                                html.Li(
-                                                                    html.Button(
-                                                                        "Treemap of nodes",
-                                                                        className="nav-link active",
-                                                                        id="ccNestTreemapTab",
-                                                                        type="button",
-                                                                        role="tab",
-                                                                        **{
-                                                                            "data-bs-toggle": "tab",
-                                                                            "data-bs-target": "#ccNestTreemapTabPane",
-                                                                            "aria-controls": "ccNestTreemapTabPane",
-                                                                            "aria-selected": "true",
-                                                                        },
-                                                                    ),
-                                                                    className="nav-item",
-                                                                    role="presentation",
-                                                                ),
-                                                                html.Li(
-                                                                    html.Button(
-                                                                        "Histograms of nodes/edges",
-                                                                        className="nav-link",
-                                                                        id="ccNestHistTab",
-                                                                        type="button",
-                                                                        role="tab",
-                                                                        **{
-                                                                            "data-bs-toggle": "tab",
-                                                                            "data-bs-target": "#ccNestHistTabPane",
-                                                                            "aria-controls": "ccNestHistTabPane",
-                                                                            "aria-selected": "false",
-                                                                        },
-                                                                    ),
-                                                                    className="nav-item",
-                                                                    role="presentation",
-                                                                ),
-                                                            ],
-                                                            className="nav nav-tabs",
-                                                            id="ccTabs",
-                                                            role="tablist",
-                                                        ),
-                                                        html.Div(
-                                                            [
-                                                                html.Div(
-                                                                    [
-                                                                        html.Div(
-                                                                            id="ccTreemapContainer",
-                                                                        ),
-                                                                        chart_utils.get_treemap_options(
-                                                                            ag
-                                                                        ),
-                                                                    ],
-                                                                    className="tab-pane fade show active",
-                                                                    id="ccNestTreemapTabPane",
-                                                                    role="tabpanel",
-                                                                    tabIndex="0",
-                                                                    **{
-                                                                        "aria-labelledby": "ccNestTreemapTab"
-                                                                    },
-                                                                ),
-                                                                html.Div(
-                                                                    [
-                                                                        html.Div(
-                                                                            id="ccHistContainer",
-                                                                        ),
-                                                                        chart_utils.get_node_edge_toggle(
-                                                                            "ccHistEleType"
-                                                                        ),
-                                                                        ui_config.OPTIONS_SEP,
-                                                                        chart_utils.get_hist_options(
-                                                                            "ccHistNumBins",
-                                                                            "ccHistNumBinsApply",
-                                                                            "ccHistMaxX",
-                                                                            "ccHistMaxXApply",
-                                                                            "ccHistYScale",
-                                                                        ),
-                                                                    ],
-                                                                    className="tab-pane fade",
-                                                                    id="ccNestHistTabPane",
-                                                                    role="tabpanel",
-                                                                    tabIndex="0",
-                                                                    **{
-                                                                        "aria-labelledby": "ccNestHistTab"
-                                                                    },
-                                                                ),
-                                                            ],
-                                                            className="tab-content",
-                                                            id="ccNestTabContent",
-                                                        ),
-                                                    ],
-                                                    id="ccTabPane",
-                                                    className="tab-pane fade show",
-                                                    role="tabpanel",
-                                                    tabIndex="0",
-                                                    **{
-                                                        "aria-labelledby": "ccTab"
-                                                    },
-                                                )
-                                                if multiple_ccs
-                                                else None
-                                            ),
-                                            html.Div(
-                                                [
-                                                    html.Div(
-                                                        id="seqLenHistContainer",
-                                                    ),
-                                                    chart_utils.get_hist_options(
-                                                        "seqLenHistNumBins",
-                                                        "seqLenHistNumBinsApply",
-                                                        "seqLenHistMaxX",
-                                                        "seqLenHistMaxXApply",
-                                                        "seqLenHistYScale",
-                                                    ),
-                                                ],
-                                                id="seqLenTabPane",
-                                                className="tab-pane fade",
-                                                role="tabpanel",
-                                                tabIndex="0",
-                                                **{
-                                                    "aria-labelledby": "seqLenTab"
-                                                },
-                                            ),
-                                            (
-                                                html.Div(
-                                                    [
-                                                        html.Ul(
-                                                            [
-                                                                html.Li(
-                                                                    html.Button(
-                                                                        "Length \u00d7 Coverage (components)",
-                                                                        className="nav-link active",
-                                                                        id="covNestCCTab",
-                                                                        type="button",
-                                                                        role="tab",
-                                                                        **{
-                                                                            "data-bs-toggle": "tab",
-                                                                            "data-bs-target": "#covNestCCTabPane",
-                                                                            "aria-controls": "covNestCCTabPane",
-                                                                            "aria-selected": "true",
-                                                                        },
-                                                                    ),
-                                                                    className="nav-item",
-                                                                    role="presentation",
-                                                                ),
-                                                                (
-                                                                    html.Li(
-                                                                        html.Button(
-                                                                            f"Length \u00d7 Coverage ({ag.cov_source}s)",
-                                                                            className="nav-link",
-                                                                            id="covNestEleTab",
-                                                                            type="button",
-                                                                            role="tab",
-                                                                            **{
-                                                                                "data-bs-toggle": "tab",
-                                                                                "data-bs-target": "#covNestEleTabPane",
-                                                                                "aria-controls": "covNestEleTabPane",
-                                                                                "aria-selected": "false",
-                                                                            },
-                                                                        ),
-                                                                        className="nav-item",
-                                                                        role="presentation",
-                                                                    )
-                                                                    if ag.has_covlens
-                                                                    else None
-                                                                ),
-                                                                html.Li(
-                                                                    html.Button(
-                                                                        "Histogram of coverages",
-                                                                        className="nav-link",
-                                                                        id="covNestHistTab",
-                                                                        type="button",
-                                                                        role="tab",
-                                                                        **{
-                                                                            "data-bs-toggle": "tab",
-                                                                            "data-bs-target": "#covNestHistTabPane",
-                                                                            "aria-controls": "covNestHistTabPane",
-                                                                            "aria-selected": "true",
-                                                                        },
-                                                                    ),
-                                                                    className="nav-item",
-                                                                    role="presentation",
-                                                                ),
-                                                            ],
-                                                            className="nav nav-tabs",
-                                                            id="covTabs",
-                                                            role="tablist",
-                                                        ),
-                                                        html.Div(
-                                                            [
-                                                                html.Div(
-                                                                    [
-                                                                        html.Div(
-                                                                            dcc.Graph(
-                                                                                id="covlenCCScatterGraph",
-                                                                                mathjax=True,
-                                                                                # This SORT OF prevents a flash of
-                                                                                # unstyled content -- it at least does
-                                                                                # a better job than display: none, which
-                                                                                # always results in an awkward scatterplot
-                                                                                # that is like some fraction of the modal
-                                                                                # width and visibly takes a moment to get
-                                                                                # auto-resized to the correct width. using
-                                                                                # this makes it so that more often the plot
-                                                                                # just pops into existence perfectly like it
-                                                                                # did before we made the dcc.Graph() persistent.
-                                                                                #
-                                                                                # see https://community.plotly.com/t/fill-in-default-graph-or-value-for-blank-graph-figure/30631
-                                                                                # re: visibility hidden
-                                                                                style={
-                                                                                    "height": "0",
-                                                                                    "visibility": "hidden",
-                                                                                },
-                                                                            ),
-                                                                            id="covlenCCScatterContainer",
-                                                                        ),
-                                                                        chart_utils.get_scatterplot_options(
-                                                                            "covlenCCScatterXScale",
-                                                                            "covlenCCScatterYScale",
-                                                                        ),
-                                                                        html.Div(
-                                                                            id="covlenCCScatterMissingInfo",
-                                                                        ),
-                                                                        html.Div(
-                                                                            [
-                                                                                dcc.Clipboard(
-                                                                                    target_id="covlenCCSelectedNums",
-                                                                                    title="Copy to clipboard",
-                                                                                    # without inline-block, this spans
-                                                                                    # a whole row and looks gross.
-                                                                                    # https://dash.plotly.com/dash-core-components/clipboard
-                                                                                    # Also! If the clipboard API is not available (see those
-                                                                                    # Dash docs), then the clipboard icon will not be shown.
-                                                                                    # I am not sure EXACTLY what that looks like but -- if it
-                                                                                    # will be entirely removed from the app layout -- then I
-                                                                                    # think it makes sense to give the margin to the clipboard
-                                                                                    # icon rather than the text, since if the clipboard icon is
-                                                                                    # hidden we have no use for the margin.
-                                                                                    style={
-                                                                                        "display": "inline-block",
-                                                                                        "margin-right": "0.6em",
-                                                                                    },
-                                                                                ),
-                                                                                html.Span(
-                                                                                    NO_COMPONENTS_SELECTED_MSG,
-                                                                                    id="covlenCCSelectedNums",
-                                                                                ),
-                                                                            ],
-                                                                            style={
-                                                                                "background-color": "#f3f3f3",
-                                                                                "border": "1px solid #666",
-                                                                                "padding": "0.3em",
-                                                                            },
-                                                                        ),
-                                                                    ],
-                                                                    className="tab-pane fade show active",
-                                                                    id="covNestCCTabPane",
-                                                                    role="tabpanel",
-                                                                    tabIndex="0",
-                                                                    **{
-                                                                        "aria-labelledby": "covNestCCTab"
-                                                                    },
-                                                                ),
-                                                                (
-                                                                    html.Div(
-                                                                        [
-                                                                            html.Div(
-                                                                                id="covlenEleScatterContainer",
-                                                                            ),
-                                                                            chart_utils.get_scatterplot_options(
-                                                                                "covlenEleScatterXScale",
-                                                                                "covlenEleScatterYScale",
-                                                                            ),
-                                                                            html.Div(
-                                                                                id="covlenEleScatterMissingInfo",
-                                                                            ),
-                                                                        ],
-                                                                        className="tab-pane fade",
-                                                                        id="covNestEleTabPane",
-                                                                        role="tabpanel",
-                                                                        tabIndex="0",
-                                                                        **{
-                                                                            "aria-labelledby": "covNestEleTab"
-                                                                        },
-                                                                    )
-                                                                    if ag.has_covlens
-                                                                    else None
-                                                                ),
-                                                                html.Div(
-                                                                    [
-                                                                        html.Div(
-                                                                            id="covHistContainer",
-                                                                        ),
-                                                                        chart_utils.get_hist_options(
-                                                                            "covHistNumBins",
-                                                                            "covHistNumBinsApply",
-                                                                            "covHistMaxX",
-                                                                            "covHistMaxXApply",
-                                                                            "covHistYScale",
-                                                                        ),
-                                                                        html.Div(
-                                                                            id="covHistMissingInfo",
-                                                                        ),
-                                                                    ],
-                                                                    className="tab-pane fade",
-                                                                    id="covNestHistTabPane",
-                                                                    role="tabpanel",
-                                                                    tabIndex="0",
-                                                                    **{
-                                                                        "aria-labelledby": "covNestHistTab"
-                                                                    },
-                                                                ),
-                                                            ],
-                                                            className="tab-content",
-                                                            id="covNestTabContent",
-                                                        ),
-                                                    ],
-                                                    id="covTabPane",
-                                                    className="tab-pane fade show",
-                                                    role="tabpanel",
-                                                    tabIndex="0",
-                                                    **{
-                                                        "aria-labelledby": "covTab"
-                                                    },
-                                                )
-                                                if ag.has_covs
-                                                else None
-                                            ),
-                                        ],
-                                        className="tab-content",
-                                        id="infoDialogTabContent",
-                                    ),
-                                ],
-                                className="modal-body",
-                            ),
-                        ],
-                        className="modal-content",
-                    ),
-                    className="modal-dialog modal-xl",
-                ),
-                id="infoDialog",
-                className="modal fade",
-                # additional accessibility things from bootstrap examples that
-                # may not be necessary for a visualization tool like this atm
-                **{
-                    "aria-hidden": "true",
-                    "aria-labelledby": "infoDialogLabel",
-                    "tabIndex": "-1",
-                },
-            ),
-            dbc.Modal(
-                [
-                    dbc.ModalHeader(
-                        [
-                            html.H1(
-                                [
-                                    html.I(className="bi bi-gear-fill"),
-                                    html.Span(
-                                        "Drawing options",
-                                        className="iconlbl",
-                                    ),
-                                ],
-                                className="modal-title fs-5",
-                            ),
-                        ]
-                    ),
-                    dbc.ModalBody(
-                        dbc.Tabs(
-                            [
-                                dbc.Tab(
-                                    ui_utils.get_layout_options_tab(
-                                        ag.node_centric,
-                                        ag.orientation_in_name,
-                                        ag.is_flye_dot,
-                                        multiple_ccs,
-                                        default_dot_alg_desc,
-                                    ),
-                                    label="Layout",
-                                ),
-                                dbc.Tab(
-                                    ui_utils.get_style_options_tab(
-                                        ag.node_centric
-                                    ),
-                                    label="Style",
-                                ),
-                            ]
-                        ),
-                    ),
-                ],
-                id="drawingOptionsModal",
-                is_open=False,
-            ),
-            dbc.Modal(
-                [
-                    dbc.ModalHeader(
-                        [
-                            html.H1(
-                                [
-                                    html.I(className="bi bi-filter-left"),
-                                    html.Span(
-                                        "Search by sequence",
-                                        className="iconlbl",
-                                    ),
-                                ],
-                                className="modal-title fs-5",
-                            ),
-                        ]
-                    ),
-                    dbc.ModalBody(ui_utils.get_seq_search_modal_body(ag)),
-                ],
-                id="seqSearchModal",
-                is_open=False,
-                size="xl",
-            ),
-            dbc.Modal(
-                [
-                    dbc.ModalHeader(
-                        [
-                            html.H1(
-                                [
-                                    html.I(className="bi bi-graph-up"),
-                                    html.Span(
-                                        "Dot plots of sequences",
-                                        className="iconlbl",
-                                    ),
-                                ],
-                                className="modal-title fs-5",
-                            ),
-                        ]
-                    ),
-                    dbc.ModalBody(ui_utils.get_dot_plot_modal_body()),
-                ],
-                id="dotPlotModal",
-                is_open=False,
-                size="xl",
-            ),
+            # Modal dialogs
+            modals.graph_info.get_modal(ag),
+            modals.drawing_options.get_modal(ag, default_dot_alg_desc),
+            modals.seq_search.get_modal(ag),
+            modals.dot_plot.get_modal(),
             # toast messages will go here. you can change top-0 to bottom-0 to
             # position these in the bottom right of the window; see
             # https://getbootstrap.com/docs/5.3/components/toasts/#live-example
@@ -1998,13 +1340,13 @@ def run(
         ],
     )
 
-    if multiple_ccs:
+    if ag.multiple_ccs:
 
         @callback(
             Output("toastHolder", "children", allow_duplicate=True),
             Output("ccHistContainer", "children"),
             State("toastHolder", "children"),
-            Input("ccNestHistTab", "n_clicks"),
+            Input("graphInfoCCHistTab", "n_clicks"),
             State("ccHistNumBins", "value"),
             Input("ccHistNumBins", "n_submit"),
             Input("ccHistNumBinsApply", "n_clicks"),
@@ -2073,7 +1415,7 @@ def run(
         @callback(
             Output("ccTreemapContainer", "children"),
             Input("ccTreemapType", "value"),
-            Input("ccTab", "n_clicks"),
+            Input("infoCCTab", "n_clicks"),
             prevent_initial_call=True,
         )
         def plot_cc_treemap(treemap_type, n_clicks):
@@ -2131,7 +1473,7 @@ def run(
         Output("toastHolder", "children", allow_duplicate=True),
         Output("seqLenHistContainer", "children"),
         State("toastHolder", "children"),
-        Input("seqLenTab", "n_clicks"),
+        Input("infoLengthsTab", "n_clicks"),
         State("seqLenHistNumBins", "value"),
         Input("seqLenHistNumBins", "n_submit"),
         Input("seqLenHistNumBinsApply", "n_clicks"),
@@ -2143,7 +1485,7 @@ def run(
     )
     def plot_seqlen_hist(
         curr_toasts,
-        tab_n_clicks,
+        btn_n_clicks,
         nbinsx,
         nbins_n_submit,
         nbins_n_clicks,
@@ -2192,7 +1534,7 @@ def run(
             Output("covHistContainer", "children"),
             Output("covHistMissingInfo", "children"),
             State("toastHolder", "children"),
-            Input("covNestHistTab", "n_clicks"),
+            Input("infoCoveragesTab", "n_clicks"),
             State("covHistNumBins", "value"),
             Input("covHistNumBins", "n_submit"),
             Input("covHistNumBinsApply", "n_clicks"),
@@ -2204,7 +1546,7 @@ def run(
         )
         def plot_cov_hist(
             curr_toasts,
-            tab_n_clicks,
+            btn_n_clicks,
             nbinsx,
             nbins_n_submit,
             nbins_n_clicks,
@@ -2260,18 +1602,12 @@ def run(
             Output("covlenCCScatterGraph", "figure"),
             Output("covlenCCScatterMissingInfo", "children"),
             Output("covlenCCScatterMissingInfo", "style"),
-            Input("covNestCCTab", "n_clicks"),
-            Input("covTab", "n_clicks"),
+            Input("graphInfoCCCovLenTab", "n_clicks"),
             Input("covlenCCScatterXScale", "value"),
             Input("covlenCCScatterYScale", "value"),
             prevent_initial_call=True,
         )
-        def plot_cov_cc_scatter(
-            parent_tab_nclicks, grandparent_tab_nclicks, xscale, yscale
-        ):
-            # if we don't redo (?) the fig on clicking the covnestcctab then
-            # the y-axis label can get knocked off the top part of the plot
-            # partially when you go from another sibling tab to this one
+        def plot_cov_cc_scatter(btn_nclicks, xscale, yscale):
             fig = go.Figure()
             (
                 cc_names,
@@ -2373,14 +1709,14 @@ def run(
                 # If the user selected no point, then nums will be [].
                 if len(nums) > 0:
                     return ui_utils.fmt_num_ranges(nums, thousands_seps=False)
-            return NO_COMPONENTS_SELECTED_MSG
+            return ui_config.NO_COMPONENTS_SELECTED_MSG
 
     if ag.has_covlens:
 
         @callback(
             Output("covlenEleScatterContainer", "children"),
             Output("covlenEleScatterMissingInfo", "children"),
-            Input("covNestEleTab", "n_clicks"),
+            Input("infoCovLenElesTab", "n_clicks"),
             Input("covlenEleScatterXScale", "value"),
             Input("covlenEleScatterYScale", "value"),
             prevent_initial_call=True,
@@ -2482,18 +1818,6 @@ def run(
                 CONTROLS_TOGGLER_ICON_CLASSES + " darkToggler",
                 cy_div_style,
             )
-
-    @callback(
-        Output("drawingOptionsModal", "is_open"),
-        Input("drawingOptionsButton", "n_clicks"),
-        State("drawingOptionsModal", "is_open"),
-        prevent_initial_call=True,
-    )
-    def toggle_drawing_options_modal(nc, is_open):
-        # from https://www.dash-bootstrap-components.com/docs/components/modal/
-        if nc:
-            return not is_open
-        return is_open
 
     # By default, bootstrap's dropdowns don't change the button element (i.e.
     # the thing showing the name of the dropdown), as an ordinary HTML <select>
@@ -3517,18 +2841,6 @@ def run(
     if seqs_given:
 
         @callback(
-            Output("seqSearchModal", "is_open"),
-            Input("seqSearchButton", "n_clicks"),
-            State("seqSearchModal", "is_open"),
-            prevent_initial_call=True,
-        )
-        def toggle_seq_search_modal(nc, is_open):
-            # https://www.dash-bootstrap-components.com/docs/components/modal/
-            if nc:
-                return not is_open
-            return is_open
-
-        @callback(
             Output("toastHolder", "children", allow_duplicate=True),
             Output("seqSearchResults", "children"),
             State("toastHolder", "children"),
@@ -3552,22 +2864,9 @@ def run(
                     ),
                     no_update,
                 )
-            seq_search_results = ui_utils.get_seq_search_results_html(
-                inseq2graphseqs
-            )
+            results = modals.seq_search.get_results_html(inseq2graphseqs)
             logging.debug("...Done.")
-            return no_update, seq_search_results
-
-        @callback(
-            Output("dotPlotModal", "is_open"),
-            Input("dotPlotButton", "n_clicks"),
-            State("dotPlotModal", "is_open"),
-            prevent_initial_call=True,
-        )
-        def toggle_dot_plot_modal(nc, is_open):
-            if nc:
-                return not is_open
-            return is_open
+            return no_update, results
 
         @callback(
             Output("dp1GraphSeqUI", "className"),

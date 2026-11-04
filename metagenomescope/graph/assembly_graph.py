@@ -385,6 +385,7 @@ class AssemblyGraph(object):
         # this method's docstring for details.
         logger.debug("  Recording information about the graph's components...")
         self._record_connected_components()
+        self.multiple_ccs = len(self.components) > 1
         logger.debug(
             "  ...Done. The graph has "
             f"{ui_utils.pluralize(len(self.components), 'component')}."
@@ -2941,7 +2942,7 @@ class AssemblyGraph(object):
         UIError
             If something is wrong with the inputs.
         """
-        axis = ui_utils.get_dot_plot_axis(seq_num)
+        axis = chart_utils.get_dot_plot_axis(seq_num)
         if seq_type == ui_config.GRAPH_SEQ:
             if graph_seq is None or len(graph_seq) == 0:
                 raise UIError(f"{axis}-axis: No node name(s) specified.")

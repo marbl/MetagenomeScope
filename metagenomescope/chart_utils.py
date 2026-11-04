@@ -350,6 +350,19 @@ def compute_space_in_cells(cell_sizes, space):
     return 0
 
 
+def get_dot_plot_axis(seq_num):
+    if seq_num == 1:
+        return "x"
+    elif seq_num == 2:
+        return "y"
+    else:
+        raise WeirdError(
+            "yeah of course i'm going to implement 3D dot plots. just "
+            "stay right there and don't move, okay? i'm gonna come back "
+            "any minute now. just trust me."
+        )
+
+
 def compute_dot_plot_size(wcells, hcells, space):
 
     wcelltotal = sum(wcells)
