@@ -1,7 +1,5 @@
-import pytest
 from metagenomescope.graph import DrawResults, Subgraph, Component, Node, Edge
 from metagenomescope import ui_config, config
-from metagenomescope.errors import WeirdError
 
 
 def test_init_empty():
