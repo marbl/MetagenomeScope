@@ -1607,7 +1607,7 @@ def run(
             Input("covlenCCScatterYScale", "value"),
             prevent_initial_call=True,
         )
-        def plot_cov_cc_scatter(btn_nclicks, xscale, yscale):
+        def plot_covlen_cc_scatter(btn_nclicks, xscale, yscale):
             fig = go.Figure()
             (
                 cc_names,
@@ -1618,7 +1618,7 @@ def run(
                 aggname,
                 xlatex,
                 ylatex,
-            ) = ag.to_cc_scatter()
+            ) = ag.to_covlen_cc_scatter()
             fig.add_trace(
                 go.Scattergl(
                     text=cc_names,
@@ -1701,7 +1701,7 @@ def run(
             if selected_data is not None:
                 nums = []
                 for p in selected_data["points"]:
-                    # component labels from AssemblyGraph.to_cc_scatter() look
+                    # cc labels from AssemblyGraph.to_covlen_cc_scatter() look
                     # like "1,234 (6 nodes, 7 edges)". Split the " (" to get
                     # "1,234", then remove thousands separator commas, which
                     # gives us an easy int representation of the cc size rank.
@@ -1721,20 +1721,14 @@ def run(
             Input("covlenEleScatterYScale", "value"),
             prevent_initial_call=True,
         )
-        def plot_cov_ele_scatter(n_clicks, xscale, yscale):
+        def plot_covlen_ele_scatter(n_clicks, xscale, yscale):
             fig = go.Figure()
             desc = (
                 f"{ag.cov_source.title()} lengths and "
                 f"{ui_config.COVATTR2PLURAL[ag.cov_field]}"
             )
             fancycovtitle = ui_config.COVATTR2TITLE[ag.cov_field]
-            lens = []
-            covs = []
-            names = []
-            for objname, (ocov, olen) in ag.name2covlen.items():
-                lens.append(olen)
-                covs.append(ocov)
-                names.append(objname)
+            lens, covs, names, missing_info = ag.to_covlen_ele_scatter()
             fig.add_trace(
                 # "whatever. go my scattergls"
                 go.Scattergl(
@@ -1779,12 +1773,6 @@ def run(
                 yaxis_type=yscale,
             )
             chart_utils.prettify_go_fig(fig)
-            missing_info = chart_utils.get_plot_missing_data_msg(
-                ag.missing_cov_ct,
-                ag.possible_covlen_ct,
-                ag.cov_source,
-                "not having coverage data",
-            )
             return dcc.Graph(figure=fig), missing_info
 
     @callback(

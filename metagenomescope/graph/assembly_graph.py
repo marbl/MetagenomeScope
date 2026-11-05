@@ -2750,7 +2750,23 @@ class AssemblyGraph(object):
         cc_sizes.insert(0, sum(cc_sizes))
         return cc_names, cc_parents, cc_sizes, cc_aggs
 
-    def to_cc_scatter(self):
+    def to_covlen_ele_scatter(self):
+        lens = []
+        covs = []
+        names = []
+        for objname, (ocov, olen) in self.name2covlen.items():
+            lens.append(olen)
+            covs.append(ocov)
+            names.append(objname)
+        missing_info = chart_utils.get_plot_missing_data_msg(
+            self.missing_cov_ct,
+            self.possible_covlen_ct,
+            self.cov_source,
+            "not having coverage data",
+        )
+        return lens, covs, names, missing_info
+
+    def to_covlen_cc_scatter(self):
         cc_names = []
         cc_lens = []
         cc_covs = []
