@@ -1728,7 +1728,7 @@ def run(
                 f"{ui_config.COVATTR2PLURAL[ag.cov_field]}"
             )
             fancycovtitle = ui_config.COVATTR2TITLE[ag.cov_field]
-            lens, covs, names, missing_info = ag.to_covlen_ele_scatter()
+            names, covs, lens, missing_info = ag.to_covlen_ele_scatter()
             fig.add_trace(
                 # "whatever. go my scattergls"
                 go.Scattergl(

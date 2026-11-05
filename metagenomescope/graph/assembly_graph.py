@@ -2764,7 +2764,7 @@ class AssemblyGraph(object):
             self.cov_source,
             "not having coverage data",
         )
-        return lens, covs, names, missing_info
+        return names, covs, lens, missing_info
 
     def to_covlen_cc_scatter(self):
         cc_names = []
