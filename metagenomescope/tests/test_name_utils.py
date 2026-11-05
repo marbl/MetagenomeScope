@@ -273,6 +273,15 @@ def test_get_splitname_base():
     assert str(ei.value) == "Node name 40-Lpoop does not have a split suffix?"
 
 
+def test_get_base():
+    assert nu.get_base("40-L") == "40"
+    assert nu.get_base("-40-L") == "-40"
+    assert nu.get_base("40") == "40"
+    assert nu.get_base("-40") == "-40"
+    assert nu.get_base("40-") == "40-"
+    assert nu.get_base("-40-") == "-40-"
+
+
 def test_condense_splits():
     assert nu.condense_splits(["asdf", "40-L", "ghkl", "40-R"]) == [
         "40",
