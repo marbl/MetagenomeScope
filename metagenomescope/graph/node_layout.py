@@ -64,6 +64,13 @@ class NodeLayout(object):
 
     def set_dims(self):
         if self.length is not None:
+            # Some parsers catch this, but let's be paranoid and ensure it is
+            # caught here. If a node has length <= 0 then the corresponding
+            # input graph is bad and we should quit.
+            if self.length <= 0:
+                raise WeirdError(
+                    f"Found a node with length {self.length}, which is <= 0"
+                )
             # Played around a lot with the various options here...
             # I'm sure there are better ways to do this.
             area = min(
