@@ -2909,6 +2909,7 @@ def run(
                 (Output("dotPlotStatus", "children"), "Running...", "Done."),
                 (Output("dotPlotRunButton", "disabled"), True, False),
                 (Output("dotPlotAutoButton", "disabled"), True, False),
+                (Output("dotPlotAutoBubbleButton", "disabled"), True, False),
             ],
         )
         def create_dot_plot(

@@ -802,4 +802,7 @@ input {
     --bs-btn-active-color: #000 !important;
     --bs-btn-active-bg: var(--bubble-2) !important;
     --bs-btn-active-border-color: var(--bubble-2) !important;
+    --bs-btn-disabled-color: #000 !important;
+    --bs-btn-disabled-bg: var(--bubble-0) !important;
+    --bs-btn-disabled-border-color: var(--bubble-0) !important;
 }
