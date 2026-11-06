@@ -99,6 +99,10 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   errors). (External tools are not impacted by this flag, so you should still
   see a log message when the Dash server starts up.)
 
+- Change the website title to show the name of the input assembly graph (e.g.
+  "mygraph.gfa"), rather than just "MgSc". This is useful if you have multiple
+  tabs for different MetagenomeScope instances open at the same time :)
+
 ### Changed
 
 - Dramatically speed up pattern decomposition, mostly by addressing a

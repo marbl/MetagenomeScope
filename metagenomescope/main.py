@@ -426,7 +426,7 @@ def run(
         DRAW_RUNNING.append((psty, pn, {}))
 
     # update_title=None prevents Dash's default "Updating..." page title change
-    app = Dash(__name__, title="MgSc", update_title=None)
+    app = Dash(__name__, title=ag.basename, update_title=None)
     CONTROLS_TOGGLER_ICON_CLASSES = "bi bi-list"
     app.layout = dbc.Container(
         [
