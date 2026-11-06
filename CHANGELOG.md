@@ -14,7 +14,8 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   the sequences of nodes in your assembly graph now enables basic functionality
   for searching by sequence and drawing dot plots of sequences
   ([#44](https://github.com/marbl/MetagenomeScope/issues/44),
-  [#484](https://github.com/marbl/MetagenomeScope/issues/484)).
+  [#484](https://github.com/marbl/MetagenomeScope/issues/484),
+  [#492](https://github.com/marbl/MetagenomeScope/issues/492)).
 
 - Add new options to the the drawing options dialog (all selected by default):
 
