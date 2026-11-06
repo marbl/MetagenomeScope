@@ -96,20 +96,37 @@ def get_modal_body():
                     dbc.Col(
                         [
                             html.Div(
-                                dbc.Button(
-                                    [
-                                        html.I(
-                                            className="bi bi-arrow-return-right"
-                                        ),
-                                        html.Span(
-                                            "Autofill from one or two selected nodes",
-                                            className="iconlbl",
-                                        ),
-                                    ],
-                                    id="dotPlotAutoButton",
-                                    color="success",
-                                    style={"margin-bottom": "1em"},
-                                ),
+                                [
+                                    dbc.Button(
+                                        [
+                                            html.I(
+                                                className="bi bi-arrow-return-right"
+                                            ),
+                                            html.Span(
+                                                "Autofill from one or two selected nodes",
+                                                className="iconlbl",
+                                            ),
+                                        ],
+                                        id="dotPlotAutoButton",
+                                        color="success",
+                                    ),
+                                    ui_config.BIGGER_SEP,
+                                    html.Button(
+                                        [
+                                            html.I(
+                                                className="bi bi-arrow-return-right"
+                                            ),
+                                            html.Span(
+                                                "Autofill from selected bubble",
+                                                className="iconlbl",
+                                            ),
+                                        ],
+                                        id="dotPlotAutoBubbleButton",
+                                        className="btn btn-bubble",
+                                        type="button",
+                                    ),
+                                    ui_config.BIGGER_SEP,
+                                ],
                                 style={"text-align": "center"},
                             ),
                             get_dot_plot_seq_ui(1),

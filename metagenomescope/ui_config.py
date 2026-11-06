@@ -201,10 +201,11 @@ PATH_SETTINGS_OPTIONS = [
 DEFAULT_PATH_SETTINGS = [PATH_SETTINGS_ZOOM, PATH_SETTINGS_TOAST]
 
 ###############################################################################
-# Lists of options (e.g. for histograms, or for layout parameters)
+# HTML separators
 ###############################################################################
 
 OPTIONS_SEP = html.Div(style={"margin-top": "0.3em"})
+BIGGER_SEP = html.Div(style={"margin-top": "0.7em"})
 
 ###############################################################################
 # Charts in the info dialog
