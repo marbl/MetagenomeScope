@@ -778,19 +778,28 @@ input {
     margin-bottom: 0.75em;
 }
 
-/* https://getbootstrap.com/docs/5.3/components/buttons/#variables */
+/* https://getbootstrap.com/docs/5.3/components/buttons/#variables
+ * As of writing, we need to set !important in order to get --bs-btn-bg to
+ * work -- however, we DON'T need to set !important in order to get the other
+ * background colors (e.g. hover) to work. This is weird because if you dig
+ * into bootstrap's CSS, btn-primary / etc. don't set !important?
+ *
+ * Anyway, I'm sure there's a very good reason for this, but let's just chalk
+ * it up to the universe disliking me in particular and move on with our lives
+ * (by way of just setting !important for everything here to just to be safe)
+ */
 .btn-bubble {
     --bubble-0: #a2c2fa;
     --bubble-1: #9abaf3;
-    --bubble-2: #8aaae3;
-    --bs-btn-color: #000;
-    --bs-btn-bg: var(--bubble-0);
-    --bs-btn-border-color: var(--bubble-0);
-    --bs-btn-hover-color: #000;
-    --bs-btn-hover-bg: var(--bubble-1);
-    --bs-btn-hover-border-color: var(--bubble-1);
-    --bs-btn-focus-shadow-rgb: 154,186,243;
-    --bs-btn-active-color: #000;
-    --bs-btn-active-bg: var(--bubble-2);
-    --bs-btn-active-border-color: var(--bubble-2);
+    --bubble-2: #91b1ea;
+    --bs-btn-color: #000 !important;
+    --bs-btn-bg: var(--bubble-0) !important;
+    --bs-btn-border-color: var(--bubble-0) !important;
+    --bs-btn-hover-color: #000 !important;
+    --bs-btn-hover-bg: var(--bubble-1) !important;
+    --bs-btn-hover-border-color: var(--bubble-1) !important;
+    --bs-btn-focus-shadow-rgb: 154,186,243 !important;
+    --bs-btn-active-color: #000 !important;
+    --bs-btn-active-bg: var(--bubble-2) !important;
+    --bs-btn-active-border-color: var(--bubble-2) !important;
 }

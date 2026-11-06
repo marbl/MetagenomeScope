@@ -72,10 +72,8 @@ def get_dot_plot_seq_ui(seq_num):
                 id=f"{idprefix}OtherSeqUI",
                 className="removedEntirely",
             ),
+            ui_config.BIGGER_SEP,
         ],
-        style={
-            "margin-bottom": "1em",
-        },
     )
 
 
@@ -110,7 +108,7 @@ def get_modal_body():
                                         id="dotPlotAutoButton",
                                         color="success",
                                     ),
-                                    ui_config.BIGGER_SEP,
+                                    ui_config.MEDIUM_SEP,
                                     html.Button(
                                         [
                                             html.I(
@@ -125,7 +123,7 @@ def get_modal_body():
                                         className="btn btn-bubble",
                                         type="button",
                                     ),
-                                    ui_config.BIGGER_SEP,
+                                    ui_config.MEDIUM_SEP,
                                 ],
                                 style={"text-align": "center"},
                             ),

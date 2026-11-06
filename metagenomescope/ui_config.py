@@ -205,7 +205,8 @@ DEFAULT_PATH_SETTINGS = [PATH_SETTINGS_ZOOM, PATH_SETTINGS_TOAST]
 ###############################################################################
 
 OPTIONS_SEP = html.Div(style={"margin-top": "0.3em"})
-BIGGER_SEP = html.Div(style={"margin-top": "0.7em"})
+MEDIUM_SEP = html.Div(style={"margin-top": "0.7em"})
+BIGGER_SEP = html.Div(style={"margin-top": "1em"})
 
 ###############################################################################
 # Charts in the info dialog
