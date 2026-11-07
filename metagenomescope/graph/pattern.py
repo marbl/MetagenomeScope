@@ -299,6 +299,26 @@ class Pattern(Node):
             return len(self.nodes) == 5
         return False
 
+    def get_only_boundary_nodes(self):
+        """Gets the start and end node IDs of this pattern.
+
+        Raises an error if this pattern does not have exactly one start node
+        and exactly one end node. This is intended to be used for bubbles,
+        mostly.
+
+        Returns
+        -------
+        (int, int)
+            The first entry is the only start node ID, and the second entry is the
+            only end node ID. Note that I GUESSS these could be identical if this
+            is a weird pattern, but as of writing (November 2026) none of the
+            patterns we identify should have identical start and end nodes, even
+            cyclic chains.
+        """
+        verify_1_node(self.start_node_ids, "start")
+        verify_1_node(self.end_node_ids, "end")
+        return self.start_node_ids[0], self.end_node_ids[0]
+
     def to_cyjs(self):
         """Creates a Cytoscape.js element for this pattern.
 

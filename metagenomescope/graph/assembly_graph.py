@@ -3071,10 +3071,11 @@ class AssemblyGraph(object):
 
         Returns
         -------
-        Node, Node
-            The first node should go on the x-axis, and the second node should
-            go on the y-axis. The order of these nodes does not necessarily
-            match the order of their corresponding input node IDs.
+        str, str
+            These are node basenames. The first node should go on the x-axis,
+            and the second node should go on the y-axis. The order of these
+            node basenames does not necessarily match the order of their
+            corresponding input node IDs.
 
         Notes
         -----
@@ -3107,4 +3108,87 @@ class AssemblyGraph(object):
                 # that don't have lengths in the graph (???) then just default
                 # to this. shouldn't happen unless someone does something weird
                 x, y = i0, i1
-        return self.nodeid2obj[x], self.nodeid2obj[y]
+        return self.nodeid2obj[x].basename, self.nodeid2obj[y].basename
+
+    def get_basenames_from_ids(self, id_list):
+        return ", ".join(self.nodeid2obj[nid].basename for nid in id_list)
+
+    def order_bubble_for_dot_plot(self, b):
+        """Extracts two paths from a bubble to show in a dot plot.
+
+        Parameters
+        ----------
+        b: Pattern
+            A bubble pattern. (I guess in theory this could be any pattern
+            that has exactly one start node and exactly one end node, though.)
+
+        Returns
+        -------
+        str, str, int: pathx, pathy, num_paths
+            The first two return values are comma-separated lists of node
+            basenames. The first corresponds to a path of nodes to be shown on
+            the x-axis, and the second corresponds to a path of nodes to be
+            shown on the y-axis.
+
+            The third return value corresponds to the number of simple paths
+            detected through this bubble. This could be displayed to the user
+            in a warning, if the bubble had more than two such paths.
+
+        Notes
+        -----
+        If a bubble has more than two paths through it, this selects the two
+        longest such paths (longest path goes on x-axis, second longest goes
+        on y-axis).
+
+        For now, this is only designed for node-centric graphs; if you use
+        this on a bubble in an edge-centric graph then this will just pick two
+        arbitrary paths through the bubble (since nodes in an edge-centric
+        graph don't have lengths). But also the whole dot plot interface
+        shouldn't be available for edge-centric graphs anyway??? Unless the
+        user provides a FASTA file of node sequences, in which case sure
+        whatever the arbitrary paths are fine.
+        """
+        # NOTE: for now, this only works for node-centric graphs, since the
+        # sequence stuff only supports those also
+        s, e = b.get_only_boundary_nodes()
+
+        # In theory this can take a while for big graphs, but since we are
+        # running this on bubbles I think it will be fine
+        bubble_paths = nx.all_simple_paths(self.graph, s, e)
+
+        lens_and_paths = []
+        for i, p in enumerate(bubble_paths):
+            plen = 0
+            for nid in p:
+                n = self.nodeid2obj[nid]
+                if "length" in n.data:
+                    plen += n.data["length"]
+                else:
+                    logging.warning(
+                        f"{n} has no length given, but it is in a bubble you "
+                        "are trying to draw the dot plot of? Please note that "
+                        "MetagenomeScope's sequence functionality only "
+                        "supports node-centric graphs as of now."
+                    )
+                # If a node doesn't have a length then plen isn't updated -- so
+                # it is as if the node had a length of zero. Again, this should
+                # never happen (at least for node-centric graphs)
+            lens_and_paths.append((plen, p))
+        # Sort bubble paths by their lengths. (for now, break ties arbitrarily)
+        lens_and_paths = sorted(lens_and_paths, key=lambda t: t[0])
+
+        num_paths = len(lens_and_paths)
+        if num_paths < 1:
+            raise WeirdError(f"No paths found through {b}")
+        elif num_paths == 1:
+            # this could happen with bulges, and maybe weird jank bubbles in
+            # node-centric graphs could trigger this (but probably not). in
+            # this case, show a self dot plot for this bubble path
+            p = self.get_basenames_from_ids(lens_and_paths[0][1])
+            return p, p, 1
+        else:
+            return (
+                self.get_basenames_from_ids(lens_and_paths[-1][1]),
+                self.get_basenames_from_ids(lens_and_paths[-2][1]),
+                num_paths,
+            )

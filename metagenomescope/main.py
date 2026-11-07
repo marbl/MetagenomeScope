@@ -2961,18 +2961,18 @@ def run(
 
         @callback(
             Output("toastHolder", "children", allow_duplicate=True),
-            Output("dp1SeqType", "value"),
-            Output("dp2SeqType", "value"),
-            Output("dp1GraphSeq", "value"),
-            Output("dp2GraphSeq", "value"),
-            Output("dotPlotRunButton", "n_clicks"),
+            Output("dp1SeqType", "value", allow_duplicate=True),
+            Output("dp2SeqType", "value", allow_duplicate=True),
+            Output("dp1GraphSeq", "value", allow_duplicate=True),
+            Output("dp2GraphSeq", "value", allow_duplicate=True),
+            Output("dotPlotRunButton", "n_clicks", allow_duplicate=True),
             State("toastHolder", "children"),
             State("dotPlotRunButton", "n_clicks"),
             State("selectedNodeAndPatternJSONFromJS", "data"),
             Input("dotPlotAutoButton", "n_clicks"),
             prevent_initial_call=True,
         )
-        def autofill_dotplot_nodes(curr_toasts, runbtn_nc, selected_nodes, nc):
+        def autofill_dotplot(curr_toasts, runbtn_nc, selected_nodes, nc):
             nids = []
             if selected_nodes is not None:
                 for n in selected_nodes:
@@ -2980,7 +2980,7 @@ def run(
                         nids.append(int(n["id"]))
             good = False
             if len(nids) == 1:
-                nx = ny = ag.nodeid2obj[nids[0]]
+                nx = ny = ag.nodeid2obj[nids[0]].basename
                 good = True
             elif len(nids) == 2:
                 nx, ny = ag.order_nodes_for_dot_plot(*nids)
@@ -2990,8 +2990,8 @@ def run(
                     no_update,
                     ui_config.GRAPH_SEQ,
                     ui_config.GRAPH_SEQ,
-                    nx.basename,
-                    ny.basename,
+                    nx,
+                    ny,
                     # "click on" the run button by increasing its # clicks
                     ui_utils.update_n_clicks(runbtn_nc),
                 )
@@ -3005,6 +3005,82 @@ def run(
                     "self dot plot of it) or two nodes (if you want to "
                     "draw a dot plot of them)."
                 ),
+            )
+            return (
+                out_toasts,
+                no_update,
+                no_update,
+                no_update,
+                no_update,
+                no_update,
+            )
+
+        @callback(
+            Output("toastHolder", "children", allow_duplicate=True),
+            Output("dp1SeqType", "value", allow_duplicate=True),
+            Output("dp2SeqType", "value", allow_duplicate=True),
+            Output("dp1GraphSeq", "value", allow_duplicate=True),
+            Output("dp2GraphSeq", "value", allow_duplicate=True),
+            Output("dotPlotRunButton", "n_clicks", allow_duplicate=True),
+            State("toastHolder", "children"),
+            State("dotPlotRunButton", "n_clicks"),
+            State("selectedNodeAndPatternJSONFromJS", "data"),
+            Input("dotPlotAutoBubbleButton", "n_clicks"),
+            prevent_initial_call=True,
+        )
+        def autofill_dotplot_from_bubble(
+            curr_toasts, runbtn_nc, selected_nodes, nc
+        ):
+            multiple_bubbles_selected = False
+            bubble = None
+            if selected_nodes is not None:
+                for n in selected_nodes:
+                    if n["ntype"] == cy_config.PATTERN_DATA_TYPE:
+                        obj = ag.pattid2obj[int(n["id"])]
+                        if obj.pattern_type == config.PT_BUBBLE:
+                            if bubble is None:
+                                bubble = obj
+                            else:
+                                multiple_bubbles_selected = True
+                                break
+
+            if multiple_bubbles_selected:
+                errtext = "Multiple bubbles selected. Please select just one."
+            elif bubble is None:
+                errtext = "No bubbles selected. Please select one."
+            else:
+                nx, ny, num_paths = ag.order_bubble_for_dot_plot(bubble)
+                toasts = no_update
+                if num_paths != 2:
+                    tsb = "The selected bubble"
+                    sp = "simple node path"
+                    if num_paths == 1:
+                        errtext = f"{tsb} has only one {sp}."
+                    else:
+                        errtext = (
+                            f"{tsb} has {ui_utils.pluralize(num_paths, sp)}. "
+                            "We are just showing the two longest such paths."
+                        )
+                    toasts = ui_utils.add_warning_toast(
+                        curr_toasts,
+                        "Dot plot warning",
+                        errtext,
+                    )
+                return (
+                    toasts,
+                    ui_config.GRAPH_SEQ,
+                    ui_config.GRAPH_SEQ,
+                    nx,
+                    ny,
+                    # "click on" the run button by increasing its # clicks
+                    ui_utils.update_n_clicks(runbtn_nc),
+                )
+
+            # a bad number of bubbles (i.e. not 1) was selected
+            out_toasts = ui_utils.add_error_toast(
+                curr_toasts,
+                "Dot plot error",
+                errtext,
             )
             return (
                 out_toasts,
