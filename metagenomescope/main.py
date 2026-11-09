@@ -3053,18 +3053,18 @@ def run(
                 toasts = no_update
                 if num_paths != 2:
                     tsb = "The selected bubble"
-                    sp = "simple node path"
+                    sp = "simple path"
                     if num_paths == 1:
-                        errtext = f"{tsb} has only one {sp}."
+                        warntext = f"{tsb} has only one {sp}."
                     else:
-                        errtext = (
+                        warntext = (
                             f"{tsb} has {ui_utils.pluralize(num_paths, sp)}. "
-                            "We are just showing the two longest such paths."
+                            f"Showing a dot plot of the 2 longest {sp}s."
                         )
                     toasts = ui_utils.add_warning_toast(
                         curr_toasts,
                         "Dot plot warning",
-                        errtext,
+                        warntext,
                     )
                 return (
                     toasts,
