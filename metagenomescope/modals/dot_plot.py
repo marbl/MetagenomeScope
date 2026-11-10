@@ -101,7 +101,7 @@ def get_modal_body():
                                                 className="bi bi-arrow-return-right"
                                             ),
                                             html.Span(
-                                                "Autofill from one or two selected nodes",
+                                                "Autofill both axes from selected 1 or 2 node(s)",
                                                 className="iconlbl",
                                             ),
                                         ],
@@ -115,13 +115,37 @@ def get_modal_body():
                                                 className="bi bi-arrow-return-right"
                                             ),
                                             html.Span(
-                                                "Autofill from selected bubble",
+                                                "Autofill both axes from selected bubble",
                                                 className="iconlbl",
                                             ),
                                         ],
                                         id="dotPlotAutoBubbleButton",
                                         className="btn btn-bubble",
                                         type="button",
+                                    ),
+                                    ui_config.MEDIUM_SEP,
+                                    html.Span(
+                                        [
+                                            "Autofill { ",
+                                            dbc.Button(
+                                                "x",
+                                                id="dotPlotAutoXButton",
+                                                color="dark",
+                                            ),
+                                            html.Span(
+                                                " / ",
+                                                style={
+                                                    "margin-left": "0.5em",
+                                                    "margin-right": "0.5em",
+                                                },
+                                            ),
+                                            dbc.Button(
+                                                "y",
+                                                id="dotPlotAutoYButton",
+                                                color="dark",
+                                            ),
+                                            " } axis from selected path",
+                                        ],
                                     ),
                                     ui_config.MEDIUM_SEP,
                                 ],
