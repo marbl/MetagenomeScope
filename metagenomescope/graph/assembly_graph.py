@@ -3251,7 +3251,9 @@ class AssemblyGraph(object):
                     ordered_nids.append(e[1])
             else:
                 raise UIError(
-                    "The selected nodes do not form an Eulerian path."
+                    "The selected nodes do not contain an Eulerian path. "
+                    '(Note that this ignores "invalidated" edges in decoupled '
+                    "strand-tangled components.)"
                 )
         else:
             raise UIError("No nodes selected.")
