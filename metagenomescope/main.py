@@ -2910,6 +2910,8 @@ def run(
                 (Output("dotPlotRunButton", "disabled"), True, False),
                 (Output("dotPlotAutoButton", "disabled"), True, False),
                 (Output("dotPlotAutoBubbleButton", "disabled"), True, False),
+                (Output("dotPlotAutoXButton", "disabled"), True, False),
+                (Output("dotPlotAutoYButton", "disabled"), True, False),
             ],
         )
         def create_dot_plot(
@@ -3090,6 +3092,59 @@ def run(
                 no_update,
                 no_update,
             )
+
+        @callback(
+            Output("toastHolder", "children", allow_duplicate=True),
+            Output("dp1SeqType", "value", allow_duplicate=True),
+            Output("dp2SeqType", "value", allow_duplicate=True),
+            Output("dp1GraphSeq", "value", allow_duplicate=True),
+            Output("dp2GraphSeq", "value", allow_duplicate=True),
+            State("toastHolder", "children"),
+            State("selectedNodeAndPatternJSONFromJS", "data"),
+            Input("dotPlotAutoXButton", "n_clicks"),
+            Input("dotPlotAutoYButton", "n_clicks"),
+            prevent_initial_call=True,
+        )
+        def autofill_dotplot_axis_from_path(
+            curr_toasts, selected_nodes, ncx, ncy
+        ):
+            nids = []
+            if selected_nodes is not None:
+                for n in selected_nodes:
+                    if n["ntype"] == cy_config.NODE_DATA_TYPE:
+                        nids.append(int(n["id"]))
+
+            try:
+                out_basenames = ag.order_nodes_in_path(nids)
+            except UIError as err:
+                return (
+                    ui_utils.add_error_toast(
+                        curr_toasts, "Dot plot error", str(err)
+                    ),
+                    no_update,
+                    no_update,
+                    no_update,
+                    no_update,
+                )
+
+            if ctx.triggered_id == "dotPlotAutoXButton":
+                # Update x-axis
+                return (
+                    no_update,
+                    ui_config.GRAPH_SEQ,
+                    no_update,
+                    out_basenames,
+                    no_update,
+                )
+            else:
+                # Update y-axis
+                return (
+                    no_update,
+                    no_update,
+                    ui_config.GRAPH_SEQ,
+                    no_update,
+                    out_basenames,
+                )
 
         @callback(
             Output("dotPlotKType", "value"),

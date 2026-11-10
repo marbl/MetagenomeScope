@@ -3111,7 +3111,39 @@ class AssemblyGraph(object):
         return self.nodeid2obj[x].basename, self.nodeid2obj[y].basename
 
     def get_basenames_from_ids(self, id_list):
-        return ", ".join(self.nodeid2obj[nid].basename for nid in id_list)
+        """Returns a comma-separated list of basenames from a list of node IDs.
+
+        This was initially designed to be useful for dot plots, but I guess it
+        could be useful for other things later.
+
+        Note that this will "condense" adjacent counterpart nodes. If a user
+        selected a path that goes, like, 1 --> 2-L --> 2-R --> 3 --> 4-L, then
+        this will return the basenames {1, 2, 3, 4}.
+
+        Parameters
+        ----------
+        id_list: list of int
+            Node IDs that represent an ordered path. (We don't CHECK that these
+            are a path in this function, but like come on.)
+
+        Returns
+        -------
+        str
+            Comma-separated list of the input list of nodes' basenames, with
+            adjacent counterpart nodes (e.g. X-L, X-R) merged together.
+        """
+        basenames = []
+        for i, nid in enumerate(id_list):
+            node = self.nodeid2obj[nid]
+            if (
+                i > 0
+                and node.counterpart_node_id is not None
+                and id_list[i - 1] == node.counterpart_node_id
+            ):
+                continue
+            else:
+                basenames.append(node.basename)
+        return ", ".join(basenames)
 
     def order_bubble_for_dot_plot(self, b):
         """Extracts two paths from a bubble to show in a dot plot.
@@ -3192,3 +3224,35 @@ class AssemblyGraph(object):
                 self.get_basenames_from_ids(lens_and_paths[-2][1]),
                 num_paths,
             )
+
+    def order_nodes_in_path(self, nids):
+        ordered_nids = None
+        if len(nids) == 1:
+            ordered_nids = nids
+        elif len(nids) > 1:
+            # Induce subgraph (no need to convert to undirected first)
+            subg = nx.induced_subgraph(self.graph, nids)
+
+            # This is a bit inefficient, because eulerian_path() is as of
+            # writing also calling has_eulerian_path().
+            #
+            # We COULD just catch the error eulerian_path() throws if the input
+            # graph has no Eulerian path, but ... I really don't trust that
+            # exact error to not change over time or whatever -- seems safest
+            # to just do the validation ourselves.
+            #
+            # (And I doubt this will be a bottleneck -- I expect most induced
+            # subgraphs of user-specified paths will be relatively small)
+            if nx.has_eulerian_path(subg):
+                ordered_nids = []
+                for e in nx.eulerian_path(subg):
+                    if len(ordered_nids) == 0:
+                        ordered_nids.append(e[0])
+                    ordered_nids.append(e[1])
+            else:
+                raise UIError(
+                    "The selected nodes do not form an Eulerian path."
+                )
+        else:
+            raise UIError("No nodes selected.")
+        return self.get_basenames_from_ids(ordered_nids)
