@@ -435,7 +435,7 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
          * @param {Object} nodeSelectionInfo contains information from the
          *     "nodeSelectionInfo" dcc.Store in the dash application. Basically
          *     this should contain two entries: (1) "requestGood" (maps to a
-         *     bool) and (2) "nodesToSelect" (maps to an array).
+         *     bool) and (2) "nodesToSelect" (maps to an array of node IDs).
          *
          * If requestGood maps to a falsy value, then this will just log that
          * we caught a bad search request and not do anything.
@@ -459,20 +459,20 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
                     i < nodeSelectionInfo["nodesToSelect"].length;
                     i++
                 ) {
-                    let nodename = nodeSelectionInfo["nodesToSelect"][i];
-                    newEles = cy.nodes('[label="' + nodename + '"]');
-                    if (newEles.empty()) {
+                    let nid = nodeSelectionInfo["nodesToSelect"][i];
+                    let newEle = cy.getElementById(nid);
+                    if (newEle.empty()) {
                         // I think we could show a toast here but that will
                         // take some finagling
                         alert(
-                            "Node with name " +
-                                nodename +
+                            "Node with ID " +
+                                nid +
                                 " not currently " +
-                                "drawn? This should never happen by this point.",
+                                "drawn? Should never happen by this point.",
                         );
                         return;
                     }
-                    eles = eles.union(newEles);
+                    eles.merge(newEle);
                 }
                 cy.fit(eles, FIT_PADDING_PX);
                 cy.$(":selected").unselect();

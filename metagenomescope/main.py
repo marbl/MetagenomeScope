@@ -2763,8 +2763,11 @@ def run(
         logging.debug("  All searched-for nodes are in the graph.")
         # At this point, we know that all of the searched-for nodes are in the
         # graph. Figure out which if any of them are currently drawn.
-        drawn_nodes = []
-        undrawn_nodes = []
+        # TODO: should really adjust ui_utils.summarize_undrawn_nodes() to
+        # accept undrawn node IDs and the already-computed node -> cc # info.
+        # Currently it is redoing a lot of the work we are already doing here.
+        drawn_node_ids = []
+        undrawn_node_labels = []
 
         def drawn(ni):
             return ni in curr_drawn_ids[config.CDI_DRAWN_NODE_IDS]
@@ -2772,12 +2775,11 @@ def run(
         if curr_drawn_ids is None:
             # nothing has been drawn yet, but let's still allow searching (this
             # will show the user the component size ranks of these nodes)
-            undrawn_nodes = list(nn2ccnum.keys())
+            undrawn_node_labels = list(nn2ccnum.keys())
         else:
             for ni in nodeids:
-                name = ag.nodeid2obj[ni].name
                 if drawn(ni):
-                    drawn_nodes.append(name)
+                    drawn_node_ids.append(ni)
                 else:
                     # If the node with ID "ni" wasn't drawn, see if its RC
                     # node(s) are drawn -- we could just show that.
@@ -2793,28 +2795,28 @@ def run(
                     rc_not_drawn = True
                     for rn in ag.get_rc_nodes(ni):
                         if drawn(rn.unique_id):
-                            drawn_nodes.append(rn.name)
+                            drawn_node_ids.append(rn.unique_id)
                             rc_not_drawn = False
                     if rc_not_drawn:
                         # this node wasn't drawn, and neither were its reverse-
                         # complementary node(s) (if any exist).
-                        undrawn_nodes.append(name)
+                        undrawn_node_labels.append(ag.nodeid2obj[ni].name)
 
         # If none of these nodes are currently drawn, show an error.
-        if len(drawn_nodes) == 0:
+        if len(drawn_node_ids) == 0:
             logging.debug("...Done searching. None of these nodes are drawn.")
             return ui_utils.add_error_toast(
                 curr_toasts,
                 "Search error",
                 body_html=ui_utils.summarize_undrawn_nodes(
-                    undrawn_nodes, ag, all_undrawn=True
+                    undrawn_node_labels, ag, all_undrawn=True
                 ),
             ), {"requestGood": False}
 
         # By this point, we know that the request is good; at least one of
         # these nodes is currently drawn, so we can at least show *something.*
         toasts = no_update
-        if len(undrawn_nodes) > 0:
+        if len(undrawn_node_labels) > 0:
             # We will reach this case if someone searched for a list of nodes,
             # and some but not all of these nodes are not currently drawn.
             # In this case we show a warning toast message, not an error one.
@@ -2822,7 +2824,7 @@ def run(
                 curr_toasts,
                 "Search warning",
                 body_html=ui_utils.summarize_undrawn_nodes(
-                    undrawn_nodes, ag, all_undrawn=False
+                    undrawn_node_labels, ag, all_undrawn=False
                 ),
             )
         logging.debug(
@@ -2830,7 +2832,7 @@ def run(
         )
         return (
             toasts,
-            {"requestGood": True, "nodesToSelect": drawn_nodes},
+            {"requestGood": True, "nodesToSelect": drawn_node_ids},
         )
 
     if seqs_given:
