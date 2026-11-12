@@ -91,7 +91,7 @@ class SeqHolder(object):
             except FileNotFoundError:
                 raise UIError(
                     "Received a FileNotFoundError when trying to run "
-                    "{aligner}. Please make sure that it is installed."
+                    f"{aligner}. Please make sure that it is installed."
                 )
             except subprocess.CalledProcessError as cpe:
                 raise UIError(
