@@ -2742,12 +2742,14 @@ def run(
         prevent_initial_call=True,
     )
     def search(curr_toasts, node_names, curr_drawn_ids, n_clicks, n_submit):
+        logging.debug("Running search...")
         try:
             # NOTE: this will "expand" split nodes' basenames into their
             # splits (for example, "40" will be represented in nn2ccnum with
             # two entries: "40-L" -> (cc num), and "40-R" -> (cc num)).
             nodeids, nn2ccnum = ag.get_node_ids_and_cc_map(node_names)
         except UIError as err:
+            logging.debug("...Caught an error. Stopping the search.")
             # If we fail at this point, it is because either the input text
             # is empty / malformed or because it includes at least one node
             # name that is not present in the graph (in ANY component)
@@ -2758,6 +2760,7 @@ def run(
                 {"requestGood": False},
             )
 
+        logging.debug("  All searched-for nodes are in the graph.")
         # At this point, we know that all of the searched-for nodes are in the
         # graph. Figure out which if any of them are currently drawn.
         drawn_nodes = []
@@ -2799,6 +2802,7 @@ def run(
 
         # If none of these nodes are currently drawn, show an error.
         if len(drawn_nodes) == 0:
+            logging.debug("...Done searching. None of these nodes are drawn.")
             return ui_utils.add_error_toast(
                 curr_toasts,
                 "Search error",
@@ -2821,6 +2825,9 @@ def run(
                     undrawn_nodes, ag, all_undrawn=False
                 ),
             )
+        logging.debug(
+            "...Done searching. At least one of these nodes is drawn."
+        )
         return (
             toasts,
             {"requestGood": True, "nodesToSelect": drawn_nodes},
