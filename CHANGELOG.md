@@ -117,6 +117,9 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   the drawing results are merged
   ([#497](https://github.com/marbl/MetagenomeScope/issues/497)).
 
+- Speed up searching
+  ([#502](https://github.com/marbl/MetagenomeScope/issues/502)).
+
 - Clear `pygraphviz.AGraph` objects created during the layout process after
   they are no longer needed; this seems to improve performance when drawing
   many components

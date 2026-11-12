@@ -348,9 +348,7 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
                 let adjEdges = cy.collection();
                 for (let i = 0; i < selectedNodes.length; i++) {
                     let n = selectedNodes[i];
-                    adjEdges = adjEdges.union(
-                        cy.getElementById(n.id).connectedEdges(),
-                    );
+                    adjEdges.merge(cy.getElementById(n.id).connectedEdges());
                 }
                 rescueEdges(adjEdges, "adjacent edge(s) to selected node(s)");
             }
@@ -360,9 +358,7 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
                 let cy = getCy();
                 let selEdges = cy.collection();
                 for (let i = 0; i < selectedEdges.length; i++) {
-                    selEdges = selEdges.union(
-                        cy.getElementById(selectedEdges[i].id),
-                    );
+                    selEdges.merge(cy.getElementById(selectedEdges[i].id));
                 }
                 rescueEdges(selEdges, "selected edge(s)");
             }
@@ -515,7 +511,7 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
                         );
                         return;
                     }
-                    eles = eles.union(newEles);
+                    eles.merge(newEles);
                 }
                 // The key term "zoom" is set in ui_config.py as
                 // PATH_SETTINGS_ZOOM.
