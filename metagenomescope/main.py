@@ -2517,10 +2517,17 @@ def run(
         )
         def highlight_path(curr_toasts, path_settings, clicked_cell):
             if clicked_cell["colId"] == ui_config.PATH_TBL_NAME_COL:
-                path = clicked_cell["value"]
                 # TODO we COUUULD try to actually visually show gap info on top
                 # of the graph but whatever just listing it in the toast is ok
-                nongap_names = ag.pathname2objnames[path]
+                path = clicked_cell["value"]
+                # NOTE: We use set() to filter to just unique object names.
+                # This reduces the amount of Cytoscape.js filtering operations
+                # the JS code needs to do to find the objects on the path -- it
+                # can really speed up the interface when there are paths that
+                # hit the same few nodes many times (see e.g. "contig_3" in the
+                # ChickenGut metaFlye test graph).
+                # (We have to convert back to a list for JSON serializing...)
+                nongap_names = list(set(ag.pathname2objnames[path]))
                 full_path_contents = ag.pathname2objnamesandgaps[path]
 
                 if ui_config.PATH_SETTINGS_TOAST in path_settings:
