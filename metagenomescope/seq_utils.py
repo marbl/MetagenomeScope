@@ -12,15 +12,17 @@ def gc_content(dna_string):
 
     For reference, the GC content of a DNA sequence is the percentage of
     nucleotides within the sequence that are either G (guanine) or C
-    (cytosine).
+    (cytosine). For now we allow lowercase g and c to also count towards this.
     """
     seq_len = len(dna_string)
     if seq_len == 0:
         raise WeirdError("Can't compute the GC content of an empty sequence")
-    gc_ct = 0
-    for nt in dna_string:
-        if nt == "G" or nt == "C":
-            gc_ct += 1
+    gc_ct = (
+        dna_string.count("G")
+        + dna_string.count("C")
+        + dna_string.count("g")
+        + dna_string.count("c")
+    )
     return (float(gc_ct) / seq_len), gc_ct
 
 
