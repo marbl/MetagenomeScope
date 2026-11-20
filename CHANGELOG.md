@@ -117,8 +117,14 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   the drawing results are merged
   ([#497](https://github.com/marbl/MetagenomeScope/issues/497)).
 
+- Dramatically speed up GC content computation
+  ([#510](https://github.com/marbl/MetagenomeScope/issues/510)).
+
 - Speed up searching
   ([#502](https://github.com/marbl/MetagenomeScope/issues/502)).
+
+- Speed up highlighting paths that traverse the same node/edge many times
+  ([commit `2aa15b4`](https://github.com/marbl/MetagenomeScope/commit/2aa15b488e19b0af233f96ae298e9511b3c31203)).
 
 - Clear `pygraphviz.AGraph` objects created during the layout process after
   they are no longer needed; this seems to improve performance when drawing

@@ -17,6 +17,10 @@ def gc_content(dna_string):
     seq_len = len(dna_string)
     if seq_len == 0:
         raise WeirdError("Can't compute the GC content of an empty sequence")
+    # I know this seems like it is a really lazy, ugly way to do this, but it
+    # is MUCH faster than iterating through the string once using a for loop
+    # or collections.Counter() or something. See
+    # https://stackoverflow.com/a/57173661 and issue #510 on GitHub.
     gc_ct = (
         dna_string.count("G")
         + dna_string.count("C")
