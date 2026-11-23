@@ -3245,13 +3245,21 @@ class AssemblyGraph(object):
             # subgraphs of user-specified paths will be relatively small)
             if nx.has_eulerian_path(subg):
                 ordered_nids = []
+                # The output of eulerian_path() is a list of (src ID, tgt ID)
                 for e in nx.eulerian_path(subg):
                     if len(ordered_nids) == 0:
                         ordered_nids.append(e[0])
-                    ordered_nids.append(e[1])
+                    # Don't let self-loop edges cause a node to occur twice
+                    # consecutively in one of these paths, since that doesn't
+                    # really add any info to the dot plot. See
+                    # https://github.com/marbl/MetagenomeScope/issues/507
+                    if e[1] != ordered_nids[-1]:
+                        ordered_nids.append(e[1])
             else:
                 raise UIError(
-                    "The selected nodes do not contain an Eulerian path. "
+                    "There is not a clear single path through the selected "
+                    "nodes. More specifically, the induced subgraph of these "
+                    "nodes does not contain an Eulerian path. "
                     '(Note that this ignores "invalidated" edges in decoupled '
                     "strand-tangled components.)"
                 )
