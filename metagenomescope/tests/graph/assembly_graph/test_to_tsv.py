@@ -18,8 +18,6 @@ def test_to_tsv_bt1():
     """
     ag = AssemblyGraph("metagenomescope/tests/input/bubble_test_1_in.gml")
     # double-check that the decomposition worked
-    assert len(ag.decomposed_graph.nodes) == 1
-    assert len(ag.decomposed_graph.edges) == 0
     assert len(ag.chains) == 1
     assert len(ag.cyclic_chains) == 0
     assert len(ag.frayed_ropes) == 0
@@ -73,8 +71,6 @@ def test_to_tsv_bubble_cyclic_chain():
         "metagenomescope/tests/input/bubble_cyclic_chain_test.gml"
     )
     # double-check that the decomposition worked
-    assert len(ag.decomposed_graph.nodes) == 1
-    assert len(ag.decomposed_graph.edges) == 0
     assert len(ag.chains) == 0
     assert len(ag.cyclic_chains) == 1
     assert len(ag.frayed_ropes) == 0

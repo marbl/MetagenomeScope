@@ -104,9 +104,6 @@ def test_simple_hierarch_decomp():
     ag = AssemblyGraph(
         "metagenomescope/tests/input/hierarchical_test_graph.gml"
     )
-    # This is with the "maximum" decomposition settings for this test graph.
-    assert len(ag.decomposed_graph.nodes) == 1
-    assert len(ag.decomposed_graph.edges) == 0
     assert len(ag.chains) == 4
     assert len(ag.cyclic_chains) == 0
     assert len(ag.frayed_ropes) == 0
@@ -135,8 +132,6 @@ def test_bubble_with_1_in_node():
     level as the parent of 1R, so we should merge 1L back into 1R.
     """
     ag = AssemblyGraph("metagenomescope/tests/input/bubble_test_1_in.gml")
-    assert len(ag.decomposed_graph.nodes) == 1
-    assert len(ag.decomposed_graph.edges) == 0
     assert len(ag.chains) == 1
     assert len(ag.cyclic_chains) == 0
     assert len(ag.frayed_ropes) == 0
@@ -168,8 +163,6 @@ def test_bubble_chain_identification():
     +----------------------------+
     """
     ag = AssemblyGraph("metagenomescope/tests/input/bubble_chain_test.gml")
-    assert len(ag.decomposed_graph.nodes) == 1
-    assert len(ag.decomposed_graph.edges) == 0
     assert len(ag.chains) == 1
     assert len(ag.cyclic_chains) == 0
     assert len(ag.frayed_ropes) == 0
@@ -256,8 +249,6 @@ def test_bubble_cyclic_chain_identification():
     ag = AssemblyGraph(
         "metagenomescope/tests/input/bubble_cyclic_chain_test.gml"
     )
-    assert len(ag.decomposed_graph.nodes) == 1
-    assert len(ag.decomposed_graph.edges) == 0
     assert len(ag.chains) == 0
     assert len(ag.cyclic_chains) == 1
     assert len(ag.frayed_ropes) == 0
@@ -285,8 +276,6 @@ def test_chain_into_cyclic_chain_merging():
     ag = AssemblyGraph(
         "metagenomescope/tests/input/chain_into_cyclic_chain_merging.gml"
     )
-    assert len(ag.decomposed_graph.nodes) == 1
-    assert len(ag.decomposed_graph.edges) == 0
     assert len(ag.chains) == 0
     assert len(ag.cyclic_chains) == 1
     assert len(ag.frayed_ropes) == 0
@@ -330,8 +319,6 @@ def test_multiple_frayed_ropes():
     # filesystem with test GMLs
     try:
         ag = AssemblyGraph(fn)
-        assert len(ag.decomposed_graph.nodes) == 2
-        assert len(ag.decomposed_graph.edges) == 1
         assert len(ag.chains) == 0
         assert len(ag.cyclic_chains) == 0
         assert len(ag.frayed_ropes) == 2
@@ -355,8 +342,6 @@ def test_chain_Y_aug1_subgraph():
     bug doesn't pop up again.
     """
     ag = AssemblyGraph("metagenomescope/tests/input/aug1_subgraph.gml")
-    assert len(ag.decomposed_graph.nodes) == 3
-    assert len(ag.decomposed_graph.edges) == 2
     assert len(ag.chains) == 3
     assert len(ag.cyclic_chains) == 0
     assert len(ag.frayed_ropes) == 0
@@ -391,8 +376,6 @@ def test_chain_backwards_Y():
     fh, fn = nx2gml(g)
     try:
         ag = AssemblyGraph(fn)
-        assert len(ag.decomposed_graph.nodes) == 3
-        assert len(ag.decomposed_graph.edges) == 2
         assert len(ag.chains) == 3
         assert len(ag.cyclic_chains) == 0
         assert len(ag.frayed_ropes) == 0
@@ -438,8 +421,6 @@ def test_multiedges_between_frayed_ropes():
     fh, fn = nx2gml(g)
     try:
         ag = AssemblyGraph(fn)
-        assert len(ag.decomposed_graph.nodes) == 3
-        assert len(ag.decomposed_graph.edges) == 5
         assert len(ag.chains) == 0
         assert len(ag.cyclic_chains) == 0
         assert len(ag.frayed_ropes) == 2
@@ -495,8 +476,6 @@ def test_multiple_shared_boundaries_frayed_ropes():
     fh, fn = nx2gml(g)
     try:
         ag = AssemblyGraph(fn)
-        assert len(ag.decomposed_graph.nodes) == 8
-        assert len(ag.decomposed_graph.edges) == 9
         assert len(ag.chains) == 0
         assert len(ag.cyclic_chains) == 0
         assert len(ag.frayed_ropes) == 0
@@ -531,9 +510,6 @@ def test_chr21mat_split_siblings_merged():
     don't know much in this crazy world, but uhhh let's avoid this recurring :P
     """
     ag = AssemblyGraph("metagenomescope/tests/input/chr21mat_subgraph_1.gv")
-    # outermost node is a chain
-    assert len(ag.decomposed_graph.nodes) == 1
-    assert len(ag.decomposed_graph.edges) == 0
     assert len(ag.chains) == 1
     assert len(ag.cyclic_chains) == 1
     assert len(ag.frayed_ropes) == 0
@@ -676,8 +652,6 @@ def test_bubble_on_end_of_chain_etfe_trimming():
     fh, fn = nx2gml(g)
     try:
         ag = AssemblyGraph(fn)
-        assert len(ag.decomposed_graph.nodes) == 1
-        assert len(ag.decomposed_graph.edges) == 0
         assert len(ag.chains) == 1
         assert len(ag.cyclic_chains) == 0
         assert len(ag.frayed_ropes) == 0
@@ -714,8 +688,6 @@ def test_isolated_bubble():
     fh, fn = nx2gml(g)
     try:
         ag = AssemblyGraph(fn)
-        assert len(ag.decomposed_graph.nodes) == 1
-        assert len(ag.decomposed_graph.edges) == 0
         assert len(ag.chains) == 0
         assert len(ag.cyclic_chains) == 0
         assert len(ag.frayed_ropes) == 0
@@ -748,8 +720,6 @@ def test_cyclic_bulge():
     fh, fn = nx2gml(g)
     try:
         ag = AssemblyGraph(fn)
-        assert len(ag.decomposed_graph.nodes) == 2
-        assert len(ag.decomposed_graph.edges) == 3
         assert len(ag.chains) == 0
         assert len(ag.cyclic_chains) == 0
         assert len(ag.frayed_ropes) == 0
@@ -782,8 +752,6 @@ def test_split_start_node_with_incoming_edges_inside_pattern():
     fh, fn = nx2gml(g)
     try:
         ag = AssemblyGraph(fn)
-        assert len(ag.decomposed_graph.nodes) == 1
-        assert len(ag.decomposed_graph.edges) == 0
         assert len(ag.chains) == 1
         assert len(ag.cyclic_chains) == 1
         assert len(ag.frayed_ropes) == 0
@@ -829,8 +797,6 @@ def test_bipartite_series():
     fh, fn = nx2gml(g)
     try:
         ag = AssemblyGraph(fn)
-        assert len(ag.decomposed_graph.nodes) == 2
-        assert len(ag.decomposed_graph.edges) == 2
         assert len(ag.chains) == 0
         assert len(ag.cyclic_chains) == 0
         assert len(ag.frayed_ropes) == 0
@@ -879,8 +845,6 @@ def test_isolated_cyclic_bubble():
     fh, fn = nx2gml(g)
     try:
         ag = AssemblyGraph(fn)
-        assert len(ag.decomposed_graph.nodes) == 3
-        assert len(ag.decomposed_graph.edges) == 4
         assert len(ag.chains) == 1
         assert len(ag.cyclic_chains) == 0
         assert len(ag.frayed_ropes) == 0
@@ -924,8 +888,6 @@ def test_isolated_cyclic_bubble_in_longer_chain():
     fh, fn = nx2gml(g)
     try:
         ag = AssemblyGraph(fn)
-        assert len(ag.decomposed_graph.nodes) == 1
-        assert len(ag.decomposed_graph.edges) == 0
         assert len(ag.chains) == 0
         assert len(ag.cyclic_chains) == 1
         assert len(ag.frayed_ropes) == 0
@@ -949,7 +911,6 @@ def test_skip_decomposition():
         "metagenomescope/tests/input/hierarchical_test_graph.gml",
         run_decomposition=False,
     )
-    assert ag.decomposed_graph is None
     assert len(ag.components) == 1
     assert len(ag.chains) == 0
     assert len(ag.cyclic_chains) == 0

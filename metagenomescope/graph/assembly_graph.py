@@ -36,9 +36,8 @@ class AssemblyGraph(object):
 
     In fancy object-oriented programming terminology, this class is a
     "composition" with a NetworkX MultiDiGraph. This really just means that,
-    rather than subclassing nx.MultiDiGraph, this class just contains two
-    main instances of nx.MultiDiGraph (.graph and .decomposed_graph) of which
-    we make use.
+    rather than subclassing nx.MultiDiGraph, this class contains & relies on a
+    few instances of nx.MultiDiGraph (the most important of which is .graph).
 
     The .graph object describes the input assembly graph structure. As we split
     the boundary nodes of certain patterns (replacing a node N with the "fake
@@ -50,11 +49,8 @@ class AssemblyGraph(object):
     The .decomposed_graph object describes the "top-level" / "fully collapsed"
     assembly graph structure. As we identify patterns in the graph, we will
     remove these nodes and edges from the .decomposed_graph object, replacing
-    them with their parent pattern node.
-
-    (Or, phrased differently: if you recursively replace all pattern nodes in
-    the decomposed graph with their child nodes and edges, then the resulting
-    graph should be equivalent to the uncollapsed graph stored in .graph.)
+    them with their parent pattern node. (2026 update: we also delete this
+    after decomposition to avoid keeping it in memory.)
 
     NEW: As of February 2026 we also may create a .original_graph object, which
     is just used for sanity-checking. It should remain identical to the .graph
@@ -376,12 +372,12 @@ class AssemblyGraph(object):
                 f"{ui_utils.pluralize(len(self.frayed_ropes), 'frayed rope')}, and "
                 f"{ui_utils.pluralize(len(self.bipartites), 'bipartite')}."
             )
+            # We don't need to keep the .decomposed_graph object around after the
+            # fact: https://github.com/marbl/MetagenomeScope/issues/514
+            del self.decomposed_graph
             logger.debug("  ...Done.")
         else:
             logger.debug("  (Skipping decomposition, as requested.)")
-            self.decomposed_graph = None
-
-        del self.decomposed_graph
 
         # Initialize self.components, a sorted list of Component objects. See
         # this method's docstring for details.
@@ -1934,7 +1930,6 @@ class AssemblyGraph(object):
         for cc in nx.weakly_connected_components(self.graph):
             nodes = []
             edges = []
-            patts = []
             patt_ids_to_check = set()
             for nid in cc:
                 n = self.nodeid2obj[nid]
@@ -1946,13 +1941,15 @@ class AssemblyGraph(object):
                 ):
                     edges.append(self.edgeid2obj[data["uid"]])
 
-            # Figure out all ancestor patterns
+            # Determine all ancestor patterns by moving upwards
+            patt_ids = set()
             while len(patt_ids_to_check) > 0:
                 pid = patt_ids_to_check.pop()
                 p = self.pattid2obj[pid]
                 if p.parent_id is not None:
                     patt_ids_to_check.add(p.parent_id)
-                patts.append(p)
+                patt_ids.add(pid)
+            patts = [self.pattid2obj[pid] for pid in patt_ids]
 
             components.append(
                 Component(
