@@ -109,33 +109,6 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 
 ### Changed
 
-- Dramatically speed up pattern decomposition, mostly by addressing a
-  bottleneck in the bipartite-finding code
-  ([#431](https://github.com/marbl/MetagenomeScope/issues/431),
-  [#433](https://github.com/marbl/MetagenomeScope/issues/433)).
-
-- Dramatically speed up drawing multiple subgraphs at once by adjusting how
-  the drawing results are merged
-  ([#497](https://github.com/marbl/MetagenomeScope/issues/497)).
-
-- Dramatically speed up GC content computation
-  ([#510](https://github.com/marbl/MetagenomeScope/issues/510)).
-
-- Speed up searching
-  ([#502](https://github.com/marbl/MetagenomeScope/issues/502)).
-
-- Speed up highlighting paths that traverse the same node/edge many times
-  ([commit `2aa15b4`](https://github.com/marbl/MetagenomeScope/commit/2aa15b488e19b0af233f96ae298e9511b3c31203)).
-
-- Clear `pygraphviz.AGraph` objects created during the layout process after
-  they are no longer needed; this seems to improve performance when drawing
-  many components
-  ([NetworkX PR 4070](https://github.com/networkx/networkx/pull/4070)).
-
-- Remove copies of the graph created for `--decomp` and/or `--dcheck` after
-  they are no longer needed, to reduce memory use
-  ([#514](https://github.com/marbl/MetagenomeScope/issues/514)).
-
 - Disallow the identification of cyclic bulges, for the sake of simplicity
   ([#439](https://github.com/marbl/MetagenomeScope/issues/439)).
 
@@ -253,7 +226,37 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 
 - Various improvements to the documentation, tests, and code.
 
-- Add pyfastx and wotplot as dependencies.
+- Add pyfastx and wotplot as direct dependencies. (And add minimap2 as an
+  optional dependency.)
+
+### Performance
+
+- Dramatically speed up pattern decomposition, mostly by addressing a
+  bottleneck in the bipartite-finding code
+  ([#431](https://github.com/marbl/MetagenomeScope/issues/431),
+  [#433](https://github.com/marbl/MetagenomeScope/issues/433)).
+
+- Dramatically speed up drawing multiple subgraphs at once by adjusting how
+  the drawing results are merged
+  ([#497](https://github.com/marbl/MetagenomeScope/issues/497)).
+
+- Dramatically speed up GC content computation
+  ([#510](https://github.com/marbl/MetagenomeScope/issues/510)).
+
+- Speed up searching
+  ([#502](https://github.com/marbl/MetagenomeScope/issues/502)).
+
+- Speed up highlighting paths that traverse the same node/edge many times
+  ([commit `2aa15b4`](https://github.com/marbl/MetagenomeScope/commit/2aa15b488e19b0af233f96ae298e9511b3c31203)).
+
+- Clear `pygraphviz.AGraph` objects created during the layout process after
+  they are no longer needed; this seems to improve performance when drawing
+  many components
+  ([NetworkX PR 4070](https://github.com/networkx/networkx/pull/4070)).
+
+- Remove copies of the graph created for `--decomp` and/or `--dcheck` after
+  they are no longer needed, to reduce memory use
+  ([#514](https://github.com/marbl/MetagenomeScope/issues/514)).
 
 ### Fixed
 
@@ -436,10 +439,12 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   are now drawn with slightly thicker strokes. Um, in case that is relevant to
   you. Probably not.
 
+- Tidy up the README in various ways (e.g. updating screenshots).
+
+### Performance
+
 - Clean up the internal formatting of edge control points
   ([#396](https://github.com/marbl/MetagenomeScope/issues/396)).
-
-- Tidy up the README in various ways (e.g. updating screenshots).
 
 ### Fixed
 
