@@ -66,7 +66,8 @@ class Edge(object):
        then E should be rerouted to point from node 1 to node 2-L.
 
        (This is assuming that node 2's pattern doesn't contain node 1. If it
-       did, then we'd route the edge from node 1 to node 2-R. Although it's
+       did, then we'd route the edge from node 1 to node 2-R. This could happen
+       for "back-edges" in cyclic chains, for example. Although it's
        worth keeping in mind that currently, node splitting is lazy and only
        creates one "real" node [for the external half of the split], so node 2
        should just be renamed to 2-R -- it'll keep the same ID. Node 2-L would
