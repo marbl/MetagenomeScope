@@ -132,6 +132,10 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   many components
   ([NetworkX PR 4070](https://github.com/networkx/networkx/pull/4070)).
 
+- Remove copies of the graph created for `--decomp` and/or `--dcheck` after
+  they are no longer needed, to reduce memory use
+  ([#514](https://github.com/marbl/MetagenomeScope/issues/514)).
+
 - Disallow the identification of cyclic bulges, for the sake of simplicity
   ([#439](https://github.com/marbl/MetagenomeScope/issues/439)).
 
@@ -252,6 +256,10 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 - Add pyfastx and wotplot as dependencies.
 
 ### Fixed
+
+- Fix a rare crash while removing unnecessary split nodes after the pattern
+  decomposition
+  ([#512](https://github.com/marbl/MetagenomeScope/issues/512)).
 
 - Use consistent conversions between Graphviz points and inches; fixes
   "stretching" in the recursive layout algorithm
