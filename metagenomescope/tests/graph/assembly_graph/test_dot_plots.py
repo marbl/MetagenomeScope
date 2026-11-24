@@ -17,6 +17,16 @@ def test_order_nodes_in_path_simple():
     assert ag.order_nodes_in_path(id_list) == "3, -4, 5"
 
 
+def test_order_nodes_in_path_prevent_duplicate_adj_nodes_from_loops():
+    # This graph has lots of loops, but these loop edges shouldn't cause us
+    # to report the same node multiple times in a row.
+    # https://github.com/marbl/MetagenomeScope/issues/507
+    ag = AssemblyGraph("metagenomescope/tests/input/path_with_loops.gfa")
+    id_list = ag.get_node_ids("4, 2, 1, 3")
+    assert len(id_list) == 4
+    assert ag.order_nodes_in_path(id_list) == "1, 2, 3, 4"
+
+
 def test_order_nodes_in_path_no_path():
     ag = AssemblyGraph("metagenomescope/tests/input/sample1.gfa")
     id_list = ag.get_node_ids("5, 3, 4")
