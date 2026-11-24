@@ -55,7 +55,8 @@ class AssemblyGraph(object):
     NEW: As of February 2026 we also may create a .original_graph object, which
     is just used for sanity-checking. It should remain identical to the .graph
     object's structure, if you were to ignore the results of node splitting
-    during the decomposition.
+    during the decomposition. (2026 update: we delete this after sanity
+    checking, too.)
 
     References
     ----------
@@ -1624,6 +1625,7 @@ class AssemblyGraph(object):
                 "      Sanity-checking the graph structure out of paranoia..."
             )
             self._sanity_check_graph()
+            del self.original_graph
             logger.debug("      ...Done.")
 
         # No need to go through the nodes and edges in the top level of the
