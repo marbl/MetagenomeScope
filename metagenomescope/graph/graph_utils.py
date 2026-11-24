@@ -952,3 +952,150 @@ def find_full_or_certain_split_node(nodename2objs, name, desired_split):
         if n.is_not_split() or n.split == desired_split:
             return n
     return None
+
+
+def is_sibling_of_ancestor(c, n, pattid2obj):
+    """Returns True if n is a sibling of any ancestor pattern of c.
+
+    Parameters
+    ----------
+    c: Node
+        A node in the graph (not a pattern!). We require that this node is
+        not a top-level node in the graph -- that is, it has to have a
+        parent_id that is not None.
+
+    n: Node
+        A node in the graph (not a pattern!). We don't care what the parent_id
+        of this is.
+
+    pattid2obj: dict of int -> Pattern
+        Used to associate parent_id attributes with corresponding objects.
+
+    Returns
+    -------
+    bool
+        True if n is a sibling of any ancestor pattern of c.
+
+        This includes the trivial case where n has a parent_id of None (i.e. it
+        has no parent), since in that case n would be a sibling of the topmost
+        ancestor pattern of c. But it also includes more complex cases where
+        e.g. n is an "aunt" of c.
+    """
+    if n.parent_id is None:
+        return True
+    while True:
+        if c.parent_id == n.parent_id:
+            return True
+        else:
+            # move up a level, if possible
+            if c.parent_id is None:
+                break
+            else:
+                c = pattid2obj[c.parent_id]
+    return False
+
+
+def ancestors(n, pattid2obj):
+    r"""Returns a list of the "ancestry" of a node, in descending order.
+
+    For example, if the ancestry of n looks like None -> P0 -> P1 -> n
+    (i.e. n is a child of pattern P1, which is a child of P0, which is
+    at the top level of the graph), then this function will return
+    [None, P0.unique_id, P1.nique_id, n.unique_id].
+    """
+    a = [n.unique_id]
+    while True:
+        a.insert(0, n.parent_id)
+        if n.parent_id is None:
+            break
+        else:
+            n = pattid2obj[n.parent_id]
+    return a
+
+
+def one_below_lca_id(c, n, pattid2obj):
+    r"""Returns the ID of the ancestor of c that is one below LCA(c, n).
+
+    Parameters
+    ----------
+    c: Node
+        A node in the graph (not a pattern!). We require that this node is
+        not a top-level node in the graph -- that is, it has to have a
+        parent_id that is not None.
+
+    n: Node
+        A node in the graph (not a pattern!). We don't care what the parent_id
+        of this is.
+
+    pattid2obj: dict of int -> Pattern
+        Used to associate parent_id attributes with corresponding objects.
+
+    Returns
+    -------
+    int
+        The ID of the ancestor pattern of c that is one below the LCA (least
+        common ancestor) of c and n. You can think of this as being like a good
+        "sibling" node for an edge in the decomposed graph between c and n
+        (or really between an ancestor of c and maybe an ancestor of n).
+
+        For example, if n is a top-level node (i.e. it has a parent_id of
+        None), then this function will return the topmost ancestor pattern
+        of c -- because the LCA of c and n is None (i.e. the top of the
+        decomposition). This would be P0 in the following diagram.
+
+        None
+         / \
+        P0  n
+        |
+        P1
+        |
+        c
+
+        In the following example, where n is not a top-level node, the LCA of
+        c and n is P1, so this function would return P2.
+
+        None
+         |
+         P0
+         |
+         P1
+        /  \
+        P2  n
+        |
+        c
+
+        Here n goes down "deeper" than c, which is fine. This function would
+        still return P2.
+
+        None
+         |
+         P0
+         |
+         P1
+        /  \
+        P2  P3
+        |   |
+        c   P4
+            |
+            n
+
+    Notes
+    -----
+    This uses a lazy approach -- it just enumerates the full paths from the
+    "root" of the hierarchy to c and to n, and then finds the first difference
+    between these paths. I know there are more efficient ways to compute the
+    LCA (see https://en.wikipedia.org/wiki/Lowest_common_ancestor) but I do not
+    think that is worth the trouble now, considering that the "height" of the
+    decomposition is relatively short. Maybe that will change though, idk.
+    """
+    if c.unique_id == n.unique_id:
+        raise WeirdError(f"LCA(n, n) doesn't make sense: {n}")
+    c_ancestors = ancestors(c, pattid2obj)
+    n_ancestors = ancestors(n, pattid2obj)
+    i = 0
+    # We know that c_ancestors and n_ancestors should start off the same
+    # (at least with None). We also know that they have to diverge eventually,
+    # since c and n are different. Keep walking down until they diverge.
+    while c_ancestors[i] == n_ancestors[i]:
+        i += 1
+    return c_ancestors[i]

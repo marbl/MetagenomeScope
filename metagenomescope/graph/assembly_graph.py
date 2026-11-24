@@ -1746,10 +1746,6 @@ class AssemblyGraph(object):
         C) is "unnecessary" if, in the hierarchical decomposition, S is a
         sibling of any ancestor pattern of C.
 
-        In practice, we can just look at the fake edge between S and C in the
-        decomposed graph to figure out what this potential sibling ancestor of
-        C is.
-
         Here, we identify and remove unnecessary split nodes in order to
         simplify the visualization.
         """
@@ -1793,20 +1789,9 @@ class AssemblyGraph(object):
                 if node.parent_id == counterpart.parent_id:
                     do_removal = True
                 else:
-                    # Test to see if "node" is a sibling of any ancestor
-                    # pattern of its counterpart. This includes the case where
-                    # "node" has no parent, i.e. its parent_id is None.
-                    c = counterpart
-                    while True:
-                        if c.parent_id == node.parent_id:
-                            do_removal = True
-                            break
-                        else:
-                            # move up a level, if possible
-                            if c.parent_id is None:
-                                break
-                            else:
-                                c = self.pattid2obj[c.parent_id]
+                    do_removal = graph_utils.is_sibling_of_ancestor(
+                        counterpart, node, self.pattid2obj
+                    )
 
                 if do_removal:
                     if node.split == config.SPLIT_LEFT:
@@ -1814,20 +1799,27 @@ class AssemblyGraph(object):
                             self.graph, node_id, counterpart.unique_id
                         )
                         counterpart_dec_id = self.edgeid2obj[fe_id].dec_tgt_id
-
-                        # remove the fake edge from L ==> R
+                        # remove the fake edge
                         self.graph.remove_edge(
                             node_id, counterpart.unique_id, 0
                         )
 
                         # In the uncollapsed graph, route incoming edges to now
                         # have a target of the original node (in the graph).
+                        # Also update Edges' dec_tgt_id info, which is useful
+                        # to have around for layout purposes later.
                         for in_edge in list(
                             self.graph.in_edges(node_id, keys=True, data=True)
                         ):
                             e_uid = in_edge[3]["uid"]
                             edge = self.edgeid2obj[e_uid]
+                            inn = self.get_nodepatt_obj(in_edge[0])
                             edge.reroute_tgt(counterpart.unique_id)
+                            edge.reroute_dec_tgt(
+                                graph_utils.one_below_lca_id(
+                                    counterpart, inn, self.pattid2obj
+                                )
+                            )
                             self.graph.add_edge(
                                 in_edge[0],
                                 counterpart.unique_id,
@@ -1842,7 +1834,6 @@ class AssemblyGraph(object):
                             self.graph, counterpart.unique_id, node_id
                         )
                         counterpart_dec_id = self.edgeid2obj[fe_id].dec_src_id
-                        # again, rm the fake edge
                         self.graph.remove_edge(
                             counterpart.unique_id, node_id, 0
                         )
@@ -1852,7 +1843,13 @@ class AssemblyGraph(object):
                         ):
                             e_uid = out_edge[3]["uid"]
                             edge = self.edgeid2obj[e_uid]
+                            outn = self.get_nodepatt_obj(out_edge[1])
                             edge.reroute_src(counterpart.unique_id)
+                            edge.reroute_dec_src(
+                                graph_utils.one_below_lca_id(
+                                    counterpart, outn, self.pattid2obj
+                                )
+                            )
                             self.graph.add_edge(
                                 counterpart.unique_id,
                                 out_edge[1],
@@ -1871,7 +1868,16 @@ class AssemblyGraph(object):
                         # the children of this parent pattern (pp).
                         pp = self.pattid2obj[node.parent_id]
                         # This removal may require that we re-assign the start
-                        # and/or end node of this parent pattern
+                        # and/or end node of this parent pattern.
+                        # Keeping this info up to date for each pattern is
+                        # somewhat important, for things later on like creating
+                        # dot plots of bubbles or identifying "back edges."
+                        #
+                        # Since we are removing "node", we know that "node" is
+                        # a sibling of an ancestor of its counterpart. Thus,
+                        # we can safely replace "node" as a start / end node
+                        # with that ancestor node, which is counterpart_dec_id,
+                        # since it should share a parent node with "node". Phew
                         if node_id in pp.start_node_ids:
                             pp.start_node_ids.remove(node_id)
                             pp.start_node_ids.append(counterpart_dec_id)
@@ -1908,6 +1914,19 @@ class AssemblyGraph(object):
     def get_component_edge_cts(self):
         """Returns a list of "real" edge counts in each component."""
         return [cc.num_real_edges for cc in self.components]
+
+    def get_nodepatt_obj(self, node_id):
+        """Returns the Node or Pattern object for a node ID.
+
+        In the decomposed graph, we may see a node coming from somewhere,
+        but not know if it is a node or a pattern. This method takes care of
+        figuring that out.
+        """
+        if self.is_pattern(node_id):
+            return self.pattid2obj[node_id]
+        else:
+            # if this isn't in self.nodeid2obj then it'll fail, which is fine
+            return self.nodeid2obj[node_id]
 
     def is_pattern(self, node_id):
         """Returns True if a node ID is for a pattern, False otherwise.
