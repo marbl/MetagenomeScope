@@ -919,3 +919,45 @@ def test_skip_decomposition():
     assert len(ag.bubbles) == 0
     assert len(ag.graph.nodes) == 17
     assert len(ag.graph.edges) == 19
+
+
+def test_funky_unnecessary_removal_bug_fixed():
+    r"""Regression test for a bug in removing unnecessary split nodes.
+
+    See https://github.com/marbl/MetagenomeScope/issues/512 for details -- the
+    graph is kind of complex. The problematic region looks as follows before
+    removing unnecessary splits:
+
+                     +--------------------------+
+                A    |                          |
+    -----+       +---|--------------------------|--+
+         |       |   |  B                       |  |
+         |       |   V   +--------------+       |  |
+    5-L --> 5-R --> 6-L --> 6-R --> ... | --> 13-R |
+         |       |       +--------------+          |
+    -----+       +---------------------------------+
+
+    As I understand it, the problem is that the old way of removing unnecessary
+    splits assumed that there would be like a SINGLE "counterpart_fe_id" -- a
+    node / pattern ID in the decomposed graph that we could use for rerouting
+    edges in the decomposed graph. But this can vary -- some of the incoming
+    edges on 6-L should point to the outer pattern "A" (i.e. the edge from
+    5-R), while some should point to the inner pattern "B" (i.e. the edge from
+    13-R).
+    """
+    ag = AssemblyGraph("metagenomescope/tests/input/funky.gfa")
+    assert len(ag.cyclic_chains) == 2
+    assert len(ag.chains) == 2
+    assert len(ag.bubbles) == 10
+    assert len(ag.frayed_ropes) == 0
+    assert len(ag.bipartites) == 0
+
+    # counts of nodes in each bubble, plus 3 top-level nodes
+    assert len(ag.graph.nodes) == 2 * (3 + 5 + 4 + 3 + 3 + 3)
+    for n in ag.nodeid2obj.values():
+        if n.basename in ("1", "9", "11", "-1", "-9", "-11"):
+            assert n.is_split()
+        else:
+            assert n.is_not_split()
+
+    assert len(ag.graph.edges) == 62
