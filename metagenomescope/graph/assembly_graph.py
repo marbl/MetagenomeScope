@@ -3226,6 +3226,36 @@ class AssemblyGraph(object):
             )
 
     def order_nodes_in_path(self, nids):
+        """Figures out how to order a collection of selected nodes on a path.
+
+        Parameters
+        ----------
+        nids: list of int
+            Node IDs in the graph.
+
+        Returns
+        -------
+        list of str
+            Basenames of these nodes, ordered on a path.
+
+        Notes
+        -----
+        - Currently we do this by computing the induced subgraph of these
+          nodes, then finding an Eulerian path through this subgraph. We then
+          report the nodes as they occur in order on this path.
+
+        - If a node occurs multiple times in a row on the Eulerian path due to
+          self-loop edges, then we will merge these occurrences together. So,
+
+                            |-|        |-|
+                            V |        V |
+          for example, 1 -> 2 +-> 3 -> 4-+ has an Eulerian path of
+          [1, 2, 2, 3, 4, 4], but we would just report [1, 2, 3, 4].
+
+        - This doesn't take invalidated edges into account, because that is
+          complicated and ...maybe not worth the trouble? This just works with
+          respect to what's in self.graph.
+        """
         ordered_nids = None
         if len(nids) == 1:
             ordered_nids = nids
