@@ -381,6 +381,8 @@ class AssemblyGraph(object):
             logger.debug("  (Skipping decomposition, as requested.)")
             self.decomposed_graph = None
 
+        del self.decomposed_graph
+
         # Initialize self.components, a sorted list of Component objects. See
         # this method's docstring for details.
         logger.debug("  Recording information about the graph's components...")
@@ -1781,23 +1783,11 @@ class AssemblyGraph(object):
                     # We'll leave "node" around and remove "counterpart" later.
                     continue
 
-                # If we've made it here, then we have to do some extra work to
-                # figure out if we should remove "node". (If the answer is
-                # "yes, we should remove it," then we'll set do_removal=True.)
+                # "node"'s counterpart has a parent. This means that we have to
+                # do some extra work to figure out if we should remove "node".
+                # (If the answer is "yes, we should remove it," then we'll set
+                # do_removal=True.)
                 do_removal = False
-
-                # Figure out where the other end of this node's fake edge
-                # points in the decomposed graph.
-                if node.split == config.SPLIT_LEFT:
-                    fe_id = graph_utils.get_only_connecting_edge_uid(
-                        self.graph, node_id, counterpart.unique_id
-                    )
-                    counterpart_fe_id = self.edgeid2obj[fe_id].dec_tgt_id
-                else:
-                    fe_id = graph_utils.get_only_connecting_edge_uid(
-                        self.graph, counterpart.unique_id, node_id
-                    )
-                    counterpart_fe_id = self.edgeid2obj[fe_id].dec_src_id
 
                 # In strange cases (due to chain merging, I think), a split
                 # node and its counterpart can be children of the same parent
@@ -1807,58 +1797,32 @@ class AssemblyGraph(object):
                 if node.parent_id == counterpart.parent_id:
                     do_removal = True
                 else:
-                    # Okay, we're still not sure if we need to remove "node".
-                    #
-                    # If we see here that the fake edge points to the
-                    # counterpart node directly, we know that "node" is located
-                    # "further down" the hierarchy than "counterpart".
-                    #
-                    # Like the "if counterpart.parent_id is None" check above,
-                    # we should be trying to deem *that* node as unnecessary,
-                    # and we'll get to it later.
-                    if counterpart_fe_id not in self.pattid2obj:
-                        if counterpart_fe_id not in self.nodeid2obj:
-                            # Probably what happened here is -- the counterpart
-                            # ID corresponds to a pattern that has since been
-                            # removed from the graph. The chain merging process
-                            # is surprisingly complex, and has triggered this
-                            # kind of bug in the past.
-                            raise WeirdError(
-                                f"Fake edge {fe_id} between split node {node} "
-                                f"and counterpart {counterpart} points to "
-                                f"node ID {counterpart_fe_id} in the "
-                                "decomposed graph; this ID doesn't seem like "
-                                "a pattern OR a non-pattern node?"
-                            )
-                        # If we've made it here, then "counterpart" corresponds
-                        # to a top-level non-pattern node in the fully
-                        # decomposed graph.
-                        continue
-
-                    # If we've made it here, this fake edge points to an
-                    # ancestor of this node's counterpart. Figure out what the
-                    # parent (if any) of *that* ancestor is.
-                    counterpart_ancestor_parent_id = self.pattid2obj[
-                        counterpart_fe_id
-                    ].parent_id
-
-                    # If this node is a sibling of the counterpart ancestor, then
-                    # this node is unnecessary. Note that this conditional is True
-                    # even if both parent_ids are None.
-                    if node.parent_id == counterpart_ancestor_parent_id:
-                        # ok yep it's unnecessary, remove it
-                        do_removal = True
+                    # Test to see if "node" is a sibling of any ancestor
+                    # pattern of its counterpart. This includes the case where
+                    # "node" has no parent, i.e. its parent_id is None.
+                    c = counterpart
+                    while True:
+                        if c.parent_id == node.parent_id:
+                            do_removal = True
+                            break
+                        else:
+                            # move up a level, if possible
+                            if c.parent_id is None:
+                                break
+                            else:
+                                c = self.pattid2obj[c.parent_id]
 
                 if do_removal:
                     if node.split == config.SPLIT_LEFT:
+                        fe_id = graph_utils.get_only_connecting_edge_uid(
+                            self.graph, node_id, counterpart.unique_id
+                        )
+                        counterpart_dec_id = self.edgeid2obj[fe_id].dec_tgt_id
+
                         # remove the fake edge from L ==> R
                         self.graph.remove_edge(
                             node_id, counterpart.unique_id, 0
                         )
-                        if node.parent_id is None:
-                            self.decomposed_graph.remove_edge(
-                                node_id, counterpart_fe_id, 0
-                            )
 
                         # In the uncollapsed graph, route incoming edges to now
                         # have a target of the original node (in the graph).
@@ -1868,7 +1832,6 @@ class AssemblyGraph(object):
                             e_uid = in_edge[3]["uid"]
                             edge = self.edgeid2obj[e_uid]
                             edge.reroute_tgt(counterpart.unique_id)
-                            edge.reroute_dec_tgt(counterpart_fe_id)
                             self.graph.add_edge(
                                 in_edge[0],
                                 counterpart.unique_id,
@@ -1877,38 +1840,16 @@ class AssemblyGraph(object):
                             self.graph.remove_edge(
                                 in_edge[0], node_id, in_edge[2]
                             )
-                        # In the decomposed graph, route incoming edges to now
-                        # have a target of the original node's parent pattern.
-                        # (Calling edge.reroute_dec_tgt() above took care of
-                        # updating the actual Edge objects, but we still need
-                        # to update the topology of the decomposed graph if
-                        # "node" is present in its top level.)
-                        if node.parent_id is None:
-                            for in_edge in list(
-                                self.decomposed_graph.in_edges(
-                                    node_id, keys=True, data=True
-                                )
-                            ):
-                                e_uid = in_edge[3]["uid"]
-                                edge = self.edgeid2obj[e_uid]
-                                self.decomposed_graph.add_edge(
-                                    edge.dec_src_id,
-                                    counterpart_fe_id,
-                                    uid=e_uid,
-                                )
-                                self.decomposed_graph.remove_edge(
-                                    edge.dec_src_id, node_id, in_edge[2]
-                                )
 
                     elif node.split == config.SPLIT_RIGHT:
+                        fe_id = graph_utils.get_only_connecting_edge_uid(
+                            self.graph, counterpart.unique_id, node_id
+                        )
+                        counterpart_dec_id = self.edgeid2obj[fe_id].dec_src_id
                         # again, rm the fake edge
                         self.graph.remove_edge(
                             counterpart.unique_id, node_id, 0
                         )
-                        if node.parent_id is None:
-                            self.decomposed_graph.remove_edge(
-                                counterpart_fe_id, node_id, 0
-                            )
 
                         for out_edge in list(
                             self.graph.out_edges(node_id, keys=True, data=True)
@@ -1916,7 +1857,6 @@ class AssemblyGraph(object):
                             e_uid = out_edge[3]["uid"]
                             edge = self.edgeid2obj[e_uid]
                             edge.reroute_src(counterpart.unique_id)
-                            edge.reroute_dec_src(counterpart_fe_id)
                             self.graph.add_edge(
                                 counterpart.unique_id,
                                 out_edge[1],
@@ -1925,22 +1865,6 @@ class AssemblyGraph(object):
                             self.graph.remove_edge(
                                 node_id, out_edge[1], out_edge[2]
                             )
-                        if node.parent_id is None:
-                            for out_edge in list(
-                                self.decomposed_graph.out_edges(
-                                    node_id, keys=True, data=True
-                                )
-                            ):
-                                e_uid = out_edge[3]["uid"]
-                                edge = self.edgeid2obj[e_uid]
-                                self.decomposed_graph.add_edge(
-                                    counterpart_fe_id,
-                                    edge.dec_tgt_id,
-                                    uid=e_uid,
-                                )
-                                self.decomposed_graph.remove_edge(
-                                    node_id, edge.dec_tgt_id, out_edge[2]
-                                )
                     else:
                         raise WeirdError(
                             f"{node} has a split attribute of {node.split}?"
@@ -1954,14 +1878,12 @@ class AssemblyGraph(object):
                         # and/or end node of this parent pattern
                         if node_id in pp.start_node_ids:
                             pp.start_node_ids.remove(node_id)
-                            pp.start_node_ids.append(counterpart_fe_id)
+                            pp.start_node_ids.append(counterpart_dec_id)
                         if node_id in pp.end_node_ids:
                             pp.end_node_ids.remove(node_id)
-                            pp.end_node_ids.append(counterpart_fe_id)
+                            pp.end_node_ids.append(counterpart_dec_id)
                         pp.nodes.remove(node)
                         pp.edges.remove(self.edgeid2obj[fe_id])
-                    else:
-                        self.decomposed_graph.remove_node(node_id)
                     counterpart.unsplit()
                     if self.sanity_check_post_decomposition:
                         # Recording this info is only necessary if we are going
@@ -2008,43 +1930,30 @@ class AssemblyGraph(object):
         This initializes self.components, a list of Components that is sorted
         by various criteria (see graph_utils.get_sorted_subgraphs()).
         """
-        if self.run_decomposition:
-            g_to_traverse = self.decomposed_graph
-        else:
-            g_to_traverse = self.graph
         components = []
-        for cc in nx.weakly_connected_components(g_to_traverse):
+        for cc in nx.weakly_connected_components(self.graph):
             nodes = []
             edges = []
             patts = []
+            patt_ids_to_check = set()
             for nid in cc:
-                if self.is_pattern(nid):
-                    patt = self.pattid2obj[nid]
-                    # get_descendant_info() goes through ALL descendants,
-                    # not just children. so if we see a collapsed pattern node
-                    # then here we get all of its children, grandchildren, ...
-                    #
-                    # Also! note that calling patt.get_descendant_info()
-                    # includes "patt" in the output "ppatts" list. So, no
-                    # need to run patts.append(nid) or something.
-                    pnodes, pedges, ppatts, _ = patt.get_descendant_info()
-                    for n in pnodes:
-                        nodes.append(n)
-                    for e in pedges:
-                        edges.append(e)
-                    for p in ppatts:
-                        patts.append(p)
-                else:
-                    # this is just an ordinary top-level node
-                    nodes.append(self.nodeid2obj[nid])
-                # Record all of the top-level edges in this component by
-                # looking at the outgoing edges of each "node", whether it's a
-                # real or collapsed-pattern node. (Don't worry, this includes
-                # parallel edges.)
-                for src_id, tgt_id, data in g_to_traverse.out_edges(
+                n = self.nodeid2obj[nid]
+                nodes.append(n)
+                if n.parent_id is not None:
+                    patt_ids_to_check.add(n.parent_id)
+                for src_id, tgt_id, data in self.graph.out_edges(
                     nid, data=True
                 ):
                     edges.append(self.edgeid2obj[data["uid"]])
+
+            # Figure out all ancestor patterns
+            while len(patt_ids_to_check) > 0:
+                pid = patt_ids_to_check.pop()
+                p = self.pattid2obj[pid]
+                if p.parent_id is not None:
+                    patt_ids_to_check.add(p.parent_id)
+                patts.append(p)
+
             components.append(
                 Component(
                     self._get_unique_id(),
