@@ -94,8 +94,10 @@ class Edge(object):
 
        This should match the topology of the .decomposed_graph attribute of the
        AssemblyGraph object containing this Edge, although you might need to
-       search through the colllapsed pattern nodes in that graph to reach
-       this particular edge.
+       search through the collapsed pattern nodes in that graph to reach
+       this particular edge. (2026 update: we don't save the .decomposed_graph
+       around after decomposition any more, but you could recreate it by just
+       looking at the top-level nodes and patterns of the graph.)
 
        These attributes are controlled by the dec_src_id and dec_tgt_id
        parameters of this function. You can update them using the

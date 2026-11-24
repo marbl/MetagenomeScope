@@ -1033,15 +1033,18 @@ def one_below_lca_id(c, n, pattid2obj):
     Returns
     -------
     int
-        The ID of the ancestor pattern of c that is one below the LCA (least
-        common ancestor) of c and n. You can think of this as being like a good
-        "sibling" node for an edge in the decomposed graph between c and n
-        (or really between an ancestor of c and maybe an ancestor of n).
+        The ID of the ancestor of c that is one below the LCA (least common
+        ancestor) of c and n. Note that this may be the ID of c itself, if
+        c and n have the same parent!
+
+        Anyway, you can think of this as being like a good "sibling" node for
+        an edge in the decomposed graph between c and n (or really between an
+        ancestor of c and maybe an ancestor of n).
 
         For example, if n is a top-level node (i.e. it has a parent_id of
         None), then this function will return the topmost ancestor pattern
         of c -- because the LCA of c and n is None (i.e. the top of the
-        decomposition). This would be P0 in the following diagram.
+        decomposition), so the ancestor of c that is one below this LCA is P0.
 
         None
          / \
@@ -1064,20 +1067,29 @@ def one_below_lca_id(c, n, pattid2obj):
         |
         c
 
-        Here n goes down "deeper" than c, which is fine. This function would
-        still return P2.
+        In the following examples n goes down "deeper" than c, which is fine.
+        This function would return P2 for the left example and c for the right
+        example.
+
+        None        None
+         |           |
+         P0          P0
+         |           |
+         P1          P1
+        /  \        /  \
+        P2  P3      c   P3
+        |   |           |
+        c   P4          P4
+            |           |
+            n           n
+
+        If n and c are in the same pattern, then this function would return c.
 
         None
          |
          P0
-         |
-         P1
         /  \
-        P2  P3
-        |   |
-        c   P4
-            |
-            n
+        c   n
 
     Notes
     -----

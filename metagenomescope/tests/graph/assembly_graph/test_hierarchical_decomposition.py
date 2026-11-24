@@ -944,6 +944,9 @@ def test_funky_unnecessary_removal_bug_fixed():
     edges on 6-L should point to the outer pattern "A" (i.e. the edge from
     5-R), while some should point to the inner pattern "B" (i.e. the edge from
     13-R).
+
+    We now fix this by using graph_utils.one_below_lca_id() to figure out this
+    value for each in-edge on 6-L.
     """
     ag = AssemblyGraph("metagenomescope/tests/input/funky.gfa")
     assert len(ag.cyclic_chains) == 2
