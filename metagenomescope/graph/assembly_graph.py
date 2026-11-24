@@ -3235,8 +3235,8 @@ class AssemblyGraph(object):
 
         Returns
         -------
-        list of str
-            Basenames of these nodes, ordered on a path.
+        str
+            Comma-separated list of the ordered nodes' basenames.
 
         Notes
         -----
