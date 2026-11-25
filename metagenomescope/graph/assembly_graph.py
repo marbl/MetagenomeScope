@@ -1780,8 +1780,7 @@ class AssemblyGraph(object):
                     # We'll leave "node" around and remove "counterpart" later.
                     continue
 
-                # "node"'s counterpart has a parent. This means that we have to
-                # do some extra work to figure out if we should remove "node".
+                # "node"'s counterpart has a parent, so check is_unnecessary()
                 if graph_utils.is_unnecessary(
                     counterpart, node, self.pattid2obj
                 ):
