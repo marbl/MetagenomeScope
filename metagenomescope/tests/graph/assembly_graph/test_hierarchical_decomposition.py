@@ -957,10 +957,16 @@ def test_funky_unnecessary_removal_bug_fixed():
 
     # counts of nodes in each bubble, plus 3 top-level nodes
     assert len(ag.graph.nodes) == 2 * (3 + 5 + 4 + 3 + 3 + 3)
+    split_ct = 0
+    nonsplit_ct = 0
     for n in ag.nodeid2obj.values():
         if n.basename in ("1", "9", "11", "-1", "-9", "-11"):
             assert n.is_split()
+            split_ct += 1
         else:
             assert n.is_not_split()
+            nonsplit_ct += 1
+    assert split_ct == 12
+    assert nonsplit_ct == 30
 
     assert len(ag.graph.edges) == 62
