@@ -1748,8 +1748,8 @@ class AssemblyGraph(object):
         serve as the start and end of two separate patterns, but this will
         not be the fate of all split nodes. After we have finished pattern
         identification, we say that a split node S (with a counterpart node of
-        C) is "unnecessary" if, in the hierarchical decomposition, S is a
-        sibling of any ancestor pattern of C.
+        C) is "unnecessary" if, in the hierarchical decomposition, the parent
+        of S is an ancestor of C (allowing None to count as a parent/ancestor).
 
         Here, we identify and remove unnecessary split nodes in order to
         simplify the visualization.
@@ -1782,23 +1782,9 @@ class AssemblyGraph(object):
 
                 # "node"'s counterpart has a parent. This means that we have to
                 # do some extra work to figure out if we should remove "node".
-                # (If the answer is "yes, we should remove it," then we'll set
-                # do_removal=True.)
-                do_removal = False
-
-                # In strange cases (due to chain merging, I think), a split
-                # node and its counterpart can be children of the same parent
-                # pattern. In this case, they should obviously be merged back
-                # together (it doesn't really matter if we remove "node" or
-                # "counterpart" in this case).
-                if node.parent_id == counterpart.parent_id:
-                    do_removal = True
-                else:
-                    do_removal = graph_utils.is_sibling_of_ancestor(
-                        counterpart, node, self.pattid2obj
-                    )
-
-                if do_removal:
+                if graph_utils.is_unnecessary(
+                    counterpart, node, self.pattid2obj
+                ):
                     if node.split == config.SPLIT_LEFT:
                         fe_id = graph_utils.get_only_connecting_edge_uid(
                             self.graph, node_id, counterpart.unique_id

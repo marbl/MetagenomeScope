@@ -954,8 +954,8 @@ def find_full_or_certain_split_node(nodename2objs, name, desired_split):
     return None
 
 
-def is_sibling_of_ancestor(c, n, pattid2obj):
-    """Returns True if n is a sibling of any ancestor pattern of c.
+def is_unnecessary(c, n, pattid2obj):
+    """Returns True if the parent of n is also an ancestor of c.
 
     Parameters
     ----------
@@ -974,15 +974,25 @@ def is_sibling_of_ancestor(c, n, pattid2obj):
     Returns
     -------
     bool
-        True if n is a sibling of any ancestor pattern of c.
+        True if the parent of n is also an ancestor of c.
 
         This includes the trivial case where n has a parent_id of None (i.e. it
-        has no parent), since in that case n would be a sibling of the topmost
-        ancestor pattern of c. But it also includes more complex cases where
-        e.g. n is an "aunt" of c.
+        has no parent), since in that case None is indeed an ancestor of c; as
+        well as the case where n and c share a parent.
+
+        But it also includes more complex cases where e.g. n is an "aunt" of c.
+
+    Notes
+    -----
+    In strange cases (due to chain merging, I think), a split node and its
+    counterpart can be children of the same parent pattern. In this case, they
+    should obviously be merged back together. (This is why that one trivial
+    case is there.)
     """
-    if n.parent_id is None:
+    # Trivial cases
+    if n.parent_id is None or n.parent_id == c.parent_id:
         return True
+    # Okay, this is not straightforward! Figure it out.
     while True:
         if c.parent_id == n.parent_id:
             return True
