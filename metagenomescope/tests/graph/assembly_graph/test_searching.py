@@ -1,6 +1,6 @@
 import pytest
 from metagenomescope.graph import AssemblyGraph
-from metagenomescope.errors import UIError
+from metagenomescope.errors import UIError, WeirdError
 
 
 def test_get_nodename2ccnum_singlenode():
@@ -62,3 +62,19 @@ def test_get_nodename2ccnum_splitnodes_ok():
     assert ag.get_nodename2ccnum("4-L, 4-R, 4") == {"4-L": 1, "4-R": 1}
     assert ag.get_nodename2ccnum("4-L, 4") == {"4-L": 1, "4-R": 1}
     assert ag.get_nodename2ccnum("4-R, 4") == {"4-L": 1, "4-R": 1}
+
+
+def test_get_only_node():
+    ag = AssemblyGraph(
+        "metagenomescope/tests/input/bubble_cyclic_chain_test.gml"
+    )
+    assert ag.get_only_node("7-R").name == "7-R"
+    assert ag.get_only_node("7-L").name == "7-L"
+
+    with pytest.raises(WeirdError) as ei:
+        ag.get_only_node("7")
+    assert str(ei.value) == "7 maps to multiple nodes"
+
+    with pytest.raises(WeirdError) as ei:
+        ag.get_only_node("100")
+    assert str(ei.value) == "100 maps to no nodes"
