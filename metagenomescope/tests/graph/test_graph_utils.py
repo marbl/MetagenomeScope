@@ -359,6 +359,16 @@ def test_validate_multiple_ccs_zero_ccs():
     assert str(ei.value) == "Graph has < 1 components? Something is busted."
 
 
+def test_validate_multiple_ccs_multiple_ccs_but_attr_set_to_false():
+    ag = AssemblyGraph("metagenomescope/tests/input/sample1.gfa")
+    gu.validate_multiple_ccs(ag)
+    # perform a cool trick known as "lying"
+    ag.multiple_ccs = False
+    with pytest.raises(WeirdError) as ei:
+        gu.validate_multiple_ccs(ag)
+    assert str(ei.value) == "Graph has > 1 components, but multiple_ccs False?"
+
+
 def test_get_treemap_rectangles_empty():
     with pytest.raises(WeirdError) as ei:
         gu.get_treemap_rectangles([], 5)
@@ -488,3 +498,97 @@ def test_get_sorted_subgraphs():
 
     assert gu.get_sorted_subgraphs([sg1]) == [sg1]
     assert gu.get_sorted_subgraphs([]) == []
+
+
+def test_is_unnecessary():
+    ag = AssemblyGraph("metagenomescope/tests/input/funky.gfa")
+
+    # omg it's the funny joke!!! sixteen six!!! haha sixteen six!!!
+    sixteen = ag.get_only_node("16")
+    six = ag.get_only_node("6")
+    seven = ag.get_only_node("7")
+    fourteen = ag.get_only_node("14")
+    ten = ag.get_only_node("10")
+
+    # 16 has a parent of None, so it is unnecessary w/r/t any other node
+    # (of course in practice we would only be checking this relative to
+    # a counterpart of 16 that would be nested in a pattern)
+    assert gu.is_unnecessary(six, sixteen, ag.pattid2obj)
+    assert gu.is_unnecessary(seven, sixteen, ag.pattid2obj)
+    assert gu.is_unnecessary(fourteen, sixteen, ag.pattid2obj)
+    assert gu.is_unnecessary(sixteen, fourteen, ag.pattid2obj)
+    assert gu.is_unnecessary(sixteen, sixteen, ag.pattid2obj)
+
+    # 6 and 7 are siblings in the same bubble, so they are unnecessary
+    # w/r/t each other
+    assert gu.is_unnecessary(six, seven, ag.pattid2obj)
+    assert gu.is_unnecessary(seven, six, ag.pattid2obj)
+
+    # 6 and 10 are in separate bubbles (I guess you could call them cousins?)
+    # so they are not unnecessary w/r/t each other
+    assert not gu.is_unnecessary(ten, six, ag.pattid2obj)
+    assert not gu.is_unnecessary(six, ten, ag.pattid2obj)
+
+    # this is a bit of an abuse of notation, passing in a bubble as n... but
+    # basically, this other bubble (the one from 9-R to 10 to 11) has a parent
+    # of the cyclic chain, which means that it is unnecessary w/r/t 6. This is
+    # just checking that a split node floating around in the cyclic chain
+    # (i.e. 6-L) would be marked as unnecessary properly
+    other_bub = ag.pattid2obj[ten.parent_id]
+    assert gu.is_unnecessary(six, other_bub, ag.pattid2obj)
+
+
+def test_ancestry():
+    ag = AssemblyGraph("metagenomescope/tests/input/funky.gfa")
+
+    six = ag.get_only_node("6")
+    sixteen = ag.get_only_node("16")
+
+    anc = gu.ancestry(six, ag.pattid2obj)
+    assert len(anc) == 4
+    cyc_id = ag.pattid2obj[six.parent_id].parent_id
+    assert anc == [None, cyc_id, six.parent_id, six.unique_id]
+
+    anc = gu.ancestry(sixteen, ag.pattid2obj)
+    assert anc == [None, sixteen.unique_id]
+
+
+def test_one_below_lca_id():
+    ag = AssemblyGraph("metagenomescope/tests/input/funky.gfa")
+
+    six = ag.get_only_node("6")
+    seven = ag.get_only_node("7")
+    sixteen = ag.get_only_node("16")
+    ten = ag.get_only_node("10")
+    cyc_id = ag.pattid2obj[six.parent_id].parent_id
+
+    # 16 is a top-level node, so this should return the ID of the outermost
+    # pattern containing 6 (i.e. the cyclic chain)
+    assert gu.one_below_lca_id(six, sixteen, ag.pattid2obj) == cyc_id
+
+    # 6 and 7 are in the same pattern, so this should return 6
+    assert gu.one_below_lca_id(six, seven, ag.pattid2obj) == six.unique_id
+
+    # The tree looks like
+    #
+    #         None
+    #          |
+    #    Cyclic Chain
+    #        /   \
+    # Bubble1     Bubble2
+    #  /| | \     /   |  \
+    # 6 7 8 9-L  9-R  10  11-L
+    #
+    # ... so, if c = 6 and n = 10, then this should return Bubble1
+    # (which is one below LCA(6, 10), i.e. the cyclic chain)
+    assert gu.one_below_lca_id(six, ten, ag.pattid2obj) == six.parent_id
+
+
+def test_one_below_lca_id_identical_error():
+    ag = AssemblyGraph("metagenomescope/tests/input/funky.gfa")
+
+    six = ag.get_only_node("6")
+    with pytest.raises(WeirdError) as ei:
+        gu.one_below_lca_id(six, six, ag.pattid2obj)
+
+    assert "LCA(n, n) doesn't make sense" in str(ei.value)

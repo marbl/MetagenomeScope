@@ -107,7 +107,7 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   "mygraph.gfa"), rather than just "MgSc". This is useful if you have multiple
   tabs for different MetagenomeScope instances open at the same time :)
 
-### Changed
+### Performance
 
 - Dramatically speed up pattern decomposition, mostly by addressing a
   bottleneck in the bipartite-finding code
@@ -131,6 +131,12 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   they are no longer needed; this seems to improve performance when drawing
   many components
   ([NetworkX PR 4070](https://github.com/networkx/networkx/pull/4070)).
+
+- Remove the copy of the graph created for pattern decomposition after it is
+  no longer needed, to reduce memory use
+  ([#514](https://github.com/marbl/MetagenomeScope/issues/514)).
+
+### Changed
 
 - Disallow the identification of cyclic bulges, for the sake of simplicity
   ([#439](https://github.com/marbl/MetagenomeScope/issues/439)).
@@ -249,9 +255,14 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 
 - Various improvements to the documentation, tests, and code.
 
-- Add pyfastx and wotplot as dependencies.
+- Add pyfastx and wotplot as direct dependencies. (And add minimap2 as an
+  optional dependency.)
 
 ### Fixed
+
+- Fix a rare crash while removing unnecessary split nodes after the pattern
+  decomposition
+  ([#512](https://github.com/marbl/MetagenomeScope/issues/512)).
 
 - Use consistent conversions between Graphviz points and inches; fixes
   "stretching" in the recursive layout algorithm
@@ -320,12 +331,16 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   - _By default,_ this is set to `--no-dcheck`: that is, this sanity check is
     now turned off.
 
-### Changed
+### Performance
 
 - Implement a custom GFA parser. This dramatically speeds up loading large
-  GFA files, and makes it easier to quietly ignore nonstandard GFA line types
-  ([#310](https://github.com/marbl/MetagenomeScope/issues/310),
-  [#403](https://github.com/marbl/MetagenomeScope/issues/403)).
+  GFA files
+  ([#403](https://github.com/marbl/MetagenomeScope/issues/403)).
+
+### Changed
+
+- Ignore nonstandard GFA line types, rather than crashing
+  ([#310](https://github.com/marbl/MetagenomeScope/issues/310)).
 
 - Explicitly ignore all GFA 2 edges that are not
   "[dovetails](https://gfa-spec.github.io/GFA-spec/GFA2.html#edge)."
@@ -418,6 +433,11 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 
 - Add this Changelog.
 
+### Performance
+
+- Clean up the internal formatting of edge control points
+  ([#396](https://github.com/marbl/MetagenomeScope/issues/396)).
+
 ### Changed
 
 - For Flye DOT files, adjust the random color assignment so that edges `E` and
@@ -427,9 +447,6 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 - The icons used to represent layout algorithms in the "drawing options" dialog
   are now drawn with slightly thicker strokes. Um, in case that is relevant to
   you. Probably not.
-
-- Clean up the internal formatting of edge control points
-  ([#396](https://github.com/marbl/MetagenomeScope/issues/396)).
 
 - Tidy up the README in various ways (e.g. updating screenshots).
 

@@ -19,6 +19,7 @@ import math
 import pytest
 import pygraphviz
 from metagenomescope.layout import layout_utils as lu
+from metagenomescope.graph import AssemblyGraph
 from metagenomescope.errors import WeirdError
 
 
@@ -331,3 +332,121 @@ def test_getxy():
 
     with pytest.raises(ValueError):
         lu.getxy("one, two")
+
+
+def _get_fake_edge_id_tuple(ag, basename):
+    left = ag.get_only_node(basename + "-L")
+    right = ag.get_only_node(basename + "-R")
+    return (str(left.unique_id), str(right.unique_id))
+
+
+def test_get_pattern_cluster_dot_fake_edge_attrs():
+    # the graph is a cyclic chain with four four-node bubbles
+    ag = AssemblyGraph(
+        "metagenomescope/tests/input/bubble_cyclic_chain_test.gml"
+    )
+    assert len(ag.bubbles) == 4
+    assert len(ag.cyclic_chains) == 1
+    cyc = ag.cyclic_chains[0]
+
+    # Verify that the start and end nodes of the cyclic chain are bubbles.
+    #
+    # Note that we don't really care WHICH bubbles are marked as the start and
+    # end (since this is an isolated cycle, so you could really rotate it
+    # arbitrarily by one bubble at a time).
+    start_bub_id, end_bub_id = cyc.get_only_boundary_nodes()
+    bubble_ids = [b.unique_id for b in ag.bubbles]
+    assert start_bub_id in bubble_ids
+    assert end_bub_id in bubble_ids
+    # ... but the start and end bubble should be distinct, of course.
+    assert start_bub_id != end_bub_id
+    # Verify that all bubbles have start and end nodes that are not patterns,
+    # and record the start and edge bubbles' Pattern objects.
+    start_bub = None
+    end_bub = None
+    leftmost_node = None
+    rightmost_node = None
+    for b in ag.bubbles:
+        bs, be = b.get_only_boundary_nodes()
+        assert bs in ag.nodeid2obj
+        assert be in ag.nodeid2obj
+        assert bs != be
+        if b.unique_id == start_bub_id:
+            start_bub = b
+            assert leftmost_node is None
+            leftmost_node = ag.nodeid2obj[bs]
+        elif b.unique_id == end_bub_id:
+            end_bub = b
+            assert rightmost_node is None
+            rightmost_node = ag.nodeid2obj[be]
+    assert start_bub is not None
+    assert end_bub is not None
+    assert leftmost_node is not None
+    assert rightmost_node is not None
+
+    # The main thing! Compute the DOT representation of this cyclic chain.
+    gv = lu.get_pattern_cluster_dot(ag.cyclic_chains[0], indent="  ")
+
+    # Passing this DOT string to PyGraphviz will confuse it, due to it not
+    # starting with "digraph" or something like that. So, slice off the
+    # beginning and replace it with "digraph".
+    assert gv.startswith("  subgraph ")
+    gv2 = "digraph" + gv[10:]
+
+    # Load the DOT representation of this cyclic chain into PyGraphviz, so we
+    # can inspect it easily
+    pg = pygraphviz.AGraph(gv2)
+    assert len(pg.nodes()) == 16
+    assert len(pg.edges()) == 20
+
+    bn2fake = {}
+    seen_fake_edge_ct = 0
+    s1 = _get_fake_edge_id_tuple(ag, "10")
+    s2 = _get_fake_edge_id_tuple(ag, "1")
+    s3 = _get_fake_edge_id_tuple(ag, "4")
+    s4 = _get_fake_edge_id_tuple(ag, "7")
+    for e in pg.edges():
+        # Note that e is not LITERALLY a 2-tuple, but equality checking
+        # appears to work between pygraphviz Edges and (s, t) node ID tuples.
+        # Sure. (If this breaks in the future due to PyGraphviz changing stuff
+        # around then we can do this more formally i guess)
+        if e == s1:
+            bn2fake["10"] = e
+            seen_fake_edge_ct += 1
+        elif e == s2:
+            bn2fake["1"] = e
+            seen_fake_edge_ct += 1
+        elif e == s3:
+            bn2fake["4"] = e
+            seen_fake_edge_ct += 1
+        elif e == s4:
+            bn2fake["7"] = e
+            seen_fake_edge_ct += 1
+        else:
+            # This is a real edge, so it shouldn't be marked with the fake
+            # edge 'style="dashed"' setting.
+            # And we know that the ONE back edge in this cyclic chain is a
+            # a fake edge, so 'constraint="false"' shouldn't be set either.
+            #
+            # PyGraphviz edge attributes are a bit strange -- even if you
+            # look up a nonsensical key, it still appears to be present in
+            # .attr with a value of None. Maybe this will change in the future
+            # so for now just check that these styles aren't applied.
+            assert e.attr["style"] != "dashed"
+            assert e.attr["constraint"] != "false"
+
+    assert len(bn2fake) == 4
+    # this counter variable catches the horrifying case that should never
+    # happen where we somehow see the same fake edge twice (what????), in
+    # which an entry in bn2fake would be overwritten in the loop above
+    assert seen_fake_edge_ct == 4
+
+    # test that all fake edges were correctly marked as dashed
+    for fe in bn2fake.values():
+        assert fe.attr["style"] == "dashed"
+
+    # test that the one back edge in the bubble was correctly marked as such
+    assert leftmost_node.name in ("7-R", "10-R", "1-R", "4-R")
+    assert rightmost_node.name == leftmost_node.name.replace("-R", "-L")
+    assert leftmost_node.basename == rightmost_node.basename
+    assert bn2fake[leftmost_node.basename].attr["constraint"] == "false"
