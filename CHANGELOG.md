@@ -132,8 +132,8 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   many components
   ([NetworkX PR 4070](https://github.com/networkx/networkx/pull/4070)).
 
-- Remove copies of the graph created for `--decomp` and/or `--dcheck` after
-  they are no longer needed, to reduce memory use
+- Remove the copy of the graph created for pattern decomposition after it is
+  no longer needed, to reduce memory use
   ([#514](https://github.com/marbl/MetagenomeScope/issues/514)).
 
 ### Changed

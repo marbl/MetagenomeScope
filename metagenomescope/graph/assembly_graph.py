@@ -1625,7 +1625,10 @@ class AssemblyGraph(object):
                 "      Sanity-checking the graph structure out of paranoia..."
             )
             self._sanity_check_graph()
-            del self.original_graph
+            # NOTE: not going to delete self.original_graph after this point,
+            # just so that some tests can make use of it. I assume that doing
+            # this sanity check means that performance isn't the biggest
+            # concern anyway
             logger.debug("      ...Done.")
 
         # No need to go through the nodes and edges in the top level of the
