@@ -2341,6 +2341,21 @@ class AssemblyGraph(object):
         """
         return self._search(node_name_text, get_ids=True)["ids"]
 
+    def get_only_node(self, name):
+        """Returns the only node in the graph with a given name.
+
+        This can be useful for testing, if we know that only one node with a
+        name should exist in the graph. This will fail if you look up the
+        basename of a split node (i.e. "7" will map to both "7-L" and "7-R").
+        """
+        if name in self.nodename2objs:
+            objs = self.nodename2objs[name]
+            if len(objs) == 1:
+                return objs[0]
+            else:
+                raise WeirdError(f"{name} maps to multiple nodes")
+        raise WeirdError(f"{name} maps to no nodes")
+
     def get_node_ids_and_cc_map(self, node_name_text):
         s = self._search(node_name_text, get_ids=True, get_cc_map=True)
         return s["ids"], s["cc_map"]
