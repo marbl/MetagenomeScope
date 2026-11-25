@@ -422,7 +422,7 @@ def validate_multiple_ccs(ag):
     elif len(ag.components) < 1:
         raise WeirdError("Graph has < 1 components? Something is busted.")
     elif not ag.multiple_ccs:
-        raise WeirdError("Graph has multiple_ccs set to False?")
+        raise WeirdError("Graph has > 1 components, but multiple_ccs False?")
 
 
 def validate_treemap_type(ag, treemap_type):

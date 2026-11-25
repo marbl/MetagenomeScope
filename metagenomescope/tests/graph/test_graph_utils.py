@@ -359,6 +359,16 @@ def test_validate_multiple_ccs_zero_ccs():
     assert str(ei.value) == "Graph has < 1 components? Something is busted."
 
 
+def test_validate_multiple_ccs_multiple_ccs_but_attr_set_to_false():
+    ag = AssemblyGraph("metagenomescope/tests/input/sample1.gfa")
+    gu.validate_multiple_ccs(ag)
+    # perform a cool trick known as "lying"
+    ag.multiple_ccs = False
+    with pytest.raises(WeirdError) as ei:
+        gu.validate_multiple_ccs(ag)
+    assert str(ei.value) == "Graph has > 1 components, but multiple_ccs False?"
+
+
 def test_get_treemap_rectangles_empty():
     with pytest.raises(WeirdError) as ei:
         gu.get_treemap_rectangles([], 5)
