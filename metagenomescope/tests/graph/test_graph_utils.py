@@ -498,3 +498,41 @@ def test_get_sorted_subgraphs():
 
     assert gu.get_sorted_subgraphs([sg1]) == [sg1]
     assert gu.get_sorted_subgraphs([]) == []
+
+
+def test_is_unnecessary():
+    ag = AssemblyGraph("metagenomescope/tests/input/funky.gfa")
+
+    # omg it's the funny joke!!! sixteen six!!! haha sixteen six!!!
+    sixteen = ag.get_only_node("16")
+    six = ag.get_only_node("6")
+    seven = ag.get_only_node("7")
+    fourteen = ag.get_only_node("14")
+    ten = ag.get_only_node("10")
+
+    # 16 has a parent of None, so it is unnecessary w/r/t any other node
+    # (of course in practice we would only be checking this relative to
+    # a counterpart of 16 that would be nested in a pattern)
+    assert gu.is_unnecessary(six, sixteen, ag.pattid2obj)
+    assert gu.is_unnecessary(seven, sixteen, ag.pattid2obj)
+    assert gu.is_unnecessary(fourteen, sixteen, ag.pattid2obj)
+    assert gu.is_unnecessary(sixteen, fourteen, ag.pattid2obj)
+    assert gu.is_unnecessary(sixteen, sixteen, ag.pattid2obj)
+
+    # 6 and 7 are siblings in the same bubble, so they are unnecessary
+    # w/r/t each other
+    assert gu.is_unnecessary(six, seven, ag.pattid2obj)
+    assert gu.is_unnecessary(seven, six, ag.pattid2obj)
+
+    # 6 and 10 are in separate bubbles (I guess you could call them cousins?)
+    # so they are not unnecessary w/r/t each other
+    assert not gu.is_unnecessary(ten, six, ag.pattid2obj)
+    assert not gu.is_unnecessary(six, ten, ag.pattid2obj)
+
+    # this is a bit of an abuse of notation, passing in a bubble as n... but
+    # basically, this other bubble (the one from 9-R to 10 to 11) has a parent
+    # of the cyclic chain, which means that it is unnecessary w/r/t 6. This is
+    # just checking that a split node floating around in the cyclic chain
+    # (i.e. 6-L) would be marked as unnecessary properly
+    other_bub = ag.pattid2obj[ten.parent_id]
+    assert gu.is_unnecessary(six, other_bub, ag.pattid2obj)
