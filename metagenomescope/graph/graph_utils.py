@@ -1005,13 +1005,19 @@ def is_unnecessary(c, n, pattid2obj):
     return False
 
 
-def ancestors(n, pattid2obj):
+def ancestry(n, pattid2obj):
     r"""Returns a list of the "ancestry" of a node, in descending order.
 
     For example, if the ancestry of n looks like None -> P0 -> P1 -> n
     (i.e. n is a child of pattern P1, which is a child of P0, which is
     at the top level of the graph), then this function will return
     [None, P0.unique_id, P1.nique_id, n.unique_id].
+
+    Note that this differs slightly from the paper supplement's definition
+    of "ancestors" as of writing, since this includes the node itself in
+    the ancestry. This isn't relevant for is_unnecssary() -- it is needed
+    for one_below_lca_id(), when we are messing around with figuring out
+    how to reroute edges that were incident on an unnecessary split node.
     """
     a = [n.unique_id]
     while True:
@@ -1112,12 +1118,12 @@ def one_below_lca_id(c, n, pattid2obj):
     """
     if c.unique_id == n.unique_id:
         raise WeirdError(f"LCA(n, n) doesn't make sense: {n}")
-    c_ancestors = ancestors(c, pattid2obj)
-    n_ancestors = ancestors(n, pattid2obj)
+    c_ancestry = ancestry(c, pattid2obj)
+    n_ancestry = ancestry(n, pattid2obj)
     i = 0
-    # We know that c_ancestors and n_ancestors should start off the same
+    # We know that c_ancestry and n_ancestry should start off the same
     # (at least with None). We also know that they have to diverge eventually,
     # since c and n are different. Keep walking down until they diverge.
-    while c_ancestors[i] == n_ancestors[i]:
+    while c_ancestry[i] == n_ancestry[i]:
         i += 1
-    return c_ancestors[i]
+    return c_ancestry[i]
