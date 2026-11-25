@@ -189,6 +189,15 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 
 - Turn the `Fix edges' headports and tailports` drawing option on by default.
 
+- Turn the `Expand patterns to fit labels` label option off by default.
+
+  - I might change my mind about this, but I think the default behavior looks
+    better for many graphs: when nodes have really long labels, this option
+    being on can cause adjacent patterns to kind of smush into each other.
+
+  - That being said, this option can still be useful -- especially if you are
+    using pattern labels!
+
 - Related to the above change: flatten child edges of very simple types of
   bubbles and frayed ropes.
 
