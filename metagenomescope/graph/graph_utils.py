@@ -1100,6 +1100,8 @@ def one_below_lca_id(c, n, pattid2obj):
             n           n
 
         If n and c are in the same pattern, then this function would return c.
+        (This can happen due to chain merging jank -- for example in the
+        chr15_full.gv test case.)
 
         None
          |

@@ -536,3 +536,59 @@ def test_is_unnecessary():
     # (i.e. 6-L) would be marked as unnecessary properly
     other_bub = ag.pattid2obj[ten.parent_id]
     assert gu.is_unnecessary(six, other_bub, ag.pattid2obj)
+
+
+def test_ancestry():
+    ag = AssemblyGraph("metagenomescope/tests/input/funky.gfa")
+
+    six = ag.get_only_node("6")
+    sixteen = ag.get_only_node("16")
+
+    anc = gu.ancestry(six, ag.pattid2obj)
+    assert len(anc) == 4
+    cyc_id = ag.pattid2obj[six.parent_id].parent_id
+    assert anc == [None, cyc_id, six.parent_id, six.unique_id]
+
+    anc = gu.ancestry(sixteen, ag.pattid2obj)
+    assert anc == [None, sixteen.unique_id]
+
+
+def test_one_below_lca_id():
+    ag = AssemblyGraph("metagenomescope/tests/input/funky.gfa")
+
+    six = ag.get_only_node("6")
+    seven = ag.get_only_node("7")
+    sixteen = ag.get_only_node("16")
+    ten = ag.get_only_node("10")
+    cyc_id = ag.pattid2obj[six.parent_id].parent_id
+
+    # 16 is a top-level node, so this should return the ID of the outermost
+    # pattern containing 6 (i.e. the cyclic chain)
+    assert gu.one_below_lca_id(six, sixteen, ag.pattid2obj) == cyc_id
+
+    # 6 and 7 are in the same pattern, so this should return 6
+    assert gu.one_below_lca_id(six, seven, ag.pattid2obj) == six.unique_id
+
+    # The tree looks like
+    #
+    #         None
+    #          |
+    #    Cyclic Chain
+    #        /   \
+    # Bubble1     Bubble2
+    #  /| | \     /   |  \
+    # 6 7 8 9-L  9-R  10  11-L
+    #
+    # ... so, if c = 6 and n = 10, then this should return Bubble1
+    # (which is one below LCA(6, 10), i.e. the cyclic chain)
+    assert gu.one_below_lca_id(six, ten, ag.pattid2obj) == six.parent_id
+
+
+def test_one_below_lca_id_identical_error():
+    ag = AssemblyGraph("metagenomescope/tests/input/funky.gfa")
+
+    six = ag.get_only_node("6")
+    with pytest.raises(WeirdError) as ei:
+        gu.one_below_lca_id(six, six, ag.pattid2obj)
+
+    assert "LCA(n, n) doesn't make sense" in str(ei.value)
