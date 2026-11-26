@@ -254,6 +254,11 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 - Clean up the logging messages made when starting layout (e.g. only show
   layout parameters relevant to the currently selected algorithm).
 
+- Log information (only visible if using `--verbose`) about observed
+  "self-implying edges" (i.e. edges of the form `X -> -X`) while parsing
+  certain types of input graphs
+  ([commit `bfd1ce7`](https://github.com/marbl/MetagenomeScope/commit/bfd1ce78aa7c60570d94c5c81f149d631932deed)).
+
 - Tidy up some of the modal dialogs' code and UI
   ([#269](https://github.com/marbl/MetagenomeScope/issues/269),
   [#496](https://github.com/marbl/MetagenomeScope/issues/496)).
