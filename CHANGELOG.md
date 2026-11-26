@@ -137,7 +137,7 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   ([#514](https://github.com/marbl/MetagenomeScope/issues/514)).
 
 - For now, don't pass edge parent IDs to Cytoscape.js, since that doesn't
-  actually seem to do anything. This should very slightly reduce memory use.
+  actually seem to be necessary. This should very slightly reduce memory use.
 
 ### Changed
 
