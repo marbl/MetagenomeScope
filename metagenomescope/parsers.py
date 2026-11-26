@@ -87,10 +87,10 @@ def complement_edge(s1, t1):
     self-implying edge -- then this will log this information. The motivation
     for doing this is that it helps when reasoning about how many edges are in
     the underlying input GFA/LastGraph file: usually you can just divide the
-    total number of edges in the graph by 2 if you're gonna add an edge and its
-    RC, but self-implying edges are cases where you should only have one copy
-    of that edge. I dunno, probably this should be tracked in a better way, but
-    this is fine for now.
+    total number of edges in the graph by 2 if you're always gonna add an edge
+    and its RC, but self-implying edges are cases where you should only have
+    one copy of that edge. So that complicates the math a little bit. IDK,
+    probably this should be tracked in a fancier way, but this is fine for now.
     """
     # If the reverse complement of s1 --> t1 is also s1 --> t1, then we
     # shouldn't add it to the graph twice.
