@@ -1,3 +1,4 @@
+import logging
 from collections import Counter
 from metagenomescope import config, name_utils
 from metagenomescope.graph import AssemblyGraph
@@ -255,3 +256,79 @@ def test_decouple_chr15_full():
                 assert ie.ports == ("e", "e")
             pal_ct += 1
     assert pal_ct == 10
+
+
+def test_decouple_self_implying_edges(caplog):
+    caplog.set_level(logging.WARNING)
+    # See https://github.com/sjackman/assembly-graph/
+    # loop.gfa has an edge from 2 -> -2 and an edge from -3 -> 3. Both of these
+    # edges "imply themselves" -- they are their own RCs. Anyway, both of these
+    # components should be decoupled to just have 2 and 3, with the self-
+    # implying edge drawn as a loop from the node to itself.
+    ag = AssemblyGraph("metagenomescope/tests/input/loop.gfa")
+
+    # we shouldn't have seen a warning about asymmetric components, since
+    # technically self-implying edges are ok with this
+    assert len(caplog.records) == 0
+
+    assert len(ag.components) == 6
+    for i, cc in enumerate(ag.components):
+        if i < 2:
+            assert cc.decoupling_done
+        else:
+            assert not cc.decoupling_done
+
+    two = ag.get_only_node("2")
+    three = ag.get_only_node("3")
+
+    # the 2 -> -2 and -3 -> 3 components have the same amount of nodes and
+    # edges so i don't really care which comes first. but they should be the
+    # two earliest components
+    assert two.cc_num in (1, 2)
+    assert three.cc_num in (1, 2)
+    assert two.cc_num != three.cc_num
+
+    two_cc = ag.get_cc_by_num(two.cc_num)
+    three_cc = ag.get_cc_by_num(three.cc_num)
+
+    # check 2 -> -2 component was decoupled properly, so we should see
+    #
+    #  +-+
+    #  | |
+    #  V |
+    # 2--+
+    assert nodeids2names(ag, two_cc.dc_shown_node_ids) == ["2"]
+    assert len(two_cc.dc_shown_edge_ids) == 0
+    assert len(two_cc.dc_inval_edges) == 1
+    ie = two_cc.dc_inval_edges[0]
+    assert ie.inval_type == config.INVAL_TGT
+    assert ie.ports == ("e", "e")
+    assert id2name(ag, ie.rc_node_id) == "2"
+    # drawn as from 2 -> 2, even though it's realy from 2 -> -2
+    assert edge2tuple(ag, ie) == ("2", "2")
+    assert edge2tuple(ag, ie.e) == ("2", "-2")
+    assert ie.rand_idx == ie.e.rand_idx
+    assert ie.cc_num == ie.e.cc_num
+    assert ie.parent_id == ie.e.parent_id
+
+    assert nodeids2names(ag, three_cc.dc_shown_node_ids) == ["3"]
+
+    # check -3 -> 3 component was decoupled properly, so we should see
+    #
+    # +-+
+    # | |
+    # | V
+    # +--3
+    assert nodeids2names(ag, three_cc.dc_shown_node_ids) == ["3"]
+    assert len(three_cc.dc_shown_edge_ids) == 0
+    assert len(three_cc.dc_inval_edges) == 1
+    ie = three_cc.dc_inval_edges[0]
+    assert ie.inval_type == config.INVAL_SRC
+    assert ie.ports == ("w", "w")
+    assert id2name(ag, ie.rc_node_id) == "3"
+    # drawn as from 3 -> 3, even though it's realy from -3 -> 3
+    assert edge2tuple(ag, ie) == ("3", "3")
+    assert edge2tuple(ag, ie.e) == ("-3", "3")
+    assert ie.rand_idx == ie.e.rand_idx
+    assert ie.cc_num == ie.e.cc_num
+    assert ie.parent_id == ie.e.parent_id
