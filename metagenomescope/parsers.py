@@ -32,6 +32,7 @@
 import re
 import networkx as nx
 import pyfastg
+import logging
 from . import config, gfa_utils, misc_utils
 from .name_utils import negate, from_suffix_orient
 from .seq_utils import gc_content
@@ -77,14 +78,31 @@ def is_not_pos_int(number_string):
 
 
 def complement_edge(s1, t1):
-    """Returns 3-tuple of (is complement edge distinct?, s2, t2)."""
+    """Returns 3-tuple of (is complement edge distinct?, s2, t2).
+
+    This is intended to be used for "implicit" graph filetypes like GFA
+    and LastGraph, where an edge from 1 -> 2 implies an edge from -2 -> -1.
+
+    If the first entry in the returned 3-tuple is False -- i.e. this is a
+    self-implying edge -- then this will log this information. The motivation
+    for doing this is that it helps when reasoning about how many edges are in
+    the underlying input GFA/LastGraph file: usually you can just divide the
+    total number of edges in the graph by 2 if you're gonna add an edge and its
+    RC, but self-implying edges are cases where you should only have one copy
+    of that edge. I dunno, probably this should be tracked in a better way, but
+    this is fine for now.
+    """
     # If the reverse complement of s1 --> t1 is also s1 --> t1, then we
     # shouldn't add it to the graph twice.
     #
     # This matters for things like the loop.gfa test case.
     s2 = negate(t1)
     t2 = negate(s1)
-    not_self_implying = (s1 != s2) or (t1 != t2)
+    if (s1 != s2) or (t1 != t2):
+        not_self_implying = True
+    else:
+        not_self_implying = False
+        logging.debug(f"  Found self-implying edge {s1} -> {t1}.")
     return (not_self_implying, s2, t2)
 
 
