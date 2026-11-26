@@ -1,3 +1,4 @@
+import logging
 import networkx as nx
 from metagenomescope import config
 from metagenomescope.name_utils import negate
@@ -120,7 +121,7 @@ def get_sample2_gfa():
     ]
 
 
-def test_parse_self_implied_edge_gfa1():
+def test_parse_self_implied_edge_gfa1(caplog):
     """Uses loop.gfa (c/o Shaun Jackman) to test self-implied GFA edges.
 
     We define a "self-implied edge" as an edge whose complement is itself. An
@@ -133,7 +134,16 @@ def test_parse_self_implied_edge_gfa1():
     loop.gfa in Shaun's repository containing it
     (https://github.com/sjackman/assembly-graph).
     """
+    caplog.set_level(logging.DEBUG)
     digraph, paths = parse_gfa("metagenomescope/tests/input/loop.gfa")
+
+    # check that the logging about self-implying edges worked ok
+    assert len(caplog.records) == 2
+    # we are going through the file's lines from start to end, which is why
+    # we should see the 2 -> -2 edge before the -3 -> 3 edge
+    assert "Found self-implying edge 2 -> -2." in caplog.records[0].msg
+    assert "Found self-implying edge -3 -> 3." in caplog.records[1].msg
+
     assert paths is None
     assert len(digraph.nodes) == 8
 
