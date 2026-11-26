@@ -136,6 +136,9 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   no longer needed, to reduce memory use
   ([#514](https://github.com/marbl/MetagenomeScope/issues/514)).
 
+- Don't pass edge parent IDs to Cytoscape.js, since that doesn't actually seem
+  to do anything. This should very slightly reduce memory use.
+
 ### Changed
 
 - Disallow the identification of cyclic bulges, for the sake of simplicity

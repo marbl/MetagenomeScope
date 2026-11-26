@@ -97,10 +97,10 @@ class InvalidatedEdge(Edge):
         if e.is_fake:
             raise WeirdError(f"Trying to invalidate a fake edge {e}?")
 
-        # since InvalidatedEdges won't be drawn as children of patterns, and
-        # since we're already done with the decomposition, the only "level" of
-        # node information we care about (see Edge docstring) is the rerouted
-        # source/target ID, aka the new_*_id stuff.
+        # since InvalidatedEdges shouldn't be used in the context of recursive
+        # layout, and since we're already done with the decomposition, the only
+        # "level" of node information we care about (see Edge docstring) is the
+        # rerouted source/target ID, aka the new_*_id stuff.
         src_id = e.new_src_id
         tgt_id = e.new_tgt_id
         if inval_type == config.INVAL_SRC:

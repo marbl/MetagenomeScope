@@ -164,6 +164,12 @@ class Edge(object):
         # You can thus think of the parent pattern of an edge as the "least
         # common ancestor" pattern that contains both of an edge's nodes (or
         # None if at least one of this edge's nodes is not in a pattern).
+        #
+        # Also, note that we don't actually pass this to Cytoscape.js as of
+        # writing (it looks like edges don't really have parents in the Cy.js
+        # compound model -- just nodes do -- so specifying a "parent" data
+        # field doesn't seem to do anything), but it is still good to keep
+        # track of this for layout stuff / etc.
         self.parent_id = None
 
         # Number (1-indexed) of the connected component containing this edge.
@@ -281,11 +287,6 @@ class Edge(object):
             if good:
                 ele["data"]["color"] = color
 
-        if (
-            ui_utils.show_patterns(scope_settings)
-            and self.parent_id is not None
-        ):
-            ele["data"]["parent"] = str(self.parent_id)
         if self.is_fake:
             ele["classes"] += " fake"
         else:
