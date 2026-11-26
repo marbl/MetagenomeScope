@@ -185,15 +185,23 @@ def get_components_tab(ag):
         modal_utils.get_nav(
             "Histograms of nodes / edges", "graphInfoCCHistTab"
         ),
-        modal_utils.get_nav("Length \u00d7 Coverage", "graphInfoCCCovLenTab"),
     ]
     panes = [
         modal_utils.get_pane(
             get_cc_treemap_tab(ag), "graphInfoCCTreemapTab", selected=True
         ),
         modal_utils.get_pane(get_cc_hist_tab(), "graphInfoCCHistTab"),
-        modal_utils.get_pane(get_cc_covlen_tab(), "graphInfoCCCovLenTab"),
     ]
+    # Only show coverage x length scatterplot if the graph has coverage data
+    if ag.has_covs:
+        navs.append(
+            modal_utils.get_nav(
+                "Length \u00d7 Coverage", "graphInfoCCCovLenTab"
+            )
+        )
+        panes.append(
+            modal_utils.get_pane(get_cc_covlen_tab(), "graphInfoCCCovLenTab")
+        )
     return modal_utils.get_tabs(navs, panes)
 
 
