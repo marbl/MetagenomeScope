@@ -423,7 +423,7 @@ COVATTR2PLURAL = {
 
 COVATTR2TITLE = {
     "cov": "Coverage",
-    "kp1mer_cov": "(K+1)-mer Coverage",
+    "kp1mer_cov": "(K+1)-mer Cov",
     "bsize": "Bundle Size",
     "multiplicity": "Multiplicity",
 }
