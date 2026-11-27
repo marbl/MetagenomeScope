@@ -1383,11 +1383,7 @@ def run(
                 )
             graph_utils.validate_multiple_ccs(ag)
             cts = ag.get_component_ele_cts(ele_type, nr_type)
-            if ele_type == ui_config.CHART_NODES:
-                barcolor = "#0a0"
-            else:
-                barcolor = "#7a0"
-
+            barcolor = ui_config.ELE_TYPE_TO_HIST_BAR_COLOR[ele_type]
             title = chart_utils.get_cc_plot_title(ele_type, nr_type)
             cts, title = ui_utils.truncate_hist(cts, title, maxx)
 

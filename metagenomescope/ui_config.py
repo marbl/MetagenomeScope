@@ -221,6 +221,9 @@ SCALE_LOG = "log"
 CHART_NODES = "nodes"
 CHART_EDGES = "edges"
 
+# use different colors for the histogram of #nodes per cc vs. #edges per cc
+ELE_TYPE_TO_HIST_BAR_COLOR = {CHART_NODES: "#0a0", CHART_EDGES: "#7a0"}
+
 # single means "only show NR components and decouple strand-tangled components"
 # double means "show all components, and do not take into account decoupling"
 CHART_SINGLE = "single"
