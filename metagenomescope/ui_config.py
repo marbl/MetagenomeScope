@@ -216,10 +216,10 @@ BIGGER_SEP = html.Div(style={"margin-top": "1em"})
 SCALE_LINEAR = "linear"
 SCALE_LOG = "log"
 
-# should the hist of stuff per cc show nodes or edges?
-# (showing them stacked looks gross imo...)
-NODES_HIST = "nodes"
-EDGES_HIST = "edges"
+# should a chart show nodes or edges?
+# Note that these strings are literally used in chart titles / etc
+CHART_NODES = "nodes"
+CHART_EDGES = "edges"
 
 # single means "only show NR components and decouple strand-tangled components"
 # double means "show all components, and do not take into account decoupling"

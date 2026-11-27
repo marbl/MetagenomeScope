@@ -261,14 +261,14 @@ def get_node_edge_toggle(html_obj_id):
                     options=[
                         {
                             "label": "Nodes",
-                            "value": ui_config.NODES_HIST,
+                            "value": ui_config.CHART_NODES,
                         },
                         {
                             "label": "Edges",
-                            "value": ui_config.EDGES_HIST,
+                            "value": ui_config.CHART_EDGES,
                         },
                     ],
-                    value=ui_config.NODES_HIST,
+                    value=ui_config.CHART_NODES,
                     className="btn-group",
                     inputClassName="btn-check",
                     labelClassName="btn btn-sm btn-outline-dark",
@@ -297,20 +297,17 @@ def get_scatterplot_options(x_scale_id, y_scale_id):
     )
 
 
-def get_ele_nouns(ele_type):
-    return "nodes" if ele_type == ui_config.NODES_HIST else "edges"
-
-
 def get_treemap_options(ag):
     return get_nr_cc_option(ag, "ccTreemapNRType")
 
 
 def get_cc_plot_title(ele_type, nr_type):
-    nouns = get_ele_nouns(ele_type)
     if nr_type == ui_config.CHART_SINGLE:
-        return f"Number of {nouns} per component (nonredundant and decoupled)"
+        return (
+            f"Number of {ele_type} per component (nonredundant and decoupled)"
+        )
     else:
-        return f"Number of {nouns} per component (all components)"
+        return f"Number of {ele_type} per component (all components)"
 
 
 def trim_seq_name(n, is_seq=False, cutoff=8):

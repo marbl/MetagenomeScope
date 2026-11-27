@@ -1383,14 +1383,13 @@ def run(
                 )
             graph_utils.validate_multiple_ccs(ag)
             cts = ag.get_component_ele_cts(ele_type, nr_type)
-            if ele_type == ui_config.NODES_HIST:
+            if ele_type == ui_config.CHART_NODES:
                 barcolor = "#0a0"
             else:
                 barcolor = "#7a0"
 
             title = chart_utils.get_cc_plot_title(ele_type, nr_type)
             cts, title = ui_utils.truncate_hist(cts, title, maxx)
-            nouns = chart_utils.get_ele_nouns(ele_type)
 
             fig = go.Figure()
             fig.add_trace(
@@ -1399,13 +1398,13 @@ def run(
                     marker_color=barcolor,
                     marker_line_width=2,
                     marker_line_color="#030",
-                    name=f"# {nouns}",
+                    name=f"# {ele_type}",
                     nbinsx=ibins,
                 )
             )
             fig.update_layout(
                 title_text=title,
-                xaxis_title_text=f"# {nouns}",
+                xaxis_title_text=f"# {ele_type}",
                 yaxis_title_text="# components",
                 yaxis_type=yscale,
             )
@@ -1426,7 +1425,7 @@ def run(
                 cc_aggs, S=5
             )
             title = chart_utils.get_cc_plot_title(
-                ui_config.NODES_HIST, nr_type
+                ui_config.CHART_NODES, nr_type
             )
             fig = go.Figure(
                 go.Treemap(

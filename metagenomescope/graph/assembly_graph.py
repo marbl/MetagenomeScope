@@ -1893,7 +1893,7 @@ class AssemblyGraph(object):
         Parameters
         ----------
         ele_type: str
-            One of {ui_config.NODES_HIST, EDGES_HIST}.
+            One of {ui_config.CHART_NODES, CHART_EDGES}.
 
         nr_type: str
             ui_config.CHART_DOUBLE is the old way of doing this: get the full
@@ -1912,7 +1912,7 @@ class AssemblyGraph(object):
         List of counts (one entry per component).
         """
         single = nr_type == ui_config.CHART_SINGLE
-        nodes = ele_type == ui_config.NODES_HIST
+        nodes = ele_type == ui_config.CHART_NODES
 
         if single:
             ccs = [self.get_cc_by_num(i) for i in self.nr_cc_nums]
