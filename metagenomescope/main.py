@@ -1382,7 +1382,7 @@ def run(
                     no_update,
                 )
             graph_utils.validate_multiple_ccs(ag)
-            cts = ag.get_component_ele_cts(ele_type, nr_type)
+            cts = ag.get_cc_ele_cts(ele_type, nr_type)
             barcolor = ui_config.ELE_TYPE_TO_HIST_BAR_COLOR[ele_type]
             title = chart_utils.get_cc_plot_title(ele_type, nr_type)
             cts, title = ui_utils.truncate_hist(cts, title, maxx)

@@ -1887,7 +1887,16 @@ class AssemblyGraph(object):
                     del self.nodeid2obj[node_id]
                     del self.edgeid2obj[fe_id]
 
-    def get_component_ele_cts(self, ele_type, nr_type=ui_config.CHART_DOUBLE):
+    def get_ccs(self, nr_type=ui_config.CHART_DOUBLE):
+        if nr_type == ui_config.CHART_SINGLE:
+            if self.nr_cc_nums is not None:
+                return [self.get_cc_by_num(i) for i in self.nr_cc_nums]
+            else:
+                raise WeirdError("Can't get 'single' ccs for this graph")
+        else:
+            return self.components
+
+    def get_cc_ele_cts(self, ele_type, nr_type=ui_config.CHART_DOUBLE):
         """Returns a list of full node / real edge counts in each component.
 
         Parameters
@@ -1909,19 +1918,18 @@ class AssemblyGraph(object):
 
         Returns
         -------
-        List of counts (one entry per component).
+        list of int
+            List of node or edge counts (one entry per component).
         """
-        single = nr_type == ui_config.CHART_SINGLE
-        nodes = ele_type == ui_config.CHART_NODES
+        graph_utils.validate_multiple_ccs(self)
+        graph_utils.validate_nr_type(self, nr_type)
 
-        if single:
-            ccs = [self.get_cc_by_num(i) for i in self.nr_cc_nums]
-        else:
-            ccs = self.components
+        nodes = ele_type == ui_config.CHART_NODES
+        ccs = self.get_ccs(nr_type)
 
         cts = []
         for cc in ccs:
-            if single and cc.decoupling_done:
+            if nr_type == ui_config.CHART_SINGLE and cc.decoupling_done:
                 if nodes:
                     x = cc.dc_shown_num_full_nodes
                 else:
@@ -2618,14 +2626,14 @@ class AssemblyGraph(object):
 
     def to_treemap(
         self,
-        treemap_type=ui_config.CHART_DOUBLE,
+        nr_type=ui_config.CHART_DOUBLE,
         min_large_cc_ct=ui_config.MIN_LARGE_CC_COUNT,
     ):
         """Creates data describing the graph's components for use in a treemap.
 
         Parameters
         ----------
-        treemap_type: str
+        nr_type: str
             ui_config.CHART_DOUBLE is the old way of doing this: get the full
             node counts from all components, ignoring nonredundant components
             and decoupling.
@@ -2662,23 +2670,18 @@ class AssemblyGraph(object):
             is not considered to be an aggregate.
         """
         graph_utils.validate_multiple_ccs(self)
-        graph_utils.validate_treemap_type(self, treemap_type)
+        graph_utils.validate_nr_type(self, nr_type)
 
         cc_names = ["Components"]
         cc_parents = [""]
         cc_sizes = []
         cc_aggs = [False]
 
-        single = treemap_type == ui_config.CHART_SINGLE
-
-        if single:
-            ccs = [self.get_cc_by_num(i) for i in self.nr_cc_nums]
-        else:
-            ccs = self.components
+        ccs = self.get_ccs(nr_type)
 
         node_ct2cc_nums = defaultdict(list)
         for cc in ccs:
-            if single and cc.decoupling_done:
+            if nr_type == ui_config.CHART_SINGLE and cc.decoupling_done:
                 nct = cc.dc_shown_num_full_nodes
             else:
                 nct = cc.num_full_nodes

@@ -425,10 +425,10 @@ def validate_multiple_ccs(ag):
         raise WeirdError("Graph has > 1 components, but multiple_ccs False?")
 
 
-def validate_treemap_type(ag, treemap_type):
-    if treemap_type == ui_config.CHART_SINGLE:
+def validate_nr_type(ag, nr_type):
+    if nr_type == ui_config.CHART_SINGLE:
         if not ag.orientation_in_name or ag.is_flye_dot:
-            raise WeirdError("Graph does not support 'single' treemap")
+            raise WeirdError("Graph does not support 'single' chart")
 
 
 def get_treemap_rectangles(
