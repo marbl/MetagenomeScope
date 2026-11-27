@@ -594,6 +594,35 @@ class Subgraph(object):
         self.decoupling_done = True
         return True
 
+    def get_dc_shown_nodes(self):
+        if self.decoupling_done:
+            return graph_utils.filter_objs_by_ids(
+                self.nodes, self.dc_shown_node_ids
+            )
+        else:
+            raise WeirdError("Decoupling not done")
+
+    def get_dc_drawn_edges(self):
+        if self.decoupling_done:
+            edges = graph_utils.filter_objs_by_ids(
+                self.edges, self.dc_shown_edge_ids
+            )
+            return edges + self.dc_inval_edges
+        else:
+            raise WeirdError("Decoupling not done")
+
+    def get_nodes(self, nr_type=ui_config.CHART_DOUBLE):
+        if nr_type == ui_config.CHART_SINGLE and self.decoupling_done:
+            return self.get_dc_shown_nodes()
+        else:
+            return self.nodes
+
+    def get_edges(self, nr_type=ui_config.CHART_DOUBLE):
+        if nr_type == ui_config.CHART_SINGLE and self.decoupling_done:
+            return self.get_dc_drawn_edges()
+        else:
+            return self.edges
+
     def to_cyjs(
         self, scope_settings, modifier_settings, layout_alg, layout_params
     ):
@@ -658,18 +687,11 @@ class DecoupledSubgraph(Subgraph):
         if hasattr(sg, "cc_num"):
             self.cc_num = sg.cc_num
 
-        # Lump shown Edges and InvalidatedEdges together, which makes
-        # downstream stuff easier to think about -- less special-casing needed.
-        # (We defer doing this to here in order to avoid having to store extra
-        # stuff all the time, I guess ...?)
-        edges = graph_utils.filter_objs_by_ids(sg.edges, sg.dc_shown_edge_ids)
-        edges += sg.dc_inval_edges
-
         super().__init__(
             None,
             f"dc_{sg.name}",
-            graph_utils.filter_objs_by_ids(sg.nodes, sg.dc_shown_node_ids),
-            edges,
+            sg.get_dc_shown_nodes(),
+            sg.get_dc_drawn_edges(),  # lumps shown & inval edges together
             graph_utils.filter_objs_by_ids(sg.patterns, sg.dc_shown_patt_ids),
             node_centric=sg.node_centric,
             length_field=sg.length_field,

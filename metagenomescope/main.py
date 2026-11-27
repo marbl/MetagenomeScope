@@ -1600,9 +1600,10 @@ def run(
             Input("graphInfoCCCovLenTab", "n_clicks"),
             Input("covlenCCScatterXScale", "value"),
             Input("covlenCCScatterYScale", "value"),
+            Input("covlenCCScatterNRType", "value"),
             prevent_initial_call=True,
         )
-        def plot_covlen_cc_scatter(btn_nclicks, xscale, yscale):
+        def plot_covlen_cc_scatter(btn_nclicks, xscale, yscale, nr_type):
             fig = go.Figure()
             (
                 cc_names,
@@ -1613,7 +1614,7 @@ def run(
                 aggname,
                 xlatex,
                 ylatex,
-            ) = ag.to_covlen_cc_scatter()
+            ) = ag.to_covlen_cc_scatter(nr_type)
             fig.add_trace(
                 go.Scattergl(
                     text=cc_names,
@@ -1641,11 +1642,9 @@ def run(
                     name="",
                 )
             )
+            title = chart_utils.get_covlen_cc_title(ag, nr_type)
             fig.update_layout(
-                title_text=(
-                    f"Component lengths and {ag.cov_source} "
-                    f"{ui_config.COVATTR2PLURAL[ag.cov_field]}"
-                ),
+                title_text=title,
                 xaxis_title_text=xlatex,
                 yaxis_title_text=ylatex,
                 xaxis_type=xscale,
@@ -1657,7 +1656,12 @@ def run(
             chart_utils.prettify_go_fig(fig)
             missing_info = chart_utils.get_plot_missing_data_msg(
                 missing_cc_ct,
-                len(ag.components),
+                # TODO this is grossss move this logic to chart utils
+                (
+                    len(ag.nr_cc_nums)
+                    if nr_type == ui_config.CHART_SINGLE
+                    else len(ag.components)
+                ),
                 "component",
                 (
                     "not having any coverage data and/or having a total "

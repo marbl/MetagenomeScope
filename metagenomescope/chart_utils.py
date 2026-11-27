@@ -301,13 +301,24 @@ def get_treemap_options(ag):
     return get_nr_cc_option(ag, "ccTreemapNRType")
 
 
-def get_cc_plot_title(ele_type, nr_type):
+def get_cc_plot_nr_suffix(nr_type):
     if nr_type == ui_config.CHART_SINGLE:
-        return (
-            f"Number of {ele_type} per component (nonredundant and decoupled)"
-        )
+        return " (nonredundant and decoupled)"
     else:
-        return f"Number of {ele_type} per component (all components)"
+        return " (all components)"
+
+
+def get_cc_plot_title(ele_type, nr_type):
+    nr_suffix = get_cc_plot_nr_suffix(nr_type)
+    return f"Number of {ele_type} per component{nr_suffix}"
+
+
+def get_covlen_cc_title(ag, nr_type):
+    nr_suffix = get_cc_plot_nr_suffix(nr_type)
+    return (
+        f"Component lengths and {ag.cov_source} "
+        f"{ui_config.COVATTR2PLURAL[ag.cov_field]}{nr_suffix}"
+    )
 
 
 def trim_seq_name(n, is_seq=False, cutoff=8):

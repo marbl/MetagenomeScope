@@ -110,7 +110,7 @@ def get_cc_hist_tab(ag):
     )
 
 
-def get_cc_covlen_tab():
+def get_cc_covlen_tab(ag):
     return html.Div(
         [
             html.Div(
@@ -137,6 +137,8 @@ def get_cc_covlen_tab():
                 ),
                 id="covlenCCScatterContainer",
             ),
+            chart_utils.get_nr_cc_option(ag, "covlenCCScatterNRType"),
+            ui_config.OPTIONS_SEP,
             chart_utils.get_scatterplot_options(
                 "covlenCCScatterXScale",
                 "covlenCCScatterYScale",
@@ -202,7 +204,7 @@ def get_components_tab(ag):
             )
         )
         panes.append(
-            modal_utils.get_pane(get_cc_covlen_tab(), "graphInfoCCCovLenTab")
+            modal_utils.get_pane(get_cc_covlen_tab(ag), "graphInfoCCCovLenTab")
         )
     return modal_utils.get_tabs(navs, panes)
 

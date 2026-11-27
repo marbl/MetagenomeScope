@@ -85,7 +85,7 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 
 - Add the option
   `Show only nonredundant components, and decouple strand-tangled components?`
-  to the treemap and component histogram
+  to the treemap, component histogram, and length × coverage component scatterplot
   ([#332](https://github.com/marbl/MetagenomeScope/issues/332)).
 
   - This is selected by default for all graphs where possible (currently, the

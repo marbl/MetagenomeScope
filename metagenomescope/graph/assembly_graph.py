@@ -1899,10 +1899,12 @@ class AssemblyGraph(object):
     def get_cc_ele_cts(self, ele_type, nr_type=ui_config.CHART_DOUBLE):
         """Returns a list of full node / real edge counts in each component.
 
+        This is used to create the histogram of components in the info dialog.
+
         Parameters
         ----------
         ele_type: str
-            One of {ui_config.CHART_NODES, CHART_EDGES}.
+            One of {ui_config.CHART_NODES, ui_config.CHART_EDGES}.
 
         nr_type: str
             ui_config.CHART_DOUBLE is the old way of doing this: get the full
@@ -2728,13 +2730,23 @@ class AssemblyGraph(object):
         )
         return names, covs, lens, missing_info
 
-    def to_covlen_cc_scatter(self):
+    def to_covlen_cc_scatter(self, nr_type):
+        """Returns info for a scatterplot of component coverage x length.
+
+        Parameters
+        ----------
+        nr_type: str
+            One of {ui_config.CHART_DOUBLE, ui_config.CHART_SINGLE}.
+        """
+        graph_utils.validate_multiple_ccs(self)
+        graph_utils.validate_nr_type(self, nr_type)
+
         cc_names = []
         cc_lens = []
         cc_covs = []
         cc_scaled_sizes = []
         missing_cc_ct = 0
-        for cc in self.components:
+        for cc in self.get_ccs(nr_type):
             cc_total_len = 0
             cc_agg_cov = 0
             covs_given_in_cc = False
@@ -2753,9 +2765,9 @@ class AssemblyGraph(object):
                 # (I mean we could compute this in Subgraph initialization ig
                 # but i don't wanna do that ._.)
                 if self.node_centric:
-                    # nodes have lengths and covs
+                    # NODES have lengths and covs.
                     seen_basenames = set()
-                    for n in cc.nodes:
+                    for n in cc.get_nodes(nr_type):
                         bn = n.basename
                         # only consider a node with a basename once - this
                         # means that we only process a split node pair once
@@ -2767,8 +2779,8 @@ class AssemblyGraph(object):
                             covs_given_in_cc = True
                             cc_cov_ct += 1
                 else:
-                    # edges have lengths and covs
-                    for e in cc.edges:
+                    # EDGES have lengths and covs.
+                    for e in cc.get_edges(nr_type):
                         if not e.is_fake:
                             eid = e.get_userspecified_id()
                             if eid in self.name2covlen:
@@ -2786,13 +2798,14 @@ class AssemblyGraph(object):
             else:
                 cc_total_unweighted_cov = 0
                 num_seen_covs = 0
-                if self.node_centric:
-                    # nodes have lengths, edges have covs
-                    # this is the case for metacarvel graphs
+                if nr_type == ui_config.CHART_DOUBLE and self.node_centric:
+                    # NODES have lengths, EDGES have covs.
+                    # This is the case for MetaCarvel GML graphs. Note that
+                    # this means that nr_type cannot be CHART_SINGLE!
                     # x-axis = total node length
                     # y-axis = average edge cov
                     cc_total_len = cc.total_length
-                    for e in cc.edges:
+                    for e in cc.get_edges(nr_type):
                         if not e.is_fake:
                             cc_total_unweighted_cov += e.data[self.cov_field]
                             num_seen_covs += 1
