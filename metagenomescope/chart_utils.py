@@ -129,6 +129,50 @@ def prettify_go_fig(fig):
     fig.update_yaxes(ticksuffix=" ")
 
 
+def get_nr_cc_option(ag, html_obj_id):
+    if ag.orientation_in_name and not ag.is_flye_dot:
+        default = ui_config.CHART_SINGLE
+        ig_classes = ""
+    else:
+        # MetaCarvel GML and Flye DOT files don't support decoupling (and
+        # MetaCarvel GMLs don't even support the notion of "nonredundant"
+        # components), so hide the option for these graphs.
+        default = ui_config.CHART_DOUBLE
+        ig_classes = " removedEntirely"
+
+    return dbc.InputGroup(
+        [
+            dbc.InputGroupText(
+                "Show only nonredundant components, and decouple strand-tangled components?",
+                className="input-group-text-next-to-radio-button-group",
+            ),
+            html.Div(
+                dbc.RadioItems(
+                    options=[
+                        {
+                            "label": "Yes",
+                            "value": ui_config.CHART_SINGLE,
+                        },
+                        {
+                            "label": "No",
+                            "value": ui_config.CHART_DOUBLE,
+                        },
+                    ],
+                    value=default,
+                    className="btn-group",
+                    inputClassName="btn-check",
+                    labelClassName="btn btn-sm btn-outline-dark",
+                    labelCheckedClassName="active",
+                    id=html_obj_id,
+                ),
+                className="btn-opt-group",
+            ),
+        ],
+        size="sm",
+        className=ig_classes,
+    )
+
+
 def get_num_bins_option(val_id, btn_id):
     return dbc.InputGroup(
         [
@@ -254,47 +298,7 @@ def get_scatterplot_options(x_scale_id, y_scale_id):
 
 
 def get_treemap_options(ag):
-    if ag.orientation_in_name and not ag.is_flye_dot:
-        default = ui_config.CHART_SINGLE
-        ig_classes = ""
-    else:
-        # MetaCarvel GML and Flye DOT files don't support decoupling (and
-        # MetaCarvel GMLs don't even support the notion of "nonredundant"
-        # components), so hide the option for these graphs.
-        default = ui_config.CHART_DOUBLE
-        ig_classes = " removedEntirely"
-
-    return dbc.InputGroup(
-        [
-            dbc.InputGroupText(
-                "Show only nonredundant components, and decouple strand-tangled components?",
-                className="input-group-text-next-to-radio-button-group",
-            ),
-            html.Div(
-                dbc.RadioItems(
-                    options=[
-                        {
-                            "label": "Yes",
-                            "value": ui_config.CHART_SINGLE,
-                        },
-                        {
-                            "label": "No",
-                            "value": ui_config.CHART_DOUBLE,
-                        },
-                    ],
-                    value=default,
-                    className="btn-group",
-                    inputClassName="btn-check",
-                    labelClassName="btn btn-sm btn-outline-dark",
-                    labelCheckedClassName="active",
-                    id="ccTreemapType",
-                ),
-                className="btn-opt-group",
-            ),
-        ],
-        size="sm",
-        className=ig_classes,
-    )
+    return get_nr_cc_option(ag, "ccTreemapType")
 
 
 def get_treemap_title(treemap_type):
