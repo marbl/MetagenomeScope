@@ -144,3 +144,14 @@ def test_component_recording_same_positive_name_count_twins():
         assert wccs[i].length_field == "length"
         assert wccs[i].record_node_names
         assert wccs[i].count_positive_names
+
+
+def test_component_recording_gml_count_positive_names():
+    ag = AssemblyGraph(
+        "metagenomescope/tests/input/bubble_cyclic_chain_test.gml"
+    )
+    assert not ag.orientation_in_name
+    assert len(ag.components) > 0
+    for cc in ag.components:
+        assert not cc.count_positive_names
+        assert cc.num_positive_names == 0

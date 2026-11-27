@@ -69,6 +69,7 @@ class Component(Subgraph):
             node_centric=node_centric,
             length_field=length_field,
             record_node_names=record_node_names,
+            count_positive_names=count_positive_names,
         )
 
     def set_cc_num(self, cc_num):
