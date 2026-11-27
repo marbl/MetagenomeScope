@@ -611,6 +611,12 @@ class Subgraph(object):
         else:
             raise WeirdError("Decoupling not done")
 
+    def get_dc_shown_patterns(self):
+        if self.decoupling_done:
+            return graph_utils.filter_objs_by_ids(self.patterns, self.dc_shown_patt_ids)
+        else:
+            raise WeirdError("Decoupling not done")
+
     def get_nodes(self, nr_type=ui_config.CHART_DOUBLE):
         if nr_type == ui_config.CHART_SINGLE and self.decoupling_done:
             return self.get_dc_shown_nodes()
@@ -692,7 +698,7 @@ class DecoupledSubgraph(Subgraph):
             f"dc_{sg.name}",
             sg.get_dc_shown_nodes(),
             sg.get_dc_drawn_edges(),  # lumps shown & inval edges together
-            graph_utils.filter_objs_by_ids(sg.patterns, sg.dc_shown_patt_ids),
+            sg.get_dc_shown_patterns(),
             node_centric=sg.node_centric,
             length_field=sg.length_field,
             record_node_names=sg.record_node_names,
