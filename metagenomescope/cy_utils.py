@@ -3,27 +3,41 @@ from .layout import layout_config
 from .errors import WeirdError
 
 
-def get_selected_node_nonpattern_style(selected_node_settings):
+def get_selected_node_nonpattern_style(
+    selected_node_settings, node_labels_offset
+):
     """Determines styles for selected non-pattern nodes."""
     selected_node_nonpattern_style = {
         "z-index": "1",
         "z-index-compare": "manual",
     }
+    havent_set_selected_text_style = True
     if ui_config.SELECTED_NODE_DARKEN in selected_node_settings:
         selected_node_nonpattern_style.update(
             {
                 "background-blacken": 0.65,
-                "color": "#ccc",
-                "text-outline-color": cy_config.SELECTED_OBJ_DARK_OUTLINE_COLOR,
             }
         )
-    else:
+        # only change label color (to use light labels with a dark outline)
+        # if labels are drawn on top of the darkened nodes. See
+        # https://github.com/marbl/MetagenomeScope/issues/495
+        if not node_labels_offset:
+            selected_node_nonpattern_style.update(
+                {
+                    "color": "#ccc",
+                    "text-outline-color": cy_config.SELECTED_OBJ_DARK_OUTLINE_COLOR,
+                }
+            )
+            havent_set_selected_text_style = False
+
+    if havent_set_selected_text_style:
         selected_node_nonpattern_style.update(
             {
                 "color": "#000",
                 "text-outline-color": cy_config.SELECTED_OBJ_OUTLINE_COLOR,
             }
         )
+
     if ui_config.SELECTED_NODE_BORDER in selected_node_settings:
         selected_node_nonpattern_style.update(
             {
@@ -271,6 +285,7 @@ def get_cyjs_stylesheet(
     # 0.5em, as in edge-centric graphs like the flye yeast example).
     text_outline_width = max(1, label_font_size / 2)
 
+    node_labels_offset = False
     if ui_config.NODE_LABELS in labels:
         # yeah yeah i know that literally the first entry in the stylesheet
         # is node.nonpattern so we could just say stylesheet[0].update()...
@@ -282,6 +297,7 @@ def get_cyjs_stylesheet(
                 nodelabelstyle.update(labelstyle)
                 if ui_config.LABEL_OFFSET in node_label_settings:
                     nodelabelstyle["text-valign"] = "top"
+                    node_labels_offset = True
                 else:
                     nodelabelstyle["text-valign"] = "center"
                 if ui_config.LABEL_OUTLINE in node_label_settings:
@@ -392,7 +408,7 @@ def get_cyjs_stylesheet(
     # in order to allow a node to change color when selected (depending on
     # the style settings).
     selected_node_nonpattern_style = get_selected_node_nonpattern_style(
-        selected_node_settings
+        selected_node_settings, node_labels_offset
     )
 
     stylesheet.extend(
