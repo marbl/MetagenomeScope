@@ -613,7 +613,9 @@ class Subgraph(object):
 
     def get_dc_shown_patterns(self):
         if self.decoupling_done:
-            return graph_utils.filter_objs_by_ids(self.patterns, self.dc_shown_patt_ids)
+            return graph_utils.filter_objs_by_ids(
+                self.patterns, self.dc_shown_patt_ids
+            )
         else:
             raise WeirdError("Decoupling not done")
 
