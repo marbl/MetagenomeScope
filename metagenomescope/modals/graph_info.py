@@ -91,10 +91,12 @@ def get_cc_treemap_tab(ag):
     )
 
 
-def get_cc_hist_tab():
+def get_cc_hist_tab(ag):
     return html.Div(
         [
             html.Div(id="ccHistContainer"),
+            chart_utils.get_nr_cc_option(ag, "ccHistNRType"),
+            ui_config.OPTIONS_SEP,
             chart_utils.get_node_edge_toggle("ccHistEleType"),
             ui_config.OPTIONS_SEP,
             chart_utils.get_hist_options(
@@ -190,7 +192,7 @@ def get_components_tab(ag):
         modal_utils.get_pane(
             get_cc_treemap_tab(ag), "graphInfoCCTreemapTab", selected=True
         ),
-        modal_utils.get_pane(get_cc_hist_tab(), "graphInfoCCHistTab"),
+        modal_utils.get_pane(get_cc_hist_tab(ag), "graphInfoCCHistTab"),
     ]
     # Only show coverage x length scatterplot if the graph has coverage data
     if ag.has_covs:

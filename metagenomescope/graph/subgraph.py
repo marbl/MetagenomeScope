@@ -186,6 +186,9 @@ class Subgraph(object):
         # number of + nodes, but we don't currently enforce symmetry. So let's
         # be safe...
         self.dc_shown_num_full_nodes = 0
+        # Number of shown edges + number of invalidated edges in the decoupled
+        # version of this subgraph. Also useful for stats.
+        self.dc_drawn_num_edges = 0
 
         for n in nodes:
             self._add_node(n)
@@ -450,6 +453,7 @@ class Subgraph(object):
         # Record what edges will be drawn in the decoupled version of this
         # subgraph...
         shown_eids = set()
+        num_shown_real_edges = 0
         # ...as well as InvalidatedEdge objects created to represent edges that
         # cannot be shown as-is.
         inval_edgetups = set()
@@ -469,6 +473,8 @@ class Subgraph(object):
                 if tgt_shown:
                     # If BOTH {src, tgt} are shown, then we can draw this edge!
                     shown_eids.add(e.unique_id)
+                    if not e.is_fake:
+                        num_shown_real_edges += 1
                 else:
                     inval_type = config.INVAL_TGT
             else:
@@ -480,7 +486,17 @@ class Subgraph(object):
 
             if inval_type is not None:
                 # Exactly one of {src, tgt} is shown. This edge is invalidated.
-                #
+
+                # Invalidated edges should always be real, since the decision
+                # to show or not show a node should be done to both a node and
+                # its RC. Let's check anyway out of paranoia so we can safely
+                # know the stats are correct (i.e. that each invalidated edge
+                # counts as real).
+                if e.is_fake:
+                    raise WeirdError(
+                        f"Inval fake edge {e} for {self}? Should never happen"
+                    )
+
                 # Consider the case where there are parallel invalidated edges
                 # (multiple from s -> t and multiple from -t -> -s). We could
                 # show (with the funky port stuff) either all edges from
@@ -572,6 +588,9 @@ class Subgraph(object):
             self.dc_shown_edge_ids,
         )
         self.dc_shown_num_full_nodes = len(on2orient)
+        # Per the sanity check above we have it guaranteed that each
+        # invalidated edge is real
+        self.dc_drawn_num_real_edges = num_shown_real_edges + len(inval_edges)
         self.decoupling_done = True
         return True
 

@@ -297,15 +297,20 @@ def get_scatterplot_options(x_scale_id, y_scale_id):
     )
 
 
+def get_ele_nouns(ele_type):
+    return "nodes" if ele_type == ui_config.NODES_HIST else "edges"
+
+
 def get_treemap_options(ag):
-    return get_nr_cc_option(ag, "ccTreemapType")
+    return get_nr_cc_option(ag, "ccTreemapNRType")
 
 
-def get_treemap_title(treemap_type):
-    if treemap_type == ui_config.CHART_SINGLE:
-        return "Number of nodes per component (nonredundant and decoupled)"
+def get_cc_plot_title(ele_type, nr_type):
+    nouns = get_ele_nouns(ele_type)
+    if nr_type == ui_config.CHART_SINGLE:
+        return f"Number of {nouns} per component (nonredundant and decoupled)"
     else:
-        return "Number of nodes per component (all components)"
+        return f"Number of {nouns} per component (all components)"
 
 
 def trim_seq_name(n, is_seq=False, cutoff=8):

@@ -85,15 +85,16 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 
 - Add the option
   `Show only nonredundant components, and decouple strand-tangled components?`
-  for the treemap
+  to the treemap and component histogram
   ([#332](https://github.com/marbl/MetagenomeScope/issues/332)).
 
   - This is selected by default for all graphs where possible (currently, the
     only graphs where this is not selected by default are MetaCarvel GML and
     Flye DOT files).
 
-  - This makes the treemap more useful in most cases, because it will just
-    represent each pair of nodes {`X`, `-X`} once instead of twice.
+  - This makes these plots more useful in most cases, because it will just
+    represent each pair of nodes {`X`, `-X`} once instead of twice. (Same for
+    edges.)
 
 - Add the `--dry` command-line option. If specified, this will quit before
   starting a server with Dash. (Useful for benchmarking.)

@@ -1887,23 +1887,52 @@ class AssemblyGraph(object):
                     del self.nodeid2obj[node_id]
                     del self.edgeid2obj[fe_id]
 
-    def get_component_node_cts(self):
-        """Returns a list of "full" node counts in each component.
+    def get_component_ele_cts(self, ele_type, nr_type=ui_config.CHART_DOUBLE):
+        """Returns a list of full node / real edge counts in each component.
 
-        That is, this treats each pair of split nodes A-L and A-R as a single
-        node, but also treats reverse-complementary nodes separately (so, if a
-        component contains both node A and node -A, then this will count as two
-        nodes). And the corollary of that is that if a component has
-        A-L, A-R, -A-L, and -A-R, then it contains just two nodes.
+        Parameters
+        ----------
+        ele_type: str
+            One of {ui_config.NODES_HIST, EDGES_HIST}.
 
-        So like this is what we want to show the user - node splitting won't
-        impact these results.
+        nr_type: str
+            ui_config.CHART_DOUBLE is the old way of doing this: get the full
+            counts from all components, ignoring whether or not a
+            component counts as "redundant" or has been decoupled.
+
+            ui_config.CHART_SINGLE is the new way of doing this: only get
+            counts from nonredundant components, and if a component has been
+            decoupled then just use its info from the decoupling. For nodes,
+            this means that we'll just use the number of shown full nodes in
+            the decoupled version of this component; for edges, this means
+            we'll use the number of real shown edges + invalidated edges.
+
+        Returns
+        -------
+        List of counts (one entry per component).
         """
-        return [cc.num_full_nodes for cc in self.components]
+        single = nr_type == ui_config.CHART_SINGLE
+        nodes = ele_type == ui_config.NODES_HIST
 
-    def get_component_edge_cts(self):
-        """Returns a list of "real" edge counts in each component."""
-        return [cc.num_real_edges for cc in self.components]
+        if single:
+            ccs = [self.get_cc_by_num(i) for i in self.nr_cc_nums]
+        else:
+            ccs = self.components
+
+        cts = []
+        for cc in ccs:
+            if single and cc.decoupling_done:
+                if nodes:
+                    x = cc.dc_shown_num_full_nodes
+                else:
+                    x = cc.dc_drawn_num_real_edges
+            else:
+                if nodes:
+                    x = cc.num_full_nodes
+                else:
+                    x = cc.num_real_edges
+            cts.append(x)
+        return cts
 
     def get_nodepatt_obj(self, node_id):
         """Returns the Node or Pattern object for a node ID.

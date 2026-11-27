@@ -1355,6 +1355,7 @@ def run(
             Input("ccHistMaxXApply", "n_clicks"),
             Input("ccHistYScale", "value"),
             Input("ccHistEleType", "value"),
+            Input("ccHistNRType", "value"),
             prevent_initial_call=True,
         )
         def plot_cc_hist(
@@ -1368,6 +1369,7 @@ def run(
             maxx_n_clicks,
             yscale,
             ele_type,
+            nr_type,
         ):
             try:
                 ibins = ui_utils.get_hist_nbins(nbinsx)
@@ -1380,17 +1382,15 @@ def run(
                     no_update,
                 )
             graph_utils.validate_multiple_ccs(ag)
+            cts = ag.get_component_ele_cts(ele_type, nr_type)
             if ele_type == ui_config.NODES_HIST:
-                cts = ag.get_component_node_cts()
-                nouns = "nodes"
                 barcolor = "#0a0"
             else:
-                cts = ag.get_component_edge_cts()
-                nouns = "edges"
                 barcolor = "#7a0"
 
-            title = f"Number of {nouns} per component (all components)"
+            title = chart_utils.get_cc_plot_title(ele_type, nr_type)
             cts, title = ui_utils.truncate_hist(cts, title, maxx)
+            nouns = chart_utils.get_ele_nouns(ele_type)
 
             fig = go.Figure()
             fig.add_trace(
@@ -1414,20 +1414,20 @@ def run(
 
         @callback(
             Output("ccTreemapContainer", "children"),
-            Input("ccTreemapType", "value"),
+            Input("ccTreemapNRType", "value"),
             Input("infoCCTab", "n_clicks"),
             prevent_initial_call=True,
         )
-        def plot_cc_treemap(treemap_type, n_clicks):
-            cc_names, cc_parents, cc_sizes, cc_aggs = ag.to_treemap(
-                treemap_type
-            )
+        def plot_cc_treemap(nr_type, n_clicks):
+            cc_names, cc_parents, cc_sizes, cc_aggs = ag.to_treemap(nr_type)
             # silly thing: scale the aggregated rectangles' colors along a
             # distinct gradient to make them stand out visually
             cc_marker_colors = color_utils.selectively_interpolate_hsl(
                 cc_aggs, S=5
             )
-            title = chart_utils.get_treemap_title(treemap_type)
+            title = chart_utils.get_cc_plot_title(
+                ui_config.NODES_HIST, nr_type
+            )
             fig = go.Figure(
                 go.Treemap(
                     # actual data
